@@ -1,0 +1,39 @@
+/* ==========================================================================
+   SkillExa Core Keyframes & UI Micro-Interactions
+   ========================================================================== */
+
+@keyframes slideIn {
+    from { transform: translateX(120%); opacity: 0; }
+    to { transform: translateX(0); opacity: 1; }
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(8px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes pulseStreak {
+    0% { transform: scale(1); filter: drop-shadow(0 0 2px rgba(245, 158, 11, 0.4)); }
+    50% { transform: scale(1.05); filter: drop-shadow(0 0 12px rgba(245, 158, 11, 0.7)); }
+    100% { transform: scale(1); filter: drop-shadow(0 0 2px rgba(245, 158, 11, 0.4)); }
+}
+
+.animate-fade-in {
+    animation: fadeIn 0.4s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+}
+
+.streak-active-animation {
+    animation: pulseStreak 2s infinite ease-in-out;
+}
+
+/* Shimmer Loading State Rule */
+.skeleton {
+    background: linear-gradient(90deg, var(--border) 25%, var(--background) 50%, var(--border) 75%);
+    background-size: 200% 100%;
+    animation: loadingShimmer 1.5s infinite;
+}
+
+@keyframes loadingShimmer {
+    0% { background-position: 200% 0; }
+    100% { background-position: -200% 0; }
+}

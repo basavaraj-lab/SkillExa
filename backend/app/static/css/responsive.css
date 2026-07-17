@@ -1,0 +1,31 @@
+/* ==========================================================================
+   SkillExa Structural Fluid Layout Framework & Media Breakpoints
+   ========================================================================== */
+
+@media (max-width: 1024px) {
+    :root { --sidebar-width: 80px; }
+    .sidebar .link-text, .sidebar .logo-text { display: none; }
+    .sidebar .nav-item { justify-content: center; padding: 1rem; }
+    .main-content { margin-left: 80px; padding: 1.5rem; }
+}
+
+@media (max-width: 768px) {
+    body { flex-direction: column; }
+    .sidebar {
+        width: 100%;
+        height: 60px;
+        flex-direction: row;
+        position: fixed;
+        bottom: 0;
+        top: auto;
+        border-right: none;
+        border-top: 1px solid var(--border);
+        justify-content: space-around;
+        padding: 0;
+    }
+    .sidebar .logo-container { display: none; }
+    .sidebar .nav-menu { flex-direction: row; width: 100%; justify-content: space-around; }
+    .main-content { margin-left: 0; margin-bottom: 60px; padding: 1rem; }
+    .navbar { padding: 0.5rem 0; }
+    .grid-dashboard, .grid-topics { grid-template-columns: 1fr; }
+}
