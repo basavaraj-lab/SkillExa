@@ -40,18 +40,136 @@ TOPIC_CORE = {
         "example": "print('Welcome to SkillExa')",
         "output": "Welcome to SkillExa",
     },
-    2: {
-        "concept": "Install Python and verify it in terminal using python --version.",
-        "syntax": "python --version",
-        "example": "import sys\nprint(sys.version.split()[0])",
-        "output": "3.x",
+     2: {
+        "title": "Install Python",
+        "theory": {
+            "overview": "...",
+            "steps": [
+                "Download Python",
+                "Install Python",
+                "Verify Installation"
+            ]
+        },
+        "example": {
+            "code": "import sys\nprint(sys.version)",
+            "output": "3.14.0"
+        },
+       "fill_blanks": {
+    "question": "import _____\nprint(_____.version)",
+    "answers": [
+        "sys",
+        "sys"
+    ]
+},
+        "practice": {
+            "title": "Print Python Version",
+            "starter_code": "import sys\n\n# Write your code here"
+        },
+        "skill_exa_test": [
+            {
+                "question": "Python is a ____ language?",
+                "options": [
+                    "Interpreted",
+                    "Compiled",
+                    "Machine",
+                    "Assembly"
+                ],
+                "answer": "Interpreted"
+            },
+            {
+                "question": "Which command checks Python version?",
+                "options": [
+                    "python --version",
+                    "version python",
+                    "py version",
+                    "python install"
+                ],
+                "answer": "python --version"
+            }
+        ],
+        "xp": 50,
+        "unlock_next": 3
     },
-    3: {
-        "concept": "Variables store values and can change type dynamically in Python.",
-        "syntax": "name = 'SkillExa'",
-        "example": "count = 5\ncount = count + 1\nprint(count)",
+   3: {
+    "title": "Variables",
+
+    "theory": {
+        "definition": "A variable is a name used to store data in memory. Variables allow you to save values and use them later in your program.",
+
+        "why": "Variables make programs flexible and reusable because you can change the stored value without changing the rest of the code.",
+
+        "rules": [
+            "Variable names can contain letters, numbers, and underscores (_).",
+            "A variable name cannot start with a number.",
+            "Variable names are case-sensitive.",
+            "Avoid using Python keywords like if, for, while, class, etc."
+        ],
+
+        "examples": [
+            "name = 'SkillExa'",
+            "age = 20",
+            "price = 99.99",
+            "is_student = True"
+        ]
+    },
+
+    "syntax": "variable_name = value",
+
+    "example": {
+        "code": "count = 5\ncount = count + 1\nprint(count)",
         "output": "6",
+        "explanation": "The variable 'count' stores 5. We increase it by 1, so the final value becomes 6."
     },
+
+    "fill_blanks": {
+        "question": "_____ = 10\nprint(number)",
+        "answer": "number"
+    },
+
+    "compiler": {
+        "title": "Create a Variable",
+        "question": "Write a Python program that stores your name in a variable and prints it.",
+        "starter_code": "# Write your code below\n"
+    },
+
+    "skill_exa_test": [
+        {
+            "question": "What is a variable?",
+            "options": [
+                "A function",
+                "A memory location used to store data",
+                "A loop",
+                "A keyword"
+            ],
+            "answer": "A memory location used to store data"
+        },
+        {
+            "question": "Which is a valid variable name?",
+            "options": [
+                "2name",
+                "my_name",
+                "class",
+                "@name"
+            ],
+            "answer": "my_name"
+        },
+        {
+            "question": "Fill in the blank:\n_____ = 'Python'\nprint(language)",
+            "options": [
+                "language",
+                "Python",
+                "print",
+                "value"
+            ],
+            "answer": "language"
+        }
+    ],
+    "completion": {
+        "xp": 50,
+        "badge": "Variables Beginner",
+        "unlock_next": 4
+    }
+},
     4: {
         "concept": "Common built-in types include int, float, str, bool, list, tuple, set, and dict.",
         "syntax": "print(type(10), type('A'))",
@@ -174,21 +292,91 @@ TOPIC_CORE = {
     },
 }
 
-
 def _build_topic(topic_meta: dict[str, object]) -> dict[str, object]:
     topic_id = int(topic_meta["id"])
     core = TOPIC_CORE[topic_id]
     title = str(topic_meta["title"])
+
+    theory = core.get("theory")
+    if not isinstance(theory, dict):
+        theory = {
+            "definition": str(core.get("concept", "")),
+            "why": f"{title} builds a foundation for practical Python work.",
+            "rules": [
+                "Read the syntax carefully before running the code.",
+                "Change one value at a time when experimenting.",
+                "Use print() to confirm what the program returns.",
+            ],
+            "examples": [str(core.get("example", ""))],
+        }
+
+    example = core.get("example")
+    if not isinstance(example, dict):
+        example = {
+            "code": str(example or ""),
+            "output": str(core.get("output", "")),
+            "explanation": f"This example demonstrates {title.lower()} in action.",
+        }
+
+    fill_blanks = core.get("fill_blanks")
+    if not isinstance(fill_blanks, dict):
+        fill_blanks = {
+            "question": f"Topic {topic_id} title is _______.",
+            "answer": title,
+        }
+
+    compiler = core.get("compiler")
+    if not isinstance(compiler, dict):
+        compiler = {
+            "title": f"Practice {title}",
+            "question": f"Write a short Python program that demonstrates {title}.",
+            "starter_code": "# Write your code below\n",
+        }
+
+    skill_exa_test = core.get("skill_exa_test")
+    if not isinstance(skill_exa_test, list):
+        skill_exa_test = [
+            {
+                "question": f"Which topic number corresponds to {title}?",
+                "options": [str(topic_id), "1", "10", "20"],
+                "answer": str(topic_id),
+            }
+        ]
+
+    practice = core.get("practice")
+    if not isinstance(practice, list):
+        practice = [
+            f"Write one short program that demonstrates {title}.",
+            "Add input validation and clear output formatting.",
+            "Refactor your code into at least one function.",
+            "Test with normal, edge, and invalid inputs.",
+            "Document what you learned in 3-5 lines.",
+        ]
+
+    completion = core.get("completion")
+    if not isinstance(completion, dict):
+        completion = {
+            "xp": 50,
+            "badge": f"{title} Beginner",
+            "unlock_next": topic_id + 1,
+        }
+
+    theory_definition = str(core.get("concept") or theory.get("definition") or theory.get("overview") or "")
 
     return {
         "id": topic_id,
         "title": title,
         "difficulty": topic_meta["difficulty"],
         "duration": topic_meta["duration"],
-        "concept": core["concept"],
-        "syntax": core["syntax"],
-        "example": core["example"],
-        "output": core["output"],
+        "concept": theory_definition,
+        "syntax": str(core.get("syntax", "")),
+        "example": example,
+        "output": str(example.get("output", core.get("output", ""))),
+        "theory": theory,
+        "fill_blanks": fill_blanks,
+        "compiler": compiler,
+        "skill_exa_test": skill_exa_test,
+        "completion": completion,
         "notes": [
             f"{title} is part of the SkillExa guided Python path.",
             "Review syntax first, then run the example code.",
@@ -196,72 +384,8 @@ def _build_topic(topic_meta: dict[str, object]) -> dict[str, object]:
             "Focus on correctness before optimization.",
             "Revisit the quiz to reinforce retention.",
         ],
-        "fill_blanks": [
-            {"question": f"Topic {topic_id} title is _______.", "answer": title},
-            {"question": "Python files use the .___ extension.", "answer": "py"},
-            {"question": "A reusable block of code is called a _______.", "answer": "function"},
-            {"question": "Errors can be handled using try and _______.", "answer": "except"},
-            {"question": "Lists in Python are _______ (mutable/immutable).", "answer": "mutable"},
-        ],
-        "quiz": [
-            {
-                "question": f"Which topic number corresponds to {title}?",
-                "options": [str(topic_id), "1", "10", "20"],
-                "answer": str(topic_id),
-            },
-            {
-                "question": "Which keyword defines a function in Python?",
-                "options": ["func", "def", "function", "lambda"],
-                "answer": "def",
-            },
-            {
-                "question": "Which collection type is mutable?",
-                "options": ["tuple", "str", "list", "frozenset"],
-                "answer": "list",
-            },
-            {
-                "question": "Which statement handles exceptions?",
-                "options": ["if", "for", "try", "with"],
-                "answer": "try",
-            },
-            {
-                "question": "Which operator checks equality?",
-                "options": ["=", "==", "!=", ">="],
-                "answer": "==",
-            },
-            {
-                "question": "What does input() return by default?",
-                "options": ["int", "float", "str", "bool"],
-                "answer": "str",
-            },
-            {
-                "question": "Which built-in gets sequence length?",
-                "options": ["size", "count", "len", "length"],
-                "answer": "len",
-            },
-            {
-                "question": "Which loop is condition based?",
-                "options": ["for", "while", "repeat", "foreach"],
-                "answer": "while",
-            },
-            {
-                "question": "Which one is a dictionary literal?",
-                "options": ["[]", "()", "{}", "<>"],
-                "answer": "{}",
-            },
-            {
-                "question": "Which keyword imports a module?",
-                "options": ["include", "require", "import", "using"],
-                "answer": "import",
-            },
-        ],
-        "practice": [
-            f"Write one short program that demonstrates {title}.",
-            "Add input validation and clear output formatting.",
-            "Refactor your code into at least one function.",
-            "Test with normal, edge, and invalid inputs.",
-            "Document what you learned in 3-5 lines.",
-        ],
+        "quiz": skill_exa_test,
+        "practice": practice,
         "mastery_test": {"mcq": 5, "coding": 2, "passing_marks": 70},
     }
 

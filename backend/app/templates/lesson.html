@@ -10,15 +10,24 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 </head>
 <body>
-    <div class="app-container">
+    <div class="app-container" id="lesson-app" data-topic-id="{{ topic_id }}">
         <main class="main-content" style="margin-left:0; width:100%; padding:1.5rem; display:flex; flex-direction:column; min-height:100vh;">
             <header style="display:flex; justify-content:space-between; align-items:center; margin-bottom:1.5rem;">
-                <div style="display:flex; align-items:center; gap:1rem;">
+                <div style="display:flex; align-items:center; gap:1rem; flex-wrap:wrap;">
                     <a href="/topics" style="color:var(--text-main); text-decoration:none;"><i class="fas fa-arrow-left"></i> Exit to Core Track</a>
-                    <h2 style="font-size:1.25rem;">Working Session: Variables Allocation</h2>
+                    <div>
+                        <p style="margin:0; color:var(--text-muted); font-size:0.8rem; text-transform:uppercase; letter-spacing:0.08em;">Python Topic {{ topic.id }}</p>
+                        <h2 id="lesson-title" style="font-size:1.25rem; margin:0;">{{ topic.title }}</h2>
+                    </div>
                 </div>
-                <div style="width:40%; height:8px; background:var(--border); border-radius:4px; overflow:hidden;">
+                <div style="width:40%; min-width:220px;">
+                    <div style="display:flex; justify-content:space-between; font-size:0.85rem; color:var(--text-muted); margin-bottom:0.35rem;">
+                        <span>{{ topic.difficulty }}</span>
+                        <span>{{ topic.duration }}</span>
+                    </div>
+                    <div style="height:8px; background:var(--border); border-radius:4px; overflow:hidden;">
                     <div style="width:65%; height:100%; background:var(--success); border-radius:4px;"></div>
+                    </div>
                 </div>
             </header>
 
@@ -26,33 +35,197 @@
             <div style="display:grid; grid-template-columns: 1fr 1fr; gap:1.5rem; flex:1;">
                 <!-- Workspace Context Component Pane Frame -->
                 <div class="card-glass" style="display:flex; flex-direction:column; gap:1rem; overflow-y:auto;">
-                    <h3>Memory Bindings and Variable Assignment</h3>
-                    <p style="color:var(--text-muted); line-height:1.6;">In Python, variables serve as placeholders referencing explicit addresses allocated across runtime memory boundaries. Unlike static engines, definition occurs implicitly upon execution assignment.</p>
+                    <div>
+                        <p style="margin:0 0 0.35rem; color:var(--text-muted); text-transform:uppercase; font-size:0.75rem; letter-spacing:0.08em;">Theory</p>
+                        <h3 style="margin:0;">{{ topic.title }} Overview</h3>
+                    </div>
+                    <p style="color:var(--text-muted); line-height:1.7; margin:0;">{{ topic.theory.definition }}</p>
+                    <p style="color:var(--text-muted); line-height:1.7; margin:0;">{{ topic.theory.why }}</p>
+
                     <div style="background:var(--background); padding:1rem; border-radius:var(--radius-md); border-left:4px solid var(--primary);">
                         <span style="font-weight:600; font-size:0.875rem; display:block; margin-bottom:0.25rem;">Core Syntax Principle</span>
-                        <code style="color:var(--primary);">variable_name = assigned_value</code>
+                        <code style="color:var(--primary);">{{ topic.syntax }}</code>
                     </div>
+
+                    <div style="background:var(--background); padding:1rem; border-radius:var(--radius-md);">
+                        <span style="font-weight:600; display:block; margin-bottom:0.75rem;">Rules</span>
+                        <ul style="margin:0; padding-left:1.15rem; color:var(--text-muted); line-height:1.7;">
+                            {% for rule in topic.theory.rules %}
+                            <li>{{ rule }}</li>
+                            {% endfor %}
+                        </ul>
+                    </div>
+
+                    <div style="background:var(--background); padding:1rem; border-radius:var(--radius-md);">
+                        <span style="font-weight:600; display:block; margin-bottom:0.75rem;">Examples</span>
+                        <div style="display:flex; flex-direction:column; gap:0.5rem; color:var(--text-muted);">
+                            {% for example in topic.theory.examples %}
+                            <code style="display:block; padding:0.6rem 0.75rem; background:rgba(37,99,235,0.08); border-radius:var(--radius-sm); color:var(--primary);">{{ example }}</code>
+                            {% endfor %}
+                        </div>
+                    </div>
+
+                    <div style="background:var(--background); padding:1rem; border-radius:var(--radius-md);">
+                        <span style="font-weight:600; display:block; margin-bottom:0.4rem;">Example Output</span>
+                        <pre style="margin:0; white-space:pre-wrap; color:var(--text-muted); line-height:1.6;">{{ topic.example.code }}</pre>
+                        <div style="margin-top:0.75rem; padding:0.75rem; border-radius:var(--radius-sm); background:rgba(16,185,129,0.08); color:#047857;">
+                            <strong>Output:</strong> {{ topic.example.output }}
+                        </div>
+                        <p style="margin:0.75rem 0 0; color:var(--text-muted);">{{ topic.example.explanation }}</p>
+                    </div>
+
+                  <div style="background:var(--background); padding:1rem; border-radius:var(--radius-md);">
+                     <span style="font-weight:600; display:block; margin-bottom:0.4rem;">
+                         Fill in the Blank
+                         </span>
+
+                        <div id="fill-blanks-container">
+                            {% set question = topic.fill_blanks.question %}
+                            {% set parts = question.split("_____") %}
+
+                             <pre style="margin:0; white-space:pre-wrap; color:var(--text-muted); line-height:1.8;">
+                                {% for part in parts[:-1] -%}
+                                {{ part }}<input
+                                    type="text"
+                                    class="blank-input"
+                                     style="
+                                     width:90px;
+                                     padding:4px 6px;
+                                     border:1px solid #CBD5E1;
+                                     border-radius:4px;
+                                     font-family:monospace;
+                                     margin:0 3px;
+                                     
+                                    ">
+                                    {%- endfor %}
+                                    {{ parts[-1] }}
+                                 </pre>
+
+                                    <button
+                                        id="check-answer"
+                                        type="button"
+                                        style="
+                                        margin-top:12px;
+                                        padding:8px 18px;
+                                        background:#2563EB;
+                                        color:white;
+                                        border:none;
+                                        border-radius:6px;
+                                        cursor:pointer;
+                                            ">
+                                            Check Answer
+                                        </button>
+
+                                        <p
+                                            id="fill-result"
+                                            style="
+                                                margin-top:10px;
+                                                font-weight:bold;
+                                            ">
+                                        </p>
+                                    </div>
+                                </div>
+
+                    <div style="background:var(--background); padding:1rem; border-radius:var(--radius-md);">
+                        <span style="font-weight:600; display:block; margin-bottom:0.4rem;">Compiler Challenge</span>
+                        <p style="margin:0; color:var(--text-muted); line-height:1.6;">{{ topic.compiler.question }}</p>
+                    </div>
+
+                    <div style="background:var(--background); padding:1rem; border-radius:var(--radius-md);">
+                        <span style="font-weight:600; display:block; margin-bottom:0.75rem;">Skill Exa Test</span>
+                        <div id="skill-exa-test-panel" style="display:flex; flex-direction:column; gap:1rem;">
+                            {% for question in topic.skill_exa_test %}
+                            {% set question_index = loop.index0 %}
+                            <div class="skill-exa-question" data-index="{{ loop.index0 }}" style="padding:0.85rem; border:1px solid var(--border); border-radius:var(--radius-sm); background:rgba(255,255,255,0.45);">
+                                <p style="margin:0 0 0.75rem; color:var(--text-main); font-weight:600; white-space:pre-line;">{{ question.question }}</p>
+                                <div style="display:flex; flex-direction:column; gap:0.5rem;">
+                                    {% for option in question.options %}
+                                    <label style="display:flex; align-items:center; gap:0.75rem;">
+                                        <input type="radio" name="skill-exa-{{ question_index }}" value="{{ option }}" style="accent-color:var(--primary);">
+                                        <span style="color:var(--text-muted);">{{ option }}</span>
+                                    </label>
+                                    {% endfor %}
+                                </div>
+                            </div>
+                            {% endfor %}
+                        </div>
+                        <button id="check-skill-exa-test" type="button" style="margin-top:1rem; padding:0.75rem 1rem; border:none; border-radius:var(--radius-sm); background:var(--primary-gradient); color:white; font-weight:600; cursor:pointer;">Check Skill Exa Test</button>
+                        <p id="skill-exa-result" style="margin:0.75rem 0 0; font-weight:600;"></p>
+                    </div>
+
+                    {% if topic.completion.unlock_next %}
+                    <a href="/lesson/{{ topic.completion.unlock_next }}" style="display:inline-flex; align-items:center; justify-content:center; gap:0.5rem; padding:0.9rem 1rem; border-radius:var(--radius-md); background:rgba(37,99,235,0.1); color:var(--primary); text-decoration:none; font-weight:600;">
+                        Continue to Next Topic
+                        <i class="fas fa-arrow-right"></i>
+                    </a>
+                    {% endif %}
                 </div>
 
                 <!-- Live Evaluation Code Editor Interaction Component Module -->
-                <div class="card-glass" style="background:#1E293B; color:#F8FAFC; display:flex; flex-direction:column;">
+                <form class="card-glass" method="post" action="/lesson/{{ topic_id }}/execute" style="background:#1E293B; color:#F8FAFC; display:flex; flex-direction:column; border:none;">
                     <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid #334155; padding-bottom:0.75rem; margin-bottom:1rem;">
                         <span style="font-family:monospace; color:#94A3B8;"><i class="fas fa-code"></i> solution_sandbox.py</span>
-                        <button id="execute-code-trigger" style="background:var(--success); border:none; color:white; padding:0.4rem 1rem; border-radius:var(--radius-sm); font-weight:600; cursor:pointer;"><i class="fas fa-play"></i> Run Sandbox</button>
+                        <button id="execute-code-trigger" type="submit" style="background:var(--success); border:none; color:white; padding:0.4rem 1rem; border-radius:var(--radius-sm); font-weight:600; cursor:pointer;"><i class="fas fa-play"></i> Run Sandbox</button>
                     </div>
-                    <textarea id="code-mirror-textarea" style="flex:1; background:none; border:none; color:#38BDF8; font-family:'JetBrains Mono', monospace; font-size:1rem; resize:none; outline:none; line-height:1.5;"># Assign a string to the 'user_status' variable balance framework below
-user_status = "Active Engine"
-print(user_status)</textarea>
+                    <textarea id="code-mirror-textarea" name="code" style="flex:1; background:none; border:none; color:#38BDF8; font-family:'JetBrains Mono', monospace; font-size:1rem; resize:none; outline:none; line-height:1.5;">{{ submitted_code or topic.compiler.starter_code }}</textarea>
                     <div style="height:120px; background:#0F172A; border-top:1px solid #334155; padding:0.75rem; border-radius:var(--radius-sm);">
                         <span style="font-size:0.75rem; text-transform:uppercase; color:#64748B; font-weight:700; display:block; margin-bottom:0.25rem;">Interpreter Console Output Terminal</span>
-                        <pre id="terminal-mount-node" style="color:#10B981;">[Runtime Idle]</pre>
+                        {% if execution_success is defined and not execution_success %}
+                        <pre id="terminal-mount-node" style="color:#EF4444;">{{ execution_output or topic.example.output }}</pre>
+                        {% else %}
+                        <pre id="terminal-mount-node" style="color:#10B981;">{{ execution_output or topic.example.output }}</pre>
+                        {% endif %}
                     </div>
-                </div>
+                </form>
             </div>
         </main>
     </div>
 
-    <script src="/static/js/main.js"></script>
-    <script src="/static/js/lesson.js"></script>
+    <script id="lesson-topic-data" type="application/json">{{ topic | tojson }}</script>
+
+    <script>
+        (function () {
+            const topicDataNode = document.getElementById('lesson-topic-data');
+            const topic = topicDataNode ? JSON.parse(topicDataNode.textContent) : {};
+            const fillContainer = document.getElementById('fill-blanks-container');
+            const fillButton = document.getElementById('check-answer');
+            const fillResult = document.getElementById('fill-result');
+            const skillButton = document.getElementById('check-skill-exa-test');
+            const skillResult = document.getElementById('skill-exa-result');
+
+            if (fillButton && fillContainer && fillResult) {
+                fillButton.addEventListener('click', () => {
+                    const fillData = topic.fill_blanks || {};
+                    const expectedAnswers = Array.isArray(fillData.answers)
+                        ? fillData.answers
+                        : [fillData.answer || ''];
+                    const userAnswers = Array.from(fillContainer.querySelectorAll('.blank-input')).map((input) => input.value.trim());
+                    const isCorrect = expectedAnswers.length === userAnswers.length && expectedAnswers.every((answer, index) => answer.toLowerCase() === (userAnswers[index] || '').toLowerCase());
+
+                    fillResult.textContent = isCorrect
+                        ? 'Correct. The blank is filled properly.'
+                        : `Not quite. Expected ${expectedAnswers.join(', ')}.`;
+                    fillResult.style.color = isCorrect ? '#10B981' : '#EF4444';
+                });
+            }
+
+            if (skillButton && skillResult) {
+                skillButton.addEventListener('click', () => {
+                    const questions = Array.isArray(topic.skill_exa_test) ? topic.skill_exa_test : [];
+                    let correctCount = 0;
+
+                    questions.forEach((question, index) => {
+                        const selected = document.querySelector(`input[name="skill-exa-${index}"]:checked`);
+                        if (selected && selected.value === question.answer) {
+                            correctCount += 1;
+                        }
+                    });
+
+                    skillResult.textContent = `${correctCount} / ${questions.length} correct`;
+                    skillResult.style.color = correctCount === questions.length ? '#10B981' : '#F59E0B';
+                });
+            }
+        }());
+    </script>
 </body>
 </html>

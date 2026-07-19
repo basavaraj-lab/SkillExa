@@ -1,10 +1,15 @@
 from datetime import datetime
+import subprocess
+import sys
 
 from fastapi import FastAPI, HTTPException, Request
+from fastapi import Form
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 from pydantic import BaseModel
+
+from app.routes.python import PYTHON_TOPICS
 
 app = FastAPI(title="SkillExa Backend Engine")
 
@@ -41,6 +46,37 @@ class QuizSubmission(BaseModel):
     topic_id: int
     selected_option: str
     time_remaining: int
+
+
+class CodeExecutionRequest(BaseModel):
+    code: str
+
+
+def _run_python_code(code: str) -> dict[str, object]:
+    """Run lesson code in a short-lived Python subprocess and return its output."""
+    try:
+        completed = subprocess.run(
+            [sys.executable, "-c", code],
+            capture_output=True,
+            text=True,
+            timeout=5,
+            check=False,
+        )
+    except subprocess.TimeoutExpired:
+        return {
+            "success": False,
+            "output": "",
+            "error": "Execution timed out after 5 seconds.",
+        }
+
+    stdout = completed.stdout.rstrip("\n")
+    stderr = completed.stderr.rstrip("\n")
+
+    return {
+        "success": completed.returncode == 0,
+        "output": stdout,
+        "error": stderr,
+    }
 
 
 @app.get("/python/topics")
@@ -107,6 +143,12 @@ def submit_quiz(submission: QuizSubmission) -> dict[str, object]:
     }
 
 
+@app.post("/python/execute")
+def execute_python_code(payload: CodeExecutionRequest) -> dict[str, object]:
+    """Run lesson code in a short-lived Python subprocess and return its output."""
+    return _run_python_code(payload.code)
+
+
 @app.get("/")
 def home(request: Request):
     """Render the dashboard as the root page."""
@@ -122,9 +164,10 @@ def dashboard(request: Request):
     return templates.TemplateResponse(
         request=request,
         name="dashboard.html",
-        context={},
+        context={
+            "request": request,
+        },
     )
-
 
 @app.get("/topics")
 def topics(request: Request):
@@ -146,10 +189,34 @@ def quiz(request: Request):
 
 @app.get("/lesson/{topic_id}")
 def lesson(request: Request, topic_id: int):
+    topic = PYTHON_TOPICS.get(topic_id)
+    if topic is None:
+        raise HTTPException(status_code=404, detail="Lesson not found")
+
     return templates.TemplateResponse(
         request=request,
         name="lesson.html",
-        context={"topic_id": topic_id},
+        context={"topic_id": topic_id, "topic": topic},
+    )
+
+
+@app.post("/lesson/{topic_id}/execute")
+def execute_lesson(request: Request, topic_id: int, code: str = Form(...)):
+    topic = PYTHON_TOPICS.get(topic_id)
+    if topic is None:
+        raise HTTPException(status_code=404, detail="Lesson not found")
+
+    execution_result = _run_python_code(code)
+    return templates.TemplateResponse(
+        request=request,
+        name="lesson.html",
+        context={
+            "topic_id": topic_id,
+            "topic": topic,
+            "submitted_code": code,
+            "execution_output": execution_result["output"] or execution_result["error"] or "[No output]",
+            "execution_success": execution_result["success"],
+        },
     )
 
 

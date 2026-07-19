@@ -3,7 +3,14 @@ class SkillExaLesson {
         this.runButton = document.getElementById('execute-code-trigger');
         this.codeInput = document.getElementById('code-mirror-textarea');
         this.consoleOutput = document.getElementById('terminal-mount-node');
+        this.topic = window.__LESSON_TOPIC__ || {};
+
+        // Fill in the blanks
+        this.checkButton = document.getElementById('check-answer');
+        this.result = document.getElementById('fill-result');
+
         this.initWorkspaceTriggers();
+        this.initFillBlanks();
     }
 
     initWorkspaceTriggers() {
@@ -11,21 +18,95 @@ class SkillExaLesson {
             return;
         }
 
-        this.runButton.addEventListener('click', () => {
-            this.consoleOutput.innerText = 'Initializing isolated sub-process runtime context...';
+        this.runButton.addEventListener('click', async () => {
+            this.consoleOutput.innerText =
+                'Initializing isolated sub-process runtime context...';
             this.consoleOutput.style.color = '#F59E0B';
 
-            setTimeout(() => {
-                const capturedValue = this.codeInput.value;
-                if (capturedValue.includes('print')) {
-                    this.consoleOutput.innerText = 'Active Engine\n\n>> Process completed execution successfully.';
-                    this.consoleOutput.style.color = '#10B981';
-                    appEngine.showToast('Milestone conditions cleared.', 'success');
-                } else {
-                    this.consoleOutput.innerText = 'Traceback Exception: NameError encountered on line 3.\nNo stdout stream standard returned.';
-                    this.consoleOutput.style.color = '#EF4444';
+            try {
+                const result = await appEngine.dataRequest('/python/execute', {
+                    method: 'POST',
+                    body: JSON.stringify({
+                        code: this.codeInput.value,
+                    }),
+                });
+
+                const outputText =
+                    result.output || result.error || '[No output]';
+
+                this.consoleOutput.innerText = outputText;
+                this.consoleOutput.style.color =
+                    result.success ? '#10B981' : '#EF4444';
+
+                appEngine.showToast(
+                    result.success
+                        ? 'Code executed successfully.'
+                        : 'Code execution failed.',
+                    result.success ? 'success' : 'danger'
+                );
+            } catch (error) {
+                this.consoleOutput.innerText =
+                    error.message || 'Execution request failed.';
+                this.consoleOutput.style.color = '#EF4444';
+            }
+        });
+    }
+
+    initFillBlanks() {
+          initFillBlanks() {
+            console.log("initFillBlanks called");
+
+            if (!this.checkButton) {
+                console.log("Check button not found");
+            return;
+            }
+
+            this.checkButton.addEventListener("click", () => {
+            console.log("Button clicked");
+    });
+}
+        if (!this.checkButton) return;
+
+        this.checkButton.addEventListener('click', () => {
+
+            const inputs = document.querySelectorAll('.blank-input');
+
+            const answers = this.topic.fill_blanks.answers || [];
+
+            let correct = true;
+
+            inputs.forEach((input, index) => {
+
+                if (
+                    input.value.trim().toLowerCase() !==
+                    answers[index].toLowerCase()
+                ) {
+                    correct = false;
                 }
-            }, 1200);
+
+            });
+
+            if (correct) {
+
+                this.result.innerHTML = "✅ Correct!";
+                this.result.style.color = "#10B981";
+
+                appEngine.showToast(
+                    "Excellent! Fill in the blanks completed.",
+                    "success"
+                );
+
+            } else {
+
+                this.result.innerHTML = "❌ Try Again!";
+                this.result.style.color = "#EF4444";
+
+                appEngine.showToast(
+                    "Incorrect answer. Please try again.",
+                    "danger"
+                );
+            }
+
         });
     }
 }
