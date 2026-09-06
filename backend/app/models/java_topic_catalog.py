@@ -220,7 +220,7 @@ JAVA_TOPICS[1] = {
         "explanation": "public class Main defines the primary class containing main entry method.",
     },
     "fill_blanks": {
-        "question": "public class Main {{\n    public _____ void main(String[] args) {{\n        System.out.println(\"Hello Java!\");\n    }}\n}}",
+        "question": "public class Main {\n    public _____ void main(String[] args) {\n        System.out.println(\"Hello Java!\");\n    }\n}",
         "answers": ["static"],
         "options": ["static", "final", "abstract", "native"],
     },

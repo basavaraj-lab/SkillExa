@@ -269,18 +269,7 @@
 
                 <div style="margin-bottom: 2rem;">
                     <div style="font-size: 0.95rem; color: var(--text-main); margin-bottom: 1rem;">Fill in the blank fields to complete the Python snippet:</div>
-                    <div class="code-box" style="display: flex; flex-direction: column; gap: 0.8rem;">
-                        {% set question = section_data.fill_blanks.question %}
-                        {% set parts = question.split('_____') %}
-                        <div>
-                            {% for part in parts %}
-                                {{ part }}
-                                {% if not loop.last %}
-                                    <input type="text" class="blank-input" placeholder="blank" spellcheck="false" />
-                                {% endif %}
-                            {% endfor %}
-                        </div>
-                    </div>
+                    <div class="code-box" style="white-space: pre-wrap; font-family: 'JetBrains Mono', monospace; font-size: 0.95rem; line-height: 2.2; padding: 1.5rem;">{% set raw_q = section_data.fill_blanks.question %}{% set clean_q = raw_q.replace('{{', '{').replace('}}', '}') %}{% set parts = clean_q.split('_____') %}{% if parts|length == 1 %}{% set parts = clean_q.split('____') %}{% endif %}{% for part in parts %}{{ part }}{% if not loop.last %}<input type="text" class="blank-input" placeholder="blank" spellcheck="false" />{% endif %}{% endfor %}</div>
                 </div>
 
                 <div style="display: flex; gap: 1rem; margin-bottom: 1.5rem;">
