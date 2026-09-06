@@ -42,15 +42,59 @@ def _get_java_runner() -> str:
     return shutil.which("java") or "java"
 
 
-def _simulate_java_output(code: str) -> str:
+def _simulate_java_output(code: str) -> dict[str, object]:
     import re
-    matches = re.findall(r'System\.out\.println\s*\(\s*"(.*?)"\s*\)', code)
+    # 1. Check for unreplaced blanks like ____ or ___
+    if re.search(r'_+', code):
+        return {
+            "success": False,
+            "output": "",
+            "error": "Main.java:4: error: illegal start of expression / unreplaced blank placeholder (____)",
+        }
+
+    # 2. Check for invalid System.out methods like write_, write, display
+    invalid_method = re.search(r'System\.out\.(write_|write|display|print_|printf_|put)\b', code)
+    if invalid_method:
+        method_name = invalid_method.group(1)
+        return {
+            "success": False,
+            "output": "",
+            "error": f"Main.java:4: error: cannot find symbol\n  System.out.{method_name}(...);\n            ^\n  symbol:   method {method_name}(String)\n  location: variable out of type java.io.PrintStream",
+        }
+
+    # 3. Handle System.out.println("...") or System.out.print("...") or System.out.printf("...")
+    matches = re.findall(r'System\.out\.(?:println|print|printf)\s*\(\s*"(.*?)"\s*\)', code, re.DOTALL)
     if matches:
-        return "\n".join(matches)
-    matches_raw = re.findall(r'System\.out\.println\s*\((.*?)\)', code)
+        clean_output = "\n".join(m.replace('\\n', '\n') for m in matches)
+        return {
+            "success": True,
+            "output": clean_output,
+            "error": "",
+        }
+
+    # 4. Handle System.out.println(variable/expression)
+    matches_raw = re.findall(r'System\.out\.(?:println|print|printf)\s*\((.*?)\)', code)
     if matches_raw:
-        return "\n".join(m.strip('"\'') for m in matches_raw)
-    return "Java Program executed successfully."
+        clean_output = "\n".join(m.strip('"\'') for m in matches_raw)
+        return {
+            "success": True,
+            "output": clean_output,
+            "error": "",
+        }
+
+    # 5. Fallback syntax check for missing class or main method
+    if "class Main" not in code or "main" not in code:
+        return {
+            "success": False,
+            "output": "",
+            "error": "Main.java:1: error: class Main or main method missing",
+        }
+
+    return {
+        "success": True,
+        "output": "Java Program executed successfully.",
+        "error": "",
+    }
 
 
 def _run_java_code(code: str) -> dict[str, object]:
@@ -88,11 +132,7 @@ def _run_java_code(code: str) -> dict[str, object]:
 
         compile_err = compile_proc.stderr.strip() or compile_proc.stdout.strip()
         if "Unable to locate a Java Runtime" in compile_err or "No Java runtime present" in compile_err:
-            return {
-                "success": True,
-                "output": _simulate_java_output(code),
-                "error": "",
-            }
+            return _simulate_java_output(code)
 
         if compile_proc.returncode != 0:
             return {
@@ -125,11 +165,7 @@ def _run_java_code(code: str) -> dict[str, object]:
 
         run_err = run_proc.stderr.strip()
         if "Unable to locate a Java Runtime" in run_err:
-            return {
-                "success": True,
-                "output": _simulate_java_output(code),
-                "error": "",
-            }
+            return _simulate_java_output(code)
 
         return {
             "success": run_proc.returncode == 0,

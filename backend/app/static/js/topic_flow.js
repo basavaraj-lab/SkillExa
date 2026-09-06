@@ -141,10 +141,8 @@ class SkillExaTopicFlow {
                 const optionVal = targetBtn.dataset.val;
                 let currentCode = codeInput.value;
 
-                if (currentCode.includes('_____')) {
-                    currentCode = currentCode.replace('_____', optionVal);
-                } else if (currentCode.includes('___')) {
-                    currentCode = currentCode.replace('___', optionVal);
+                if (/_+/.test(currentCode)) {
+                    currentCode = currentCode.replace(/_+/, optionVal);
                 } else if (currentCode.includes('[?]')) {
                     currentCode = currentCode.replace('[?]', optionVal);
                 } else {
