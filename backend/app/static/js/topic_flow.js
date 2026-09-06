@@ -27,6 +27,13 @@ class SkillExaTopicFlow {
             if (action === 'complete-programming') return `/c/api/topic/${this.topicId}/complete/programming`;
             if (action === 'complete-fill-blanks') return `/c/api/topic/${this.topicId}/complete/fill-blanks`;
             if (action === 'submit-test') return `/c/api/topic/${this.topicId}/submit-test`;
+        } else if (this.track === 'cpp') {
+            if (action === 'complete-information') return `/cpp/api/topic/${this.topicId}/complete/information`;
+            if (action === 'complete-examples') return `/cpp/api/topic/${this.topicId}/complete/examples`;
+            if (action === 'execute') return `/cpp/execute`;
+            if (action === 'complete-programming') return `/cpp/api/topic/${this.topicId}/complete/programming`;
+            if (action === 'complete-fill-blanks') return `/cpp/api/topic/${this.topicId}/complete/fill-blanks`;
+            if (action === 'submit-test') return `/cpp/api/topic/${this.topicId}/submit-test`;
         } else {
             if (action === 'complete-information') return `/api/progress/${this.studentId}/${this.topicId}/complete-information`;
             if (action === 'complete-examples') return `/api/progress/${this.studentId}/${this.topicId}/complete-examples`;
@@ -39,12 +46,14 @@ class SkillExaTopicFlow {
     }
 
     getSectionUrl(section) {
-        const prefix = this.track === 'c' ? '/c' : '';
+        const prefix = this.track === 'c' ? '/c' : (this.track === 'cpp' ? '/cpp' : '');
         return `${prefix}/topic/${this.topicId}/${section}`;
     }
 
     getSyllabusUrl() {
-        return this.track === 'c' ? '/c/topics' : '/topics';
+        if (this.track === 'c') return '/c/topics';
+        if (this.track === 'cpp') return '/cpp/topics';
+        return '/topics';
     }
 
     initSectionHandlers() {

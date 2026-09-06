@@ -14,7 +14,9 @@ from app.database.database import Base, engine, get_db
 from app.models.topic_catalog import PYTHON_TOPICS
 from app.routes.api import router as api_router
 from app.routes.c_program import get_c_topics_api, router as c_router
+from app.routes.cpp_program import get_cpp_topics_api, router as cpp_router
 from app.routes.features import router as features_router
+from app.routes.java_program import get_java_topics_api, router as java_router
 from app.routes.python import router as python_router
 from app.services import python_service
 
@@ -29,12 +31,22 @@ templates = Jinja2Templates(directory="app/templates")
 # Register API routers
 app.include_router(api_router)
 app.include_router(c_router)
+app.include_router(cpp_router)
 app.include_router(features_router)
+app.include_router(java_router)
 app.include_router(python_router)
 
 @app.get("/api/c/topics")
 def api_c_topics_alias(student_id: str = "1", db: Session = Depends(get_db)):
     return get_c_topics_api(student_id, db)
+
+@app.get("/api/cpp/topics")
+def api_cpp_topics_alias(student_id: str = "1", db: Session = Depends(get_db)):
+    return get_cpp_topics_api(student_id, db)
+
+@app.get("/api/java/topics")
+def api_java_topics_alias(student_id: str = "1", db: Session = Depends(get_db)):
+    return get_java_topics_api(student_id, db)
 
 # Keep permissive CORS for local development workflows.
 app.add_middleware(
