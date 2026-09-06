@@ -34,6 +34,13 @@ class SkillExaTopicFlow {
             if (action === 'complete-programming') return `/cpp/api/topic/${this.topicId}/complete/programming`;
             if (action === 'complete-fill-blanks') return `/cpp/api/topic/${this.topicId}/complete/fill-blanks`;
             if (action === 'submit-test') return `/cpp/api/topic/${this.topicId}/submit-test`;
+        } else if (this.track === 'java') {
+            if (action === 'complete-information') return `/java/api/topic/${this.topicId}/complete/information`;
+            if (action === 'complete-examples') return `/java/api/topic/${this.topicId}/complete/examples`;
+            if (action === 'execute') return `/java/execute`;
+            if (action === 'complete-programming') return `/java/api/topic/${this.topicId}/complete/programming`;
+            if (action === 'complete-fill-blanks') return `/java/api/topic/${this.topicId}/complete/fill-blanks`;
+            if (action === 'submit-test') return `/java/api/topic/${this.topicId}/submit-test`;
         } else {
             if (action === 'complete-information') return `/api/progress/${this.studentId}/${this.topicId}/complete-information`;
             if (action === 'complete-examples') return `/api/progress/${this.studentId}/${this.topicId}/complete-examples`;
@@ -46,13 +53,17 @@ class SkillExaTopicFlow {
     }
 
     getSectionUrl(section) {
-        const prefix = this.track === 'c' ? '/c' : (this.track === 'cpp' ? '/cpp' : '');
+        let prefix = '';
+        if (this.track === 'c') prefix = '/c';
+        else if (this.track === 'cpp') prefix = '/cpp';
+        else if (this.track === 'java') prefix = '/java';
         return `${prefix}/topic/${this.topicId}/${section}`;
     }
 
     getSyllabusUrl() {
         if (this.track === 'c') return '/c/topics';
         if (this.track === 'cpp') return '/cpp/topics';
+        if (this.track === 'java') return '/java/topics';
         return '/topics';
     }
 
@@ -165,7 +176,7 @@ class SkillExaTopicFlow {
 
         if (runBtn && codeInput && consoleNode) {
             runBtn.addEventListener('click', async () => {
-                const langName = this.track === 'c' ? 'native C compiler' : 'isolated Python runtime';
+                const langName = this.track === 'c' ? 'native C compiler' : (this.track === 'cpp' ? 'native C++ compiler' : (this.track === 'java' ? 'native Java compiler (javac)' : 'isolated Python runtime'));
                 consoleNode.innerText = `Running ${langName}...`;
                 consoleNode.style.color = '#F59E0B';
                 try {
@@ -272,7 +283,7 @@ class SkillExaTopicFlow {
                     submitBtn.disabled = true;
                     submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Submitting Test...';
 
-                    const payloadKey = this.track === 'c' ? 'user_answers' : 'submitted_answers';
+                    const payloadKey = (this.track === 'c' || this.track === 'cpp' || this.track === 'java') ? 'user_answers' : 'submitted_answers';
                     const payload = {};
                     payload[payloadKey] = submittedAnswers;
 
@@ -287,7 +298,7 @@ class SkillExaTopicFlow {
                     if (completionCard) completionCard.style.display = 'block';
                     if (resScore) resScore.textContent = `${res.score}%`;
 
-                    const prefix = this.track === 'c' ? '/c' : '';
+                    const prefix = this.track === 'c' ? '/c' : (this.track === 'cpp' ? '/cpp' : (this.track === 'java' ? '/java' : ''));
                     if (res.next_topic && btnNextTopic) {
                         btnNextTopic.href = `${prefix}/topic/${res.next_topic.id}/information`;
                         btnNextTopic.innerHTML = `Unlock & Start Topic ${res.next_topic.id}: ${res.next_topic.title} <i class="fas fa-arrow-right"></i>`;
