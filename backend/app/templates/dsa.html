@@ -1,0 +1,358 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DSA Practice Hub — SkillExa</title>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root {
+            --bg-dark: #090d16;
+            --bg-card: rgba(18, 26, 43, 0.75);
+            --border-glow: rgba(99, 102, 241, 0.25);
+            --primary: #6366f1;
+            --cyan-neon: #06b6d4;
+            --emerald-neon: #10b981;
+            --amber-neon: #f59e0b;
+            --rose-neon: #f43f5e;
+            --text-main: #f3f4f6;
+            --text-muted: #9ca3af;
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+
+        body {
+            font-family: 'Outfit', sans-serif;
+            background-color: var(--bg-dark);
+            color: var(--text-main);
+            min-height: 100vh;
+            background-image: radial-gradient(circle at 80% 20%, rgba(6, 182, 212, 0.12) 0%, transparent 40%),
+                              radial-gradient(circle at 20% 80%, rgba(99, 102, 241, 0.12) 0%, transparent 40%);
+            background-attachment: fixed;
+        }
+
+        .navbar {
+            display: flex; justify-content: space-between; align-items: center;
+            padding: 1.25rem 3rem; background: rgba(9, 13, 22, 0.85);
+            backdrop-filter: blur(16px); border-bottom: 1px solid var(--border-glow);
+            position: sticky; top: 0; z-index: 100;
+        }
+
+        .brand { display: flex; align-items: center; gap: 0.75rem; text-decoration: none; }
+        .brand-icon {
+            width: 42px; height: 42px;
+            background: linear-gradient(135deg, var(--primary), var(--cyan-neon));
+            border-radius: 12px; display: flex; align-items: center; justify-content: center;
+            font-size: 1.4rem; color: #fff; box-shadow: 0 0 20px rgba(99, 102, 241, 0.4);
+        }
+        .brand-text {
+            font-size: 1.6rem; font-weight: 800;
+            background: linear-gradient(to right, #ffffff, #a5b4fc);
+            -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+        }
+
+        .nav-links { display: flex; align-items: center; gap: 2rem; list-style: none; }
+        .nav-links a { color: var(--text-muted); text-decoration: none; font-weight: 500; font-size: 0.95rem; }
+        .nav-links a:hover, .nav-links a.active { color: #fff; }
+
+        .container { max-width: 1300px; margin: 2.5rem auto; padding: 0 2rem; }
+
+        .dsa-layout {
+            display: grid;
+            grid-template-columns: 320px 1fr;
+            gap: 2rem;
+        }
+
+        /* Sidebar category menu */
+        .sidebar-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border-glow);
+            border-radius: 16px;
+            padding: 1.5rem;
+            backdrop-filter: blur(12px);
+            height: fit-content;
+        }
+
+        .sidebar-title {
+            font-size: 1.1rem; font-weight: 700; margin-bottom: 1.25rem;
+            color: #fff; display: flex; align-items: center; gap: 0.5rem;
+        }
+
+        .cat-btn {
+            width: 100%; text-align: left; background: transparent; border: none;
+            color: var(--text-muted); padding: 0.75rem 1rem; border-radius: 10px;
+            font-family: inherit; font-size: 0.95rem; font-weight: 500; cursor: pointer;
+            display: flex; justify-content: space-between; align-items: center;
+            transition: all 0.2s ease; margin-bottom: 0.4rem;
+        }
+
+        .cat-btn:hover, .cat-btn.active {
+            background: rgba(99, 102, 241, 0.15); color: #fff; font-weight: 600;
+        }
+        .cat-btn.active { border-left: 3px solid var(--primary); }
+
+        /* Problem List & Workspace */
+        .problems-container {
+            display: flex; flex-direction: column; gap: 1.5rem;
+        }
+
+        .problem-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border-glow);
+            border-radius: 16px;
+            padding: 1.5rem;
+            backdrop-filter: blur(12px);
+            display: flex; justify-content: space-between; align-items: center;
+            transition: all 0.2s ease;
+        }
+
+        .problem-card:hover {
+            border-color: rgba(99, 102, 241, 0.4);
+            transform: translateX(4px);
+        }
+
+        .problem-info h3 { font-size: 1.25rem; font-weight: 700; color: #fff; margin-bottom: 0.4rem; }
+        .problem-info p { color: var(--text-muted); font-size: 0.9rem; margin-bottom: 0.75rem; }
+
+        .problem-meta { display: flex; gap: 0.75rem; align-items: center; }
+
+        .badge-diff {
+            padding: 0.2rem 0.65rem; border-radius: 6px; font-size: 0.75rem; font-weight: 700;
+        }
+        .diff-easy { background: rgba(16, 185, 129, 0.15); color: var(--emerald-neon); }
+        .diff-medium { background: rgba(245, 158, 11, 0.15); color: var(--amber-neon); }
+        .diff-hard { background: rgba(244, 63, 94, 0.15); color: var(--rose-neon); }
+
+        .btn-solve {
+            background: linear-gradient(135deg, var(--primary), #4338ca);
+            color: #fff; border: none; padding: 0.65rem 1.25rem; border-radius: 10px;
+            font-weight: 600; font-size: 0.9rem; cursor: pointer; display: flex; align-items: center; gap: 0.5rem;
+            box-shadow: 0 4px 12px rgba(99, 102, 241, 0.3); transition: all 0.2s ease;
+        }
+        .btn-solve:hover { transform: translateY(-2px); box-shadow: 0 6px 16px rgba(99, 102, 241, 0.5); }
+
+        /* Problem Modal Workspace */
+        .modal-overlay {
+            position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
+            background: rgba(9, 13, 22, 0.9); backdrop-filter: blur(16px);
+            z-index: 1000; display: none; justify-content: center; align-items: center; padding: 2rem;
+        }
+        .modal-overlay.open { display: flex; }
+
+        .workspace-box {
+            background: #0d1322; border: 1px solid var(--border-glow);
+            border-radius: 20px; width: 100%; max-width: 1100px; height: 85vh;
+            display: grid; grid-template-columns: 1fr 1fr; overflow: hidden;
+            box-shadow: 0 20px 50px rgba(0,0,0,0.6);
+        }
+
+        .workspace-left {
+            padding: 2rem; border-right: 1px solid var(--border-glow);
+            overflow-y: auto; display: flex; flex-direction: column; gap: 1.25rem;
+        }
+
+        .workspace-right {
+            display: flex; flex-direction: column; background: #070a12;
+        }
+
+        .editor-header {
+            padding: 1rem 1.5rem; background: #111827; border-bottom: 1px solid var(--border-glow);
+            display: flex; justify-content: space-between; align-items: center;
+        }
+
+        .code-textarea {
+            flex: 1; width: 100%; background: #070a12; color: #a5b4fc;
+            font-family: 'JetBrains Mono', monospace; font-size: 0.95rem; line-height: 1.5;
+            padding: 1.25rem; border: none; resize: none; outline: none;
+        }
+
+        .console-box {
+            height: 140px; background: #0b0f19; border-top: 1px solid var(--border-glow);
+            padding: 1rem; overflow-y: auto; font-family: 'JetBrains Mono', monospace; font-size: 0.85rem;
+        }
+
+        .close-modal-btn {
+            background: rgba(255,255,255,0.1); color: #fff; border: none;
+            width: 32px; height: 32px; border-radius: 50%; cursor: pointer;
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Navbar -->
+    <nav class="navbar">
+        <a href="/" class="brand">
+            <div class="brand-icon"><i class="fa-solid fa-code"></i></div>
+            <span class="brand-text">SkillExa</span>
+        </a>
+
+        <ul class="nav-links">
+            <li><a href="/"><i class="fa-solid fa-house"></i> Home</a></li>
+            <li><a href="/languages"><i class="fa-solid fa-laptop-code"></i> Languages</a></li>
+            <li><a href="/dsa" class="active"><i class="fa-solid fa-diagram-project"></i> DSA Practice</a></li>
+            <li><a href="/mock-interview"><i class="fa-solid fa-comments"></i> AI Mock Interview</a></li>
+            <li><a href="/resume-builder"><i class="fa-solid fa-file-invoice"></i> Resume Builder</a></li>
+        </ul>
+    </nav>
+
+    <!-- Container -->
+    <div class="container">
+        <div style="margin-bottom: 2.5rem;">
+            <h1 style="font-size: 2.4rem; font-weight: 800; margin-bottom: 0.5rem;">Data Structures & Algorithms Studio</h1>
+            <p style="color: var(--text-muted); font-size: 1.05rem;">Practice top tech interview coding questions with live backend output verification.</p>
+        </div>
+
+        <div class="dsa-layout">
+            <!-- Category Sidebar -->
+            <div class="sidebar-card">
+                <div class="sidebar-title"><i class="fa-solid fa-filter"></i> Problem Categories</div>
+                <button class="cat-btn active" onclick="filterCategory('All', this)">
+                    <span>All Problems</span> <span style="font-size: 0.8rem; opacity: 0.7;">5</span>
+                </button>
+                <button class="cat-btn" onclick="filterCategory('Arrays', this)">
+                    <span>Arrays</span> <span style="font-size: 0.8rem; opacity: 0.7;">1</span>
+                </button>
+                <button class="cat-btn" onclick="filterCategory('Linked Lists', this)">
+                    <span>Linked Lists</span> <span style="font-size: 0.8rem; opacity: 0.7;">1</span>
+                </button>
+                <button class="cat-btn" onclick="filterCategory('Stack & Queue', this)">
+                    <span>Stack & Queue</span> <span style="font-size: 0.8rem; opacity: 0.7;">1</span>
+                </button>
+                <button class="cat-btn" onclick="filterCategory('Trees & Graphs', this)">
+                    <span>Trees & Graphs</span> <span style="font-size: 0.8rem; opacity: 0.7;">1</span>
+                </button>
+                <button class="cat-btn" onclick="filterCategory('Dynamic Programming', this)">
+                    <span>Dynamic Programming</span> <span style="font-size: 0.8rem; opacity: 0.7;">1</span>
+                </button>
+            </div>
+
+            <!-- Problem Cards -->
+            <div class="problems-container" id="problemsList">
+                <!-- Dynamically populated via JavaScript -->
+            </div>
+        </div>
+    </div>
+
+    <!-- Workspace Modal -->
+    <div class="modal-overlay" id="workspaceModal">
+        <div class="workspace-box">
+            <div class="workspace-left">
+                <div style="display: flex; justify-content: space-between; align-items: center;">
+                    <span id="modalDiff" class="badge-diff diff-easy">Easy</span>
+                    <button class="close-modal-btn" onclick="closeWorkspace()"><i class="fa-solid fa-xmark"></i></button>
+                </div>
+                <h2 id="modalTitle" style="font-size: 1.5rem; font-weight: 700; color: #fff;">Problem Title</h2>
+                <p id="modalDesc" style="color: var(--text-muted); font-size: 0.95rem; line-height: 1.6;"></p>
+                
+                <div style="background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.08); padding: 1rem; border-radius: 12px;">
+                    <div style="font-size: 0.85rem; font-weight: 700; color: var(--cyan-neon); margin-bottom: 0.4rem;">EXAMPLE INPUT</div>
+                    <code id="modalInput" style="font-family: 'JetBrains Mono', monospace; font-size: 0.88rem; color: #fff;"></code>
+                    <div style="font-size: 0.85rem; font-weight: 700; color: var(--emerald-neon); margin-top: 0.8rem; margin-bottom: 0.4rem;">EXPECTED OUTPUT</div>
+                    <code id="modalOutput" style="font-family: 'JetBrains Mono', monospace; font-size: 0.88rem; color: #fff;"></code>
+                </div>
+            </div>
+
+            <div class="workspace-right">
+                <div class="editor-header">
+                    <span style="font-family: 'JetBrains Mono', monospace; font-size: 0.85rem; color: var(--text-muted);"><i class="fa-brands fa-python"></i> solution.py</span>
+                    <button class="btn-solve" onclick="runSolution()"><i class="fa-solid fa-play"></i> Run Code</button>
+                </div>
+                <textarea id="codeEditor" class="code-textarea" spellcheck="false"></textarea>
+                <div class="console-box" id="consoleOutput">
+                    <span style="color: var(--text-muted);">Click "Run Code" to execute solution...</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let allProblems = [];
+        let currentProblem = null;
+
+        async function fetchProblems() {
+            try {
+                const res = await fetch('/api/dsa/problems');
+                allProblems = await res.json();
+                renderProblems(allProblems);
+            } catch (err) {
+                console.error("Failed to load DSA problems:", err);
+            }
+        }
+
+        function renderProblems(problems) {
+            const container = document.getElementById('problemsList');
+            container.innerHTML = problems.map(p => `
+                <div class="problem-card">
+                    <div class="problem-info">
+                        <h3>${p.title}</h3>
+                        <p>${p.description}</p>
+                        <div class="problem-meta">
+                            <span class="badge-diff diff-${p.difficulty.toLowerCase()}">${p.difficulty}</span>
+                            <span style="font-size: 0.8rem; color: var(--text-muted);"><i class="fa-solid fa-tag"></i> ${p.category}</span>
+                        </div>
+                    </div>
+                    <button class="btn-solve" onclick="openWorkspace('${p.id}')">
+                        <i class="fa-solid fa-code"></i> Solve
+                    </button>
+                </div>
+            `).join('');
+        }
+
+        function filterCategory(cat, btn) {
+            document.querySelectorAll('.cat-btn').forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+            if (cat === 'All') {
+                renderProblems(allProblems);
+            } else {
+                renderProblems(allProblems.filter(p => p.category === cat));
+            }
+        }
+
+        function openWorkspace(id) {
+            currentProblem = allProblems.find(p => p.id === id);
+            if (!currentProblem) return;
+
+            document.getElementById('modalTitle').innerText = currentProblem.title;
+            document.getElementById('modalDesc').innerText = currentProblem.description;
+            document.getElementById('modalInput').innerText = currentProblem.input_example;
+            document.getElementById('modalOutput').innerText = currentProblem.output_example;
+            document.getElementById('modalDiff').innerText = currentProblem.difficulty;
+            document.getElementById('modalDiff').className = `badge-diff diff-${currentProblem.difficulty.toLowerCase()}`;
+            document.getElementById('codeEditor').value = currentProblem.starter_code;
+            document.getElementById('consoleOutput').innerHTML = '<span style="color: var(--text-muted);">Click "Run Code" to execute solution...</span>';
+
+            document.getElementById('workspaceModal').classList.add('open');
+        }
+
+        function closeWorkspace() {
+            document.getElementById('workspaceModal').classList.remove('open');
+        }
+
+        async function runSolution() {
+            if (!currentProblem) return;
+            const code = document.getElementById('codeEditor').value;
+            const consoleBox = document.getElementById('consoleOutput');
+            consoleBox.innerHTML = '<span style="color: var(--cyan-neon);">Executing code in backend Python engine...</span>';
+
+            try {
+                const res = await fetch('/api/dsa/submit', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ problem_id: currentProblem.id, code: code })
+                });
+                const data = await res.json();
+                if (data.success) {
+                    consoleBox.innerHTML = `<span style="color: var(--emerald-neon); font-weight: bold;">✔ Execution Succeeded:</span><br><pre style="color: #fff; margin-top: 4px;">${data.output || '[Output empty]'}</pre>`;
+                } else {
+                    consoleBox.innerHTML = `<span style="color: var(--rose-neon); font-weight: bold;">✖ Execution Failed:</span><br><pre style="color: #fca5a5; margin-top: 4px;">${data.error || 'Syntax/Runtime Error'}</pre>`;
+                }
+            } catch (err) {
+                consoleBox.innerHTML = `<span style="color: var(--rose-neon);">Error submitting code request.</span>`;
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', fetchProblems);
+    </script>
+</body>
+</html>

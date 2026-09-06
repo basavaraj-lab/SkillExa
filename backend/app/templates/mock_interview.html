@@ -1,0 +1,314 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Mock Interview Studio — SkillExa</title>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root {
+            --bg-dark: #090d16;
+            --bg-card: rgba(18, 26, 43, 0.75);
+            --border-glow: rgba(99, 102, 241, 0.25);
+            --primary: #6366f1;
+            --cyan-neon: #06b6d4;
+            --emerald-neon: #10b981;
+            --rose-neon: #f43f5e;
+            --text-main: #f3f4f6;
+            --text-muted: #9ca3af;
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+
+        body {
+            font-family: 'Outfit', sans-serif;
+            background-color: var(--bg-dark);
+            color: var(--text-main);
+            min-height: 100vh;
+            background-image: radial-gradient(circle at 15% 80%, rgba(244, 63, 94, 0.12) 0%, transparent 40%),
+                              radial-gradient(circle at 85% 20%, rgba(99, 102, 241, 0.12) 0%, transparent 40%);
+            background-attachment: fixed;
+        }
+
+        .navbar {
+            display: flex; justify-content: space-between; align-items: center;
+            padding: 1.25rem 3rem; background: rgba(9, 13, 22, 0.85);
+            backdrop-filter: blur(16px); border-bottom: 1px solid var(--border-glow);
+            position: sticky; top: 0; z-index: 100;
+        }
+
+        .brand { display: flex; align-items: center; gap: 0.75rem; text-decoration: none; }
+        .brand-icon {
+            width: 42px; height: 42px;
+            background: linear-gradient(135deg, var(--primary), var(--cyan-neon));
+            border-radius: 12px; display: flex; align-items: center; justify-content: center;
+            font-size: 1.4rem; color: #fff; box-shadow: 0 0 20px rgba(99, 102, 241, 0.4);
+        }
+        .brand-text {
+            font-size: 1.6rem; font-weight: 800;
+            background: linear-gradient(to right, #ffffff, #a5b4fc);
+            -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+        }
+
+        .nav-links { display: flex; align-items: center; gap: 2rem; list-style: none; }
+        .nav-links a { color: var(--text-muted); text-decoration: none; font-weight: 500; font-size: 0.95rem; }
+        .nav-links a:hover, .nav-links a.active { color: #fff; }
+
+        .container { max-width: 1100px; margin: 3rem auto; padding: 0 2rem; }
+
+        .role-selector {
+            display: flex; justify-content: center; gap: 1rem; margin-bottom: 2.5rem; flex-wrap: wrap;
+        }
+
+        .role-pill {
+            background: var(--bg-card); border: 1px solid var(--border-glow);
+            color: var(--text-muted); padding: 0.75rem 1.5rem; border-radius: 12px;
+            font-weight: 600; font-size: 0.95rem; cursor: pointer; transition: all 0.2s ease;
+        }
+
+        .role-pill.active, .role-pill:hover {
+            background: rgba(99, 102, 241, 0.2); color: #fff; border-color: var(--primary);
+            box-shadow: 0 4px 15px rgba(99, 102, 241, 0.3);
+        }
+
+        .interview-grid {
+            display: grid; grid-template-columns: 1fr 1fr; gap: 2rem;
+        }
+
+        .card-interview {
+            background: var(--bg-card); border: 1px solid var(--border-glow);
+            border-radius: 20px; padding: 2rem; backdrop-filter: blur(12px);
+            display: flex; flex-direction: column; gap: 1.25rem;
+        }
+
+        .q-header { display: flex; justify-content: space-between; align-items: center; }
+
+        .q-badge {
+            background: rgba(244, 63, 94, 0.15); color: var(--rose-neon);
+            padding: 0.25rem 0.75rem; border-radius: 6px; font-size: 0.8rem; font-weight: 700;
+        }
+
+        .q-title { font-size: 1.35rem; font-weight: 700; color: #fff; line-height: 1.4; }
+
+        .key-points-list {
+            background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.08);
+            border-radius: 12px; padding: 1rem; list-style: none;
+        }
+
+        .key-points-list li {
+            font-size: 0.88rem; color: var(--text-muted); margin-bottom: 0.4rem; display: flex; align-items: center; gap: 0.5rem;
+        }
+
+        .key-points-list li i { color: var(--cyan-neon); font-size: 0.75rem; }
+
+        .answer-textarea {
+            width: 100%; height: 180px; background: #070a12; color: #fff;
+            border: 1px solid var(--border-glow); border-radius: 12px; padding: 1rem;
+            font-family: inherit; font-size: 0.95rem; line-height: 1.5; resize: none; outline: none;
+        }
+
+        .answer-textarea:focus { border-color: var(--primary); box-shadow: 0 0 12px rgba(99, 102, 241, 0.3); }
+
+        .btn-submit-answer {
+            background: linear-gradient(135deg, var(--rose-neon), #e11d48);
+            color: #fff; border: none; padding: 0.85rem; border-radius: 12px;
+            font-weight: 700; font-size: 1rem; cursor: pointer; display: flex;
+            align-items: center; justify-content: center; gap: 0.6rem;
+            box-shadow: 0 4px 15px rgba(244, 63, 94, 0.35); transition: all 0.2s ease;
+        }
+
+        .btn-submit-answer:hover { transform: translateY(-2px); box-shadow: 0 6px 20px rgba(244, 63, 94, 0.5); }
+
+        /* Report Box */
+        .report-box {
+            background: rgba(18, 26, 43, 0.9); border: 1px solid var(--border-glow);
+            border-radius: 20px; padding: 2rem; text-align: center; display: none;
+            flex-direction: column; align-items: center; gap: 1rem;
+        }
+
+        .report-box.show { display: flex; }
+
+        .score-circle {
+            width: 90px; height: 90px; border-radius: 50%;
+            background: radial-gradient(circle, rgba(99, 102, 241, 0.2), rgba(18, 26, 43, 0.9));
+            border: 3px solid var(--primary); display: flex; align-items: center; justify-content: center;
+            font-size: 2rem; font-weight: 800; color: #fff; box-shadow: 0 0 20px rgba(99, 102, 241, 0.4);
+        }
+
+        .metrics-grid {
+            width: 100%; display: grid; grid-template-columns: repeat(3, 1fr); gap: 1rem; margin-top: 1rem;
+        }
+
+        .metric-card {
+            background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.08);
+            padding: 0.85rem; border-radius: 10px; text-align: center;
+        }
+
+        .metric-val { font-size: 1.25rem; font-weight: 700; color: var(--emerald-neon); }
+        .metric-lbl { font-size: 0.75rem; color: var(--text-muted); }
+    </style>
+</head>
+<body>
+
+    <!-- Navbar -->
+    <nav class="navbar">
+        <a href="/" class="brand">
+            <div class="brand-icon"><i class="fa-solid fa-code"></i></div>
+            <span class="brand-text">SkillExa</span>
+        </a>
+
+        <ul class="nav-links">
+            <li><a href="/"><i class="fa-solid fa-house"></i> Home</a></li>
+            <li><a href="/languages"><i class="fa-solid fa-laptop-code"></i> Languages</a></li>
+            <li><a href="/dsa"><i class="fa-solid fa-diagram-project"></i> DSA Practice</a></li>
+            <li><a href="/mock-interview" class="active"><i class="fa-solid fa-comments"></i> AI Mock Interview</a></li>
+            <li><a href="/resume-builder"><i class="fa-solid fa-file-invoice"></i> Resume Builder</a></li>
+        </ul>
+    </nav>
+
+    <!-- Main Container -->
+    <div class="container">
+        <div style="text-align: center; margin-bottom: 2.5rem;">
+            <h1 style="font-size: 2.5rem; font-weight: 800; margin-bottom: 0.5rem;">AI Technical Mock Interview Studio</h1>
+            <p style="color: var(--text-muted); font-size: 1.05rem;">Simulate real technical interviews and receive instant automated feedback on your answers.</p>
+        </div>
+
+        <!-- Role Pills -->
+        <div class="role-selector">
+            <button class="role-pill active" onclick="selectRole('Backend Systems', this)">
+                <i class="fa-solid fa-server"></i> Backend Systems
+            </button>
+            <button class="role-pill" onclick="selectRole('Frontend Engineer', this)">
+                <i class="fa-solid fa-desktop"></i> Frontend Engineer
+            </button>
+            <button class="role-pill" onclick="selectRole('Full Stack', this)">
+                <i class="fa-solid fa-layer-group"></i> Full Stack Developer
+            </button>
+        </div>
+
+        <div class="interview-grid">
+            <!-- Question Card -->
+            <div class="card-interview">
+                <div class="q-header">
+                    <span style="font-size: 0.85rem; font-weight: 700; color: var(--cyan-neon);"><i class="fa-solid fa-robot"></i> AI INTERVIEWER</span>
+                    <span id="qDifficulty" class="q-badge">Hard</span>
+                </div>
+
+                <h2 id="qText" class="q-title">Loading interview question...</h2>
+
+                <div>
+                    <div style="font-size: 0.85rem; font-weight: 700; color: var(--text-muted); margin-bottom: 0.5rem;">EXPECTED KEY DISCUSSION POINTS</div>
+                    <ul class="key-points-list" id="qKeyPoints">
+                        <!-- Populated by JS -->
+                    </ul>
+                </div>
+            </div>
+
+            <!-- Response Card -->
+            <div class="card-interview">
+                <div style="display: flex; justify-content: space-between; align-items: center;">
+                    <span style="font-size: 0.85rem; font-weight: 700; color: #fff;"><i class="fa-solid fa-microphone"></i> YOUR ANSWER</span>
+                    <span style="font-size: 0.75rem; color: var(--text-muted);">Provide detailed technical explanation</span>
+                </div>
+
+                <textarea id="userAnswerText" class="answer-textarea" placeholder="Explain your architectural design, data structures, trade-offs, and edge case strategies here..."></textarea>
+
+                <button class="btn-submit-answer" onclick="submitAnswer()">
+                    <i class="fa-solid fa-paper-plane"></i> Evaluate Response
+                </button>
+            </div>
+        </div>
+
+        <!-- Feedback & Score Report -->
+        <div class="report-box" id="reportBox" style="margin-top: 2rem;">
+            <div style="font-size: 0.85rem; font-weight: 700; color: var(--cyan-neon); text-transform: uppercase; letter-spacing: 1px;">AI EVALUATION REPORT</div>
+            <div class="score-circle" id="reportScore">88</div>
+            <h3 id="reportStatus" style="font-size: 1.4rem; color: #fff;">Strong Technical Answer</h3>
+            <p id="reportFeedback" style="color: var(--text-muted); max-width: 650px; line-height: 1.6;"></p>
+
+            <div class="metrics-grid">
+                <div class="metric-card">
+                    <div class="metric-val" id="mDepth">90%</div>
+                    <div class="metric-lbl">Technical Depth</div>
+                </div>
+                <div class="metric-card">
+                    <div class="metric-val" id="mClarity">85%</div>
+                    <div class="metric-lbl">Clarity & Structure</div>
+                </div>
+                <div class="metric-card">
+                    <div class="metric-val" id="mEdge">80%</div>
+                    <div class="metric-lbl">Edge Case Handling</div>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    <script>
+        let currentSession = null;
+
+        async function selectRole(role, btn) {
+            document.querySelectorAll('.role-pill').forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+
+            try {
+                const res = await fetch('/api/interview/start', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ role: role })
+                });
+                currentSession = await res.json();
+                renderQuestion(currentSession.current_question);
+                document.getElementById('reportBox').classList.remove('show');
+                document.getElementById('userAnswerText').value = '';
+            } catch (err) {
+                console.error("Interview load error:", err);
+            }
+        }
+
+        function renderQuestion(q) {
+            if (!q) return;
+            document.getElementById('qText').innerText = q.question;
+            document.getElementById('qDifficulty').innerText = q.difficulty;
+            document.getElementById('qKeyPoints').innerHTML = q.key_points.map(kp => `
+                <li><i class="fa-solid fa-angle-right"></i> ${kp}</li>
+            `).join('');
+        }
+
+        async function submitAnswer() {
+            if (!currentSession) return;
+            const answer = document.getElementById('userAnswerText').value;
+
+            try {
+                const res = await fetch('/api/interview/submit', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        role: currentSession.role,
+                        question_id: currentSession.current_question.id,
+                        user_answer: answer
+                    })
+                });
+                const report = await res.json();
+                
+                document.getElementById('reportScore').innerText = report.score;
+                document.getElementById('reportStatus').innerText = report.status;
+                document.getElementById('reportFeedback').innerText = report.feedback;
+                document.getElementById('mDepth').innerText = report.metrics.technical_depth + '%';
+                document.getElementById('mClarity').innerText = report.metrics.clarity + '%';
+                document.getElementById('mEdge').innerText = report.metrics.edge_case_handling + '%';
+                
+                document.getElementById('reportBox').classList.add('show');
+            } catch (err) {
+                console.error("Evaluation submission failed:", err);
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            selectRole('Backend Systems', document.querySelector('.role-pill.active'));
+        });
+    </script>
+
+</body>
+</html>

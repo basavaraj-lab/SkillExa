@@ -1,0 +1,542 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SkillExa — Interactive Tech Learning & Developer Mastery Platform</title>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root {
+            --bg-dark: #090d16;
+            --bg-card: rgba(18, 26, 43, 0.7);
+            --bg-card-hover: rgba(28, 40, 66, 0.85);
+            --border-glow: rgba(99, 102, 241, 0.25);
+            --primary: #6366f1;
+            --primary-glow: #4f46e5;
+            --cyan-neon: #06b6d4;
+            --emerald-neon: #10b981;
+            --amber-neon: #f59e0b;
+            --rose-neon: #f43f5e;
+            --text-main: #f3f4f6;
+            --text-muted: #9ca3af;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: 'Outfit', sans-serif;
+            background-color: var(--bg-dark);
+            color: var(--text-main);
+            min-height: 100vh;
+            overflow-x: hidden;
+            background-image: 
+                radial-gradient(circle at 15% 20%, rgba(99, 102, 241, 0.15) 0%, transparent 40%),
+                radial-gradient(circle at 85% 75%, rgba(6, 182, 212, 0.15) 0%, transparent 40%),
+                radial-gradient(circle at 50% 50%, rgba(244, 63, 94, 0.08) 0%, transparent 50%);
+            background-attachment: fixed;
+        }
+
+        /* Navbar */
+        .navbar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 1.25rem 3rem;
+            background: rgba(9, 13, 22, 0.8);
+            backdrop-filter: blur(16px);
+            border-bottom: 1px solid var(--border-glow);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .brand {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            text-decoration: none;
+        }
+
+        .brand-icon {
+            width: 42px;
+            height: 42px;
+            background: linear-gradient(135deg, var(--primary), var(--cyan-neon));
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.4rem;
+            color: #fff;
+            box-shadow: 0 0 20px rgba(99, 102, 241, 0.4);
+        }
+
+        .brand-text {
+            font-size: 1.6rem;
+            font-weight: 800;
+            background: linear-gradient(to right, #ffffff, #a5b4fc);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            letter-spacing: -0.5px;
+        }
+
+        .nav-links {
+            display: flex;
+            align-items: center;
+            gap: 2rem;
+            list-style: none;
+        }
+
+        .nav-links a {
+            color: var(--text-muted);
+            text-decoration: none;
+            font-weight: 500;
+            font-size: 0.95rem;
+            transition: all 0.2s ease;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .nav-links a:hover, .nav-links a.active {
+            color: #fff;
+            text-shadow: 0 0 10px rgba(255,255,255,0.3);
+        }
+
+        .cta-btn-sm {
+            background: linear-gradient(135deg, var(--primary), var(--primary-glow));
+            color: #fff !important;
+            padding: 0.6rem 1.4rem;
+            border-radius: 10px;
+            font-weight: 600 !important;
+            box-shadow: 0 4px 14px rgba(99, 102, 241, 0.35);
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+        }
+
+        .cta-btn-sm:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(99, 102, 241, 0.5);
+        }
+
+        /* Hero Section */
+        .hero {
+            max-width: 1200px;
+            margin: 4rem auto 3rem auto;
+            padding: 0 2rem;
+            text-align: center;
+        }
+
+        .hero-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            background: rgba(99, 102, 241, 0.12);
+            border: 1px solid rgba(99, 102, 241, 0.3);
+            color: #a5b4fc;
+            padding: 0.4rem 1.2rem;
+            border-radius: 999px;
+            font-size: 0.85rem;
+            font-weight: 600;
+            margin-bottom: 1.5rem;
+            box-shadow: 0 0 15px rgba(99, 102, 241, 0.2);
+        }
+
+        .hero-title {
+            font-size: 3.6rem;
+            font-weight: 800;
+            line-height: 1.15;
+            margin-bottom: 1.25rem;
+            letter-spacing: -1px;
+        }
+
+        .gradient-text {
+            background: linear-gradient(135deg, #a5b4fc 0%, var(--cyan-neon) 50%, var(--emerald-neon) 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .hero-subtitle {
+            font-size: 1.2rem;
+            color: var(--text-muted);
+            max-width: 760px;
+            margin: 0 auto 2.5rem auto;
+            line-height: 1.6;
+        }
+
+        .hero-ctas {
+            display: flex;
+            justify-content: center;
+            gap: 1.25rem;
+            flex-wrap: wrap;
+        }
+
+        .btn-hero-primary {
+            background: linear-gradient(135deg, var(--primary), #4338ca);
+            color: #fff;
+            padding: 1rem 2.2rem;
+            border-radius: 12px;
+            font-size: 1.05rem;
+            font-weight: 700;
+            text-decoration: none;
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            box-shadow: 0 8px 25px rgba(99, 102, 241, 0.4);
+            transition: all 0.25 ease;
+        }
+
+        .btn-hero-primary:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 12px 35px rgba(99, 102, 241, 0.6);
+        }
+
+        .btn-hero-secondary {
+            background: rgba(18, 26, 43, 0.8);
+            border: 1px solid var(--border-glow);
+            color: var(--text-main);
+            padding: 1rem 2rem;
+            border-radius: 12px;
+            font-size: 1.05rem;
+            font-weight: 600;
+            text-decoration: none;
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            backdrop-filter: blur(8px);
+            transition: all 0.25s ease;
+        }
+
+        .btn-hero-secondary:hover {
+            background: rgba(28, 40, 66, 0.9);
+            border-color: rgba(99, 102, 241, 0.5);
+            transform: translateY(-3px);
+        }
+
+        /* Stats Section */
+        .stats-bar {
+            max-width: 1000px;
+            margin: 3.5rem auto;
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 1.5rem;
+            padding: 0 1.5rem;
+        }
+
+        .stat-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border-glow);
+            border-radius: 16px;
+            padding: 1.5rem;
+            text-align: center;
+            backdrop-filter: blur(12px);
+        }
+
+        .stat-num {
+            font-size: 2.2rem;
+            font-weight: 800;
+            color: #fff;
+            margin-bottom: 0.25rem;
+        }
+
+        .stat-label {
+            font-size: 0.85rem;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        /* Feature Pillars Grid */
+        .section-container {
+            max-width: 1200px;
+            margin: 5rem auto;
+            padding: 0 2rem;
+        }
+
+        .section-header {
+            text-align: center;
+            margin-bottom: 3.5rem;
+        }
+
+        .section-header h2 {
+            font-size: 2.4rem;
+            font-weight: 800;
+            margin-bottom: 0.75rem;
+        }
+
+        .section-header p {
+            color: var(--text-muted);
+            font-size: 1.05rem;
+        }
+
+        .features-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 2rem;
+        }
+
+        .feature-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border-glow);
+            border-radius: 20px;
+            padding: 2.25rem;
+            backdrop-filter: blur(16px);
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+        }
+
+        .feature-card:hover {
+            background: var(--bg-card-hover);
+            border-color: rgba(99, 102, 241, 0.5);
+            transform: translateY(-6px);
+            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.3);
+        }
+
+        .card-icon-wrap {
+            width: 56px;
+            height: 56px;
+            border-radius: 14px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.6rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .icon-languages { background: rgba(99, 102, 241, 0.15); color: #818cf8; }
+        .icon-dsa { background: rgba(6, 182, 212, 0.15); color: var(--cyan-neon); }
+        .icon-interview { background: rgba(244, 63, 94, 0.15); color: var(--rose-neon); }
+        .icon-resume { background: rgba(16, 185, 129, 0.15); color: var(--emerald-neon); }
+
+        .feature-card h3 {
+            font-size: 1.5rem;
+            font-weight: 700;
+            margin-bottom: 0.75rem;
+            color: #fff;
+        }
+
+        .feature-card p {
+            color: var(--text-muted);
+            font-size: 0.95rem;
+            line-height: 1.6;
+            margin-bottom: 1.75rem;
+        }
+
+        .feature-tags {
+            display: flex;
+            gap: 0.5rem;
+            flex-wrap: wrap;
+            margin-bottom: 2rem;
+        }
+
+        .tag {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            color: #d1d5db;
+            padding: 0.25rem 0.75rem;
+            border-radius: 6px;
+            font-size: 0.78rem;
+            font-weight: 500;
+            font-family: 'JetBrains Mono', monospace;
+        }
+
+        .card-link-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            font-weight: 700;
+            font-size: 0.95rem;
+            text-decoration: none;
+            color: #a5b4fc;
+            transition: gap 0.2s ease;
+        }
+
+        .feature-card:hover .card-link-btn {
+            gap: 0.85rem;
+            color: #fff;
+        }
+
+        /* Footer */
+        footer {
+            border-top: 1px solid var(--border-glow);
+            padding: 2.5rem 0;
+            text-align: center;
+            color: var(--text-muted);
+            font-size: 0.9rem;
+            background: rgba(9, 13, 22, 0.95);
+        }
+
+        @media (max-width: 900px) {
+            .hero-title { font-size: 2.5rem; }
+            .features-grid { grid-template-columns: 1fr; }
+            .stats-bar { grid-template-columns: repeat(2, 1fr); }
+            .navbar { padding: 1rem 1.5rem; }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Navigation Bar -->
+    <nav class="navbar">
+        <a href="/" class="brand">
+            <div class="brand-icon"><i class="fa-solid fa-code"></i></div>
+            <span class="brand-text">SkillExa</span>
+        </a>
+
+        <ul class="nav-links">
+            <li><a href="/languages"><i class="fa-solid fa-laptop-code"></i> Languages</a></li>
+            <li><a href="/dsa"><i class="fa-solid fa-diagram-project"></i> DSA Practice</a></li>
+            <li><a href="/mock-interview"><i class="fa-solid fa-comments"></i> AI Mock Interview</a></li>
+            <li><a href="/resume-builder"><i class="fa-solid fa-file-invoice"></i> Resume Builder</a></li>
+            <li><a href="/topics" class="cta-btn-sm"><i class="fa-solid fa-compass"></i> Python Track</a></li>
+            <li><a href="/c/topics" class="cta-btn-sm" style="background: linear-gradient(135deg, var(--cyan-neon), #0284c7);"><i class="fa-solid fa-c"></i> C Track</a></li>
+        </ul>
+    </nav>
+
+    <!-- Hero Section -->
+    <header class="hero">
+        <div class="hero-badge">
+            <i class="fa-solid fa-sparkles"></i> All-In-One Developer Growth Ecosystem
+        </div>
+        <h1 class="hero-title">
+            Master Code, Crack DSA & Land Your <span class="gradient-text">Dream Tech Career</span>
+        </h1>
+        <p class="hero-subtitle">
+            SkillExa empowers software engineers with backend-verified 7-step language tracks, interactive code compilers, algorithmic problem sets, AI mock interviews, and automated resume building.
+        </p>
+        <div class="hero-ctas">
+            <a href="/languages" class="btn-hero-primary">
+                <i class="fa-solid fa-graduation-cap"></i> Explore Languages Track
+            </a>
+            <a href="/dsa" class="btn-hero-secondary">
+                <i class="fa-solid fa-terminal"></i> Practice DSA Sandbox
+            </a>
+            <a href="/mock-interview" class="btn-hero-secondary" style="border-color: rgba(244, 63, 94, 0.4);">
+                <i class="fa-solid fa-robot"></i> AI Mock Interview
+            </a>
+        </div>
+    </header>
+
+    <!-- Platform Stats -->
+    <div class="stats-bar">
+        <div class="stat-card">
+            <div class="stat-num">71+</div>
+            <div class="stat-label">Structured Topics</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-num">2</div>
+            <div class="stat-label">Core Tracks (Python & C)</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-num">7-Step</div>
+            <div class="stat-label">Mastery Sequence</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-num">100%</div>
+            <div class="stat-label">Backend Compiler Sandbox</div>
+        </div>
+    </div>
+
+    <!-- Feature Pillars -->
+    <section class="section-container">
+        <div class="section-header">
+            <h2>Four Pillars of Tech Excellence</h2>
+            <p>Everything you need from initial syntax to final offer letter.</p>
+        </div>
+
+        <div class="features-grid">
+
+            <!-- Card 1: Language Learning -->
+            <div class="feature-card">
+                <div>
+                    <div class="card-icon-wrap icon-languages">
+                        <i class="fa-solid fa-code"></i>
+                    </div>
+                    <h3>Language Learning Hub</h3>
+                    <p>Comprehensive structured programming tracks including 23 Python topics and 48 C topics. Complete theory, example execution, fill-in-the-blanks, and skill tests.</p>
+                    <div class="feature-tags">
+                        <span class="tag">Python (23 Topics)</span>
+                        <span class="tag">C (48 Topics)</span>
+                        <span class="tag">C++ / Java (Upcoming)</span>
+                    </div>
+                </div>
+                <a href="/languages" class="card-link-btn">
+                    Launch Languages Track <i class="fa-solid fa-arrow-right"></i>
+                </a>
+            </div>
+
+            <!-- Card 2: DSA Practice -->
+            <div class="feature-card">
+                <div>
+                    <div class="card-icon-wrap icon-dsa">
+                        <i class="fa-solid fa-network-wired"></i>
+                    </div>
+                    <h3>DSA Practice Hub</h3>
+                    <p>Solve curated Data Structures & Algorithms problems across Arrays, Linked Lists, Trees, Stack & Queue, and Dynamic Programming with an inline sandbox.</p>
+                    <div class="feature-tags">
+                        <span class="tag">Two Sum</span>
+                        <span class="tag">Linked Lists</span>
+                        <span class="tag">Trees</span>
+                        <span class="tag">DP</span>
+                    </div>
+                </div>
+                <a href="/dsa" class="card-link-btn">
+                    Practice DSA Problems <i class="fa-solid fa-arrow-right"></i>
+                </a>
+            </div>
+
+            <!-- Card 3: AI Mock Interview -->
+            <div class="feature-card">
+                <div>
+                    <div class="card-icon-wrap icon-interview">
+                        <i class="fa-solid fa-user-astronaut"></i>
+                    </div>
+                    <h3>AI Mock Interview Studio</h3>
+                    <p>Simulate realistic technical and behavioral interview rounds for Backend, Frontend, and Full Stack roles with instant score metrics and depth evaluation.</p>
+                    <div class="feature-tags">
+                        <span class="tag">Backend Systems</span>
+                        <span class="tag">Frontend</span>
+                        <span class="tag">Instant AI Feedback</span>
+                    </div>
+                </div>
+                <a href="/mock-interview" class="card-link-btn">
+                    Start Mock Interview <i class="fa-solid fa-arrow-right"></i>
+                </a>
+            </div>
+
+            <!-- Card 4: Resume Builder -->
+            <div class="feature-card">
+                <div>
+                    <div class="card-icon-wrap icon-resume">
+                        <i class="fa-solid fa-file-code"></i>
+                    </div>
+                    <h3>AI Resume Builder Studio</h3>
+                    <p>Build an ATS-optimized technical resume. Fill out experience, key projects, and tech stack to generate instant Markdown & preview cards.</p>
+                    <div class="feature-tags">
+                        <span class="tag">ATS Compliant</span>
+                        <span class="tag">Live Preview</span>
+                        <span class="tag">Markdown Export</span>
+                    </div>
+                </div>
+                <a href="/resume-builder" class="card-link-btn">
+                    Build Tech Resume <i class="fa-solid fa-arrow-right"></i>
+                </a>
+            </div>
+
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer>
+        <p>&copy; 2026 SkillExa Platform. Built with Python & FastAPI Backend Engine.</p>
+    </footer>
+
+</body>
+</html>

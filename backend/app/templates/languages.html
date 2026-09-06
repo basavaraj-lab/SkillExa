@@ -1,0 +1,253 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Language Learning Hub — SkillExa</title>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root {
+            --bg-dark: #090d16;
+            --bg-card: rgba(18, 26, 43, 0.75);
+            --bg-card-hover: rgba(28, 40, 66, 0.9);
+            --border-glow: rgba(99, 102, 241, 0.25);
+            --primary: #6366f1;
+            --cyan-neon: #06b6d4;
+            --emerald-neon: #10b981;
+            --amber-neon: #f59e0b;
+            --text-main: #f3f4f6;
+            --text-muted: #9ca3af;
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+
+        body {
+            font-family: 'Outfit', sans-serif;
+            background-color: var(--bg-dark);
+            color: var(--text-main);
+            min-height: 100vh;
+            background-image: 
+                radial-gradient(circle at 10% 15%, rgba(99, 102, 241, 0.15) 0%, transparent 40%),
+                radial-gradient(circle at 90% 80%, rgba(6, 182, 212, 0.15) 0%, transparent 40%);
+            background-attachment: fixed;
+        }
+
+        .navbar {
+            display: flex; justify-content: space-between; align-items: center;
+            padding: 1.25rem 3rem; background: rgba(9, 13, 22, 0.85);
+            backdrop-filter: blur(16px); border-bottom: 1px solid var(--border-glow);
+            position: sticky; top: 0; z-index: 100;
+        }
+
+        .brand { display: flex; align-items: center; gap: 0.75rem; text-decoration: none; }
+        .brand-icon {
+            width: 42px; height: 42px;
+            background: linear-gradient(135deg, var(--primary), var(--cyan-neon));
+            border-radius: 12px; display: flex; align-items: center; justify-content: center;
+            font-size: 1.4rem; color: #fff; box-shadow: 0 0 20px rgba(99, 102, 241, 0.4);
+        }
+        .brand-text {
+            font-size: 1.6rem; font-weight: 800;
+            background: linear-gradient(to right, #ffffff, #a5b4fc);
+            -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+        }
+
+        .nav-links { display: flex; align-items: center; gap: 2rem; list-style: none; }
+        .nav-links a { color: var(--text-muted); text-decoration: none; font-weight: 500; font-size: 0.95rem; }
+        .nav-links a:hover, .nav-links a.active { color: #fff; }
+
+        .container { max-width: 1200px; margin: 3rem auto; padding: 0 2rem; }
+
+        .header-box { text-align: center; margin-bottom: 3.5rem; }
+        .header-box h1 { font-size: 2.8rem; font-weight: 800; margin-bottom: 0.75rem; }
+        .header-box p { color: var(--text-muted); font-size: 1.1rem; max-width: 700px; margin: 0 auto; }
+
+        .tracks-section { margin-bottom: 4rem; }
+        .section-title { font-size: 1.5rem; font-weight: 700; margin-bottom: 1.5rem; display: flex; align-items: center; gap: 0.75rem; }
+
+        .tracks-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 2rem; }
+
+        .track-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border-glow);
+            border-radius: 20px;
+            padding: 2.25rem;
+            backdrop-filter: blur(12px);
+            transition: all 0.3s ease;
+            position: relative;
+        }
+
+        .track-card:hover {
+            background: var(--bg-card-hover);
+            border-color: rgba(99, 102, 241, 0.5);
+            transform: translateY(-4px);
+        }
+
+        .track-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 1.25rem; }
+        
+        .track-badge {
+            padding: 0.35rem 0.85rem; border-radius: 999px; font-size: 0.8rem; font-weight: 700;
+        }
+        .badge-active { background: rgba(16, 185, 129, 0.15); color: var(--emerald-neon); border: 1px solid rgba(16, 185, 129, 0.3); }
+        .badge-soon { background: rgba(245, 158, 11, 0.15); color: var(--amber-neon); border: 1px solid rgba(245, 158, 11, 0.3); }
+
+        .track-title-wrap { display: flex; align-items: center; gap: 1rem; }
+        .lang-logo {
+            width: 52px; height: 52px; border-radius: 14px; display: flex; align-items: center; justify-content: center; font-size: 1.8rem;
+        }
+        .logo-python { background: rgba(99, 102, 241, 0.2); color: #818cf8; }
+        .logo-c { background: rgba(6, 182, 212, 0.2); color: var(--cyan-neon); }
+        .logo-cpp { background: rgba(244, 63, 94, 0.2); color: #fb7185; }
+        .logo-java { background: rgba(245, 158, 11, 0.2); color: var(--amber-neon); }
+
+        .track-card h3 { font-size: 1.6rem; font-weight: 700; color: #fff; }
+        .track-desc { color: var(--text-muted); font-size: 0.95rem; line-height: 1.6; margin: 1rem 0 1.5rem 0; }
+
+        .module-list {
+            list-style: none; margin-bottom: 2rem; display: flex; flex-direction: column; gap: 0.5rem;
+        }
+        .module-list li {
+            font-size: 0.88rem; color: #d1d5db; display: flex; align-items: center; gap: 0.6rem;
+        }
+        .module-list li i { color: var(--emerald-neon); font-size: 0.8rem; }
+
+        .btn-track {
+            display: inline-flex; align-items: center; justify-content: center; gap: 0.75rem;
+            width: 100%; padding: 0.9rem; border-radius: 12px; font-weight: 700; font-size: 1rem;
+            text-decoration: none; transition: all 0.2s ease;
+        }
+        .btn-python { background: linear-gradient(135deg, var(--primary), #4338ca); color: #fff; box-shadow: 0 4px 15px rgba(99, 102, 241, 0.4); }
+        .btn-c { background: linear-gradient(135deg, var(--cyan-neon), #0284c7); color: #fff; box-shadow: 0 4px 15px rgba(6, 182, 212, 0.4); }
+        .btn-disabled { background: rgba(255, 255, 255, 0.05); color: var(--text-muted); border: 1px solid rgba(255, 255, 255, 0.1); cursor: not-allowed; }
+
+        .btn-track:not(.btn-disabled):hover { transform: translateY(-2px); filter: brightness(1.1); }
+    </style>
+</head>
+<body>
+
+    <!-- Navbar -->
+    <nav class="navbar">
+        <a href="/" class="brand">
+            <div class="brand-icon"><i class="fa-solid fa-code"></i></div>
+            <span class="brand-text">SkillExa</span>
+        </a>
+
+        <ul class="nav-links">
+            <li><a href="/" ><i class="fa-solid fa-house"></i> Home</a></li>
+            <li><a href="/languages" class="active"><i class="fa-solid fa-laptop-code"></i> Languages</a></li>
+            <li><a href="/dsa"><i class="fa-solid fa-diagram-project"></i> DSA Practice</a></li>
+            <li><a href="/mock-interview"><i class="fa-solid fa-comments"></i> AI Mock Interview</a></li>
+            <li><a href="/resume-builder"><i class="fa-solid fa-file-invoice"></i> Resume Builder</a></li>
+        </ul>
+    </nav>
+
+    <!-- Main Container -->
+    <div class="container">
+        <div class="header-box">
+            <h1>Programming Language Tracks</h1>
+            <p>Master syntax, core concepts, compiler behavior, and topic tests using SkillExa's backend-guided 7-step sequence engine.</p>
+        </div>
+
+        <!-- Active Tracks -->
+        <div class="tracks-section">
+            <h2 class="section-title"><i class="fa-solid fa-bolt" style="color: var(--emerald-neon);"></i> Active Tracks (Ready to Learn)</h2>
+            <div class="tracks-grid">
+
+                <!-- Python Card -->
+                <div class="track-card">
+                    <div class="track-header">
+                        <div class="track-title-wrap">
+                            <div class="lang-logo logo-python"><i class="fa-brands fa-python"></i></div>
+                            <div>
+                                <h3>Python 3 Core & OOP</h3>
+                                <span style="font-size: 0.85rem; color: var(--text-muted);">23 Interactive Topics</span>
+                            </div>
+                        </div>
+                        <span class="track-badge badge-active">Available</span>
+                    </div>
+                    <p class="track-desc">From basic variables and data types to decorators, generators, OOP inheritance, and custom exception handling.</p>
+                    <ul class="module-list">
+                        <li><i class="fa-solid fa-check"></i> Introduction, Variables & Operators</li>
+                        <li><i class="fa-solid fa-check"></i> Control Flow & Loops</li>
+                        <li><i class="fa-solid fa-check"></i> Functions, Scope & Recursion</li>
+                        <li><i class="fa-solid fa-check"></i> Native Lists, Dicts & Sets</li>
+                        <li><i class="fa-solid fa-check"></i> Classes, OOP & SkillExa Tests</li>
+                    </ul>
+                    <a href="/topics" class="btn-track btn-python">
+                        Start Python Track <i class="fa-solid fa-arrow-right"></i>
+                    </a>
+                </div>
+
+                <!-- C Card -->
+                <div class="track-card">
+                    <div class="track-header">
+                        <div class="track-title-wrap">
+                            <div class="lang-logo logo-c"><i class="fa-solid fa-c"></i></div>
+                            <div>
+                                <h3>C Systems Programming</h3>
+                                <span style="font-size: 0.85rem; color: var(--text-muted);">48 Topics Across 10 Modules</span>
+                            </div>
+                        </div>
+                        <span class="track-badge badge-active">Available</span>
+                    </div>
+                    <p class="track-desc">Low-level memory management, explicit pointers, pointer arithmetic, struct memory alignment, preprocessors, and native C compiler binary sandbox.</p>
+                    <ul class="module-list">
+                        <li><i class="fa-solid fa-check"></i> Compilation Process & Identifiers</li>
+                        <li><i class="fa-solid fa-check"></i> Control Flow & Functions</li>
+                        <li><i class="fa-solid fa-check"></i> Arrays, Strings & String Functions</li>
+                        <li><i class="fa-solid fa-check"></i> Pointers, Arithmetic & Function Pointers</li>
+                        <li><i class="fa-solid fa-check"></i> Structures, File Handling & Preprocessors</li>
+                    </ul>
+                    <a href="/c/topics" class="btn-track btn-c">
+                        Start C Track <i class="fa-solid fa-arrow-right"></i>
+                    </a>
+                </div>
+
+            </div>
+        </div>
+
+        <!-- Upcoming Tracks -->
+        <div class="tracks-section">
+            <h2 class="section-title"><i class="fa-solid fa-hourglass-half" style="color: var(--amber-neon);"></i> Upcoming Tracks</h2>
+            <div class="tracks-grid">
+
+                <!-- C++ -->
+                <div class="track-card" style="opacity: 0.8;">
+                    <div class="track-header">
+                        <div class="track-title-wrap">
+                            <div class="lang-logo logo-cpp"><i class="fa-solid fa-code"></i></div>
+                            <div>
+                                <h3>C++ Systems & STL</h3>
+                                <span style="font-size: 0.85rem; color: var(--text-muted);">35 Planned Topics</span>
+                            </div>
+                        </div>
+                        <span class="track-badge badge-soon">Coming Soon</span>
+                    </div>
+                    <p class="track-desc">Template metaprogramming, Standard Template Library (STL) vectors/maps, smart pointers, and high-performance memory allocators.</p>
+                    <button class="btn-track btn-disabled" disabled>Track Locked</button>
+                </div>
+
+                <!-- Java -->
+                <div class="track-card" style="opacity: 0.8;">
+                    <div class="track-header">
+                        <div class="track-title-wrap">
+                            <div class="lang-logo logo-java"><i class="fa-brands fa-java"></i></div>
+                            <div>
+                                <h3>Java Enterprise Systems</h3>
+                                <span style="font-size: 0.85rem; color: var(--text-muted);">40 Planned Topics</span>
+                            </div>
+                        </div>
+                        <span class="track-badge badge-soon">Coming Soon</span>
+                    </div>
+                    <p class="track-desc">JVM internal architecture, bytecode execution, multi-threading synchronization, collections framework, and enterprise design patterns.</p>
+                    <button class="btn-track btn-disabled" disabled>Track Locked</button>
+                </div>
+
+            </div>
+        </div>
+
+    </div>
+
+</body>
+</html>

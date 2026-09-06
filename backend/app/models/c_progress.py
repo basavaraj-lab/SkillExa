@@ -1,11 +1,11 @@
-"""SQLAlchemy ORM model for tracking student topic and section progress."""
+"""SQLAlchemy ORM model for tracking C programming topic and section progress."""
 from datetime import datetime
 from sqlalchemy import Boolean, Column, DateTime, Float, Integer, String, UniqueConstraint
 from app.database.database import Base
 
 
-class StudentProgress(Base):
-    __tablename__ = "student_progress"
+class CStudentProgress(Base):
+    __tablename__ = "c_student_progress"
 
     id = Column(Integer, primary_key=True, index=True)
     student_id = Column(String, index=True, nullable=False, default="1")
@@ -32,7 +32,7 @@ class StudentProgress(Base):
     updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
 
     __table_args__ = (
-        UniqueConstraint("student_id", "topic_id", name="uq_student_topic"),
+        UniqueConstraint("student_id", "topic_id", name="uq_c_student_topic"),
     )
 
     def to_dict(self):

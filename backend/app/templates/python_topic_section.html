@@ -1,0 +1,337 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Python Track — {{ topic.title }} ({{ current_section | capitalize }})</title>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root {
+            --bg-dark: #090d16;
+            --bg-card: rgba(18, 26, 43, 0.8);
+            --border-glow: rgba(99, 102, 241, 0.25);
+            --primary: #6366f1;
+            --primary-glow: #4f46e5;
+            --cyan-neon: #38bdf8;
+            --emerald-neon: #10b981;
+            --amber-neon: #f59e0b;
+            --rose-neon: #f43f5e;
+            --text-main: #f3f4f6;
+            --text-muted: #9ca3af;
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+
+        body {
+            font-family: 'Outfit', sans-serif;
+            background-color: var(--bg-dark);
+            color: var(--text-main);
+            min-height: 100vh;
+            background-image: radial-gradient(circle at 15% 15%, rgba(99, 102, 241, 0.15) 0%, transparent 40%),
+                              radial-gradient(circle at 85% 85%, rgba(56, 189, 248, 0.12) 0%, transparent 40%);
+            background-attachment: fixed;
+        }
+
+        .navbar {
+            display: flex; justify-content: space-between; align-items: center;
+            padding: 1rem 2.5rem; background: rgba(9, 13, 22, 0.85);
+            backdrop-filter: blur(16px); border-bottom: 1px solid var(--border-glow);
+            position: sticky; top: 0; z-index: 100;
+        }
+
+        .brand { display: flex; align-items: center; gap: 0.75rem; text-decoration: none; }
+        .brand-icon {
+            width: 38px; height: 38px;
+            background: linear-gradient(135deg, var(--primary), var(--cyan-neon));
+            border-radius: 10px; display: flex; align-items: center; justify-content: center;
+            font-size: 1.25rem; color: #fff; box-shadow: 0 0 15px rgba(99, 102, 241, 0.4);
+        }
+        .brand-text {
+            font-size: 1.4rem; font-weight: 800;
+            background: linear-gradient(to right, #ffffff, #a5b4fc);
+            -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+        }
+
+        .stepper-container {
+            display: flex; align-items: center; justify-content: space-between;
+            background: var(--bg-card); backdrop-filter: blur(12px);
+            border: 1px solid var(--border-glow); border-radius: 14px;
+            padding: 0.85rem 1.5rem; margin: 1.5rem 0; flex-wrap: wrap; gap: 0.5rem;
+        }
+
+        .step-item {
+            display: flex; align-items: center; gap: 0.5rem; padding: 0.5rem 0.9rem;
+            border-radius: 8px; text-decoration: none; font-size: 0.88rem; font-weight: 600;
+            color: var(--text-muted); transition: all 0.2s ease;
+        }
+
+        .step-item.active {
+            background: linear-gradient(135deg, var(--primary), var(--primary-glow));
+            color: #fff !important; box-shadow: 0 2px 10px rgba(99, 102, 241, 0.4);
+        }
+
+        .step-item.completed { color: var(--emerald-neon); background: rgba(16, 185, 129, 0.12); }
+        .step-item.locked { opacity: 0.4; cursor: not-allowed; pointer-events: none; }
+
+        .step-divider { color: var(--text-muted); font-size: 0.75rem; opacity: 0.5; }
+
+        .section-card {
+            background: var(--bg-card); border: 1px solid var(--border-glow);
+            border-radius: 18px; padding: 2rem; backdrop-filter: blur(12px);
+            margin-bottom: 2rem;
+        }
+
+        .code-box {
+            background: #070a12; border: 1px solid var(--border-glow);
+            border-radius: 12px; padding: 1.25rem; font-family: 'JetBrains Mono', monospace;
+            font-size: 0.92rem; color: #a5b4fc; white-space: pre-wrap; line-height: 1.6;
+        }
+
+        .primary-btn {
+            background: linear-gradient(135deg, var(--primary), #4338ca);
+            color: #fff; border: none; padding: 0.85rem 1.75rem; border-radius: 12px;
+            font-weight: 700; font-size: 1rem; cursor: pointer; display: inline-flex;
+            align-items: center; gap: 0.6rem; box-shadow: 0 4px 15px rgba(99, 102, 241, 0.35);
+            transition: all 0.2s ease; text-decoration: none;
+        }
+
+        .primary-btn:hover { transform: translateY(-2px); box-shadow: 0 6px 20px rgba(99, 102, 241, 0.5); }
+        .primary-btn:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
+
+        .option-pill-btn {
+            background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.15);
+            color: #d1d5db; padding: 0.4rem 1rem; border-radius: 8px; font-family: 'JetBrains Mono', monospace;
+            font-size: 0.85rem; font-weight: 600; cursor: pointer; transition: all 0.2s ease;
+        }
+
+        .option-pill-btn:hover {
+            background: rgba(99, 102, 241, 0.25); color: #fff; border-color: var(--primary); transform: translateY(-1px);
+        }
+
+        .blank-input {
+            background: #070a12; border: 1px solid var(--border-glow); color: var(--cyan-neon);
+            font-family: 'JetBrains Mono', monospace; padding: 0.4rem 0.75rem; border-radius: 6px;
+            font-size: 0.9rem; width: 130px; outline: none; text-align: center; font-weight: 700;
+        }
+
+        .blank-input:focus { border-color: var(--primary); box-shadow: 0 0 10px rgba(99, 102, 241, 0.4); }
+    </style>
+</head>
+<body>
+
+    <!-- Header Navbar -->
+    <nav class="navbar">
+        <a href="/topics" class="brand">
+            <div class="brand-icon"><i class="fa-brands fa-python"></i></div>
+            <span class="brand-text">Python Learning Track</span>
+        </a>
+        <div style="display: flex; align-items: center; gap: 1rem;">
+            <a href="/topics" style="color: var(--text-muted); text-decoration: none; font-size: 0.9rem; font-weight: 600;"><i class="fa-solid fa-arrow-left"></i> Back to Python Topics</a>
+        </div>
+    </nav>
+
+    <!-- Main Container -->
+    <div style="max-width: 1150px; margin: 2rem auto; padding: 0 1.5rem;" id="flow-app" data-topic-id="{{ topic_id }}" data-section="{{ current_section }}" data-student-id="{{ student_id }}" data-track="python">
+        
+        <!-- Header Info -->
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
+            <div>
+                <span style="font-size: 0.8rem; font-weight: 700; color: var(--cyan-neon); letter-spacing: 1px;">PYTHON TOPIC {{ topic_id }}</span>
+                <h1 style="font-size: 2.2rem; font-weight: 800; color: #fff;">{{ topic.title }}</h1>
+            </div>
+            <div style="display: flex; gap: 0.75rem;">
+                <span style="background: rgba(99, 102, 241, 0.15); color: #a5b4fc; padding: 0.35rem 0.85rem; border-radius: 8px; font-weight: 700; font-size: 0.85rem;">{{ topic.difficulty }}</span>
+                <span style="background: rgba(255,255,255,0.05); color: var(--text-muted); padding: 0.35rem 0.85rem; border-radius: 8px; font-size: 0.85rem;"><i class="fa-regular fa-clock"></i> {{ topic.duration }}</span>
+            </div>
+        </div>
+
+        <!-- 5-Step Stepper -->
+        <nav class="stepper-container">
+            <a href="/topic/{{ topic_id }}/information" class="step-item {% if current_section == 'information' %}active{% elif progress.information_completed %}completed{% endif %}">
+                {% if progress.information_completed %}<i class="fa-solid fa-circle-check"></i>{% else %}<i class="fa-solid fa-circle-info"></i>{% endif %}
+                1. Information
+            </a>
+            <i class="fa-solid fa-chevron-right step-divider"></i>
+
+            <a href="/topic/{{ topic_id }}/examples" class="step-item {% if current_section == 'examples' %}active{% elif progress.examples_completed %}completed{% elif not progress.information_completed and not progress.topic_completed %}locked{% endif %}">
+                {% if progress.examples_completed %}<i class="fa-solid fa-circle-check"></i>{% elif not progress.information_completed and not progress.topic_completed %}<i class="fa-solid fa-lock"></i>{% else %}<i class="fa-solid fa-code"></i>{% endif %}
+                2. Examples
+            </a>
+            <i class="fa-solid fa-chevron-right step-divider"></i>
+
+            <a href="/topic/{{ topic_id }}/programming" class="step-item {% if current_section == 'programming' %}active{% elif progress.programming_completed %}completed{% elif not progress.examples_completed and not progress.topic_completed %}locked{% endif %}">
+                {% if progress.programming_completed %}<i class="fa-solid fa-circle-check"></i>{% elif not progress.examples_completed and not progress.topic_completed %}<i class="fa-solid fa-lock"></i>{% else %}<i class="fa-solid fa-terminal"></i>{% endif %}
+                3. Programming
+            </a>
+            <i class="fa-solid fa-chevron-right step-divider"></i>
+
+            <a href="/topic/{{ topic_id }}/fill-blanks" class="step-item {% if current_section == 'fill-blanks' %}active{% elif progress.fill_blanks_completed %}completed{% elif not progress.programming_completed and not progress.topic_completed %}locked{% endif %}">
+                {% if progress.fill_blanks_completed %}<i class="fa-solid fa-circle-check"></i>{% elif not progress.programming_completed and not progress.topic_completed %}<i class="fa-solid fa-lock"></i>{% else %}<i class="fa-solid fa-pen-nib"></i>{% endif %}
+                4. Fill in Blanks
+            </a>
+            <i class="fa-solid fa-chevron-right step-divider"></i>
+
+            <a href="/topic/{{ topic_id }}/test" class="step-item {% if current_section == 'test' %}active{% elif progress.test_completed %}completed{% elif not progress.fill_blanks_completed and not progress.topic_completed %}locked{% endif %}">
+                {% if progress.test_completed %}<i class="fa-solid fa-trophy"></i>{% elif not progress.fill_blanks_completed and not progress.topic_completed %}<i class="fa-solid fa-lock"></i>{% else %}<i class="fa-solid fa-vial"></i>{% endif %}
+                5. SkillExa Test
+            </a>
+        </nav>
+
+        <!-- Dynamic Content Mount -->
+        <div id="section-mount">
+            {% if current_section == 'information' %}
+            <div class="section-card">
+                <h3 style="font-size: 1.4rem; font-weight: 700; margin-bottom: 1rem; color: #fff;"><i class="fa-solid fa-book" style="color: var(--primary);"></i> Concept & Syntax</h3>
+                <p style="color: var(--text-muted); font-size: 1.05rem; line-height: 1.6; margin-bottom: 1.5rem;">{{ section_data.concept }}</p>
+                
+                {% if section_data.syntax %}
+                <div style="margin-bottom: 2rem;">
+                    <div style="font-size: 0.85rem; font-weight: 700; color: var(--cyan-neon); margin-bottom: 0.5rem;">PYTHON SYNTAX SPECIFICATION</div>
+                    <div class="code-box">{{ section_data.syntax }}</div>
+                </div>
+                {% endif %}
+
+                <button class="primary-btn" id="btn-complete-info">
+                    Complete & Continue to Examples <i class="fa-solid fa-arrow-right"></i>
+                </button>
+            </div>
+
+            {% elif current_section == 'examples' %}
+            <div class="section-card">
+                <h3 style="font-size: 1.4rem; font-weight: 700; margin-bottom: 1rem; color: #fff;"><i class="fa-solid fa-laptop-code" style="color: var(--cyan-neon);"></i> Code Examples & Output</h3>
+                
+                <div style="margin-bottom: 1.5rem;">
+                    <div style="font-size: 0.85rem; font-weight: 700; color: var(--cyan-neon); margin-bottom: 0.5rem;">EXAMPLE PYTHON CODE</div>
+                    <div class="code-box">{{ section_data.example }}</div>
+                </div>
+
+                {% if section_data.output %}
+                <div style="margin-bottom: 2rem;">
+                    <div style="font-size: 0.85rem; font-weight: 700; color: var(--emerald-neon); margin-bottom: 0.5rem;">EXPECTED OUTPUT</div>
+                    <div class="code-box" style="color: var(--emerald-neon);">{{ section_data.output }}</div>
+                </div>
+                {% endif %}
+
+                <button class="primary-btn" id="btn-complete-examples">
+                    Complete & Continue to Programming <i class="fa-solid fa-arrow-right"></i>
+                </button>
+            </div>
+
+            {% elif current_section == 'programming' %}
+            <div class="section-card">
+                <h3 style="font-size: 1.4rem; font-weight: 700; margin-bottom: 1rem; color: #fff;"><i class="fa-solid fa-terminal" style="color: var(--primary);"></i> Programming Exercise & Sandbox</h3>
+                
+                {% if section_data.compiler and section_data.compiler.options %}
+                <div style="margin-bottom: 1.25rem;">
+                    <div style="font-size: 0.85rem; font-weight: 700; color: var(--cyan-neon); margin-bottom: 0.6rem;">CLICK TO INSERT CODE PILL INTO BLANK (_____)</div>
+                    <div style="display: flex; gap: 0.6rem; flex-wrap: wrap;" id="programming-options-container">
+                        {% for opt in section_data.compiler.options %}
+                        <button type="button" class="option-pill-btn" data-val="{{ opt }}">{{ opt }}</button>
+                        {% endfor %}
+                    </div>
+                </div>
+                {% endif %}
+
+                <div style="margin-bottom: 1.5rem;">
+                    <textarea id="programming-code-input" style="width:100%; height: 220px; background: #070a12; color: #a5b4fc; border: 1px solid var(--border-glow); border-radius: 12px; padding: 1.25rem; font-family: 'JetBrains Mono', monospace; font-size: 0.95rem; line-height: 1.5; resize: none; outline: none;">{% if section_data.compiler and section_data.compiler.starter_code %}{{ section_data.compiler.starter_code }}{% else %}{{ section_data.practice.starter_code | default('# Write Python code here') }}{% endif %}</textarea>
+                </div>
+
+                <div style="display: flex; gap: 1rem; margin-bottom: 1.5rem;">
+                    <button class="primary-btn" id="run-sandbox-btn"><i class="fa-solid fa-play"></i> Run Code Sandbox</button>
+                    <button style="background: rgba(255,255,255,0.08); color: #fff; border: none; padding: 0.85rem 1.25rem; border-radius: 12px; font-weight: 600; cursor: pointer;" id="reset-code-btn"><i class="fa-solid fa-rotate-left"></i> Reset</button>
+                </div>
+
+                <div style="margin-bottom: 2rem;">
+                    <div style="font-size: 0.85rem; font-weight: 700; color: var(--text-muted); margin-bottom: 0.5rem;">PYTHON RUNTIME OUTPUT</div>
+                    <div id="programming-console" class="code-box" style="min-height: 80px; color: var(--text-muted);">Click "Run Code Sandbox" to execute Python code...</div>
+                </div>
+
+                <button class="primary-btn" id="btn-complete-programming">
+                    Complete & Continue to Fill in Blanks <i class="fa-solid fa-arrow-right"></i>
+                </button>
+            </div>
+
+            {% elif current_section == 'fill-blanks' %}
+            <div class="section-card">
+                <h3 style="font-size: 1.4rem; font-weight: 700; margin-bottom: 1rem; color: #fff;"><i class="fa-solid fa-pen-nib" style="color: var(--cyan-neon);"></i> Fill in the Blanks</h3>
+                
+                {% if section_data.fill_blanks and section_data.fill_blanks.options %}
+                <div style="margin-bottom: 1.25rem;">
+                    <div style="font-size: 0.85rem; font-weight: 700; color: var(--cyan-neon); margin-bottom: 0.6rem;">AVAILABLE OPTION PILLS</div>
+                    <div style="display: flex; gap: 0.6rem; flex-wrap: wrap;">
+                        {% for opt in section_data.fill_blanks.options %}
+                        <span class="option-pill-btn" style="cursor: default;">{{ opt }}</span>
+                        {% endfor %}
+                    </div>
+                </div>
+                {% endif %}
+
+                <div style="margin-bottom: 2rem;">
+                    <div style="font-size: 0.95rem; color: var(--text-main); margin-bottom: 1rem;">Fill in the blank fields to complete the Python snippet:</div>
+                    <div class="code-box" style="display: flex; flex-direction: column; gap: 0.8rem;">
+                        {% set question = section_data.fill_blanks.question %}
+                        {% set parts = question.split('_____') %}
+                        <div>
+                            {% for part in parts %}
+                                {{ part }}
+                                {% if not loop.last %}
+                                    <input type="text" class="blank-input" placeholder="blank" spellcheck="false" />
+                                {% endif %}
+                            {% endfor %}
+                        </div>
+                    </div>
+                </div>
+
+                <div style="display: flex; gap: 1rem; margin-bottom: 1.5rem;">
+                    <button style="background: rgba(56, 189, 248, 0.15); color: var(--cyan-neon); border: 1px solid rgba(56, 189, 248, 0.3); padding: 0.75rem 1.25rem; border-radius: 10px; font-weight: 700; cursor: pointer;" id="check-fill-btn"><i class="fa-solid fa-circle-check"></i> Check Answers</button>
+                    <span id="fill-feedback" style="font-weight: 700; display: flex; align-items: center;"></span>
+                </div>
+
+                <button class="primary-btn" id="btn-complete-fill-blanks">
+                    Complete & Continue to SkillExa Test <i class="fa-solid fa-arrow-right"></i>
+                </button>
+            </div>
+
+            {% elif current_section == 'test' %}
+            <div class="section-card" id="test-section-card">
+                <h3 style="font-size: 1.4rem; font-weight: 700; margin-bottom: 1.5rem; color: #fff;"><i class="fa-solid fa-vial" style="color: var(--rose-neon);"></i> SkillExa Topic Test</h3>
+                
+                {% for q in section_data.questions %}
+                <div style="background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.08); padding: 1.25rem; border-radius: 12px; margin-bottom: 1.25rem;">
+                    <div style="font-size: 1rem; font-weight: 700; color: #fff; margin-bottom: 0.85rem;">Q{{ loop.index }}: {{ q.question }}</div>
+                    <div style="display: flex; flex-direction: column; gap: 0.6rem;">
+                        {% for opt in q.options %}
+                        <label style="display: flex; align-items: center; gap: 0.75rem; color: var(--text-muted); cursor: pointer; font-size: 0.95rem;">
+                            <input type="radio" name="question_{{ loop.index0 }}" value="{{ opt }}" style="accent-color: var(--primary);">
+                            {{ opt }}
+                        </label>
+                        {% endfor %}
+                    </div>
+                </div>
+                {% endfor %}
+
+                <button class="primary-btn" id="btn-submit-test" style="background: linear-gradient(135deg, var(--rose-neon), #e11d48);">
+                    Submit SkillExa Test <i class="fa-solid fa-paper-plane"></i>
+                </button>
+            </div>
+
+            <div class="section-card" id="topic-completion-card" style="display: none; text-align: center; padding: 3rem;">
+                <div style="width: 80px; height: 80px; border-radius: 50%; background: rgba(16, 185, 129, 0.2); color: var(--emerald-neon); font-size: 2.5rem; display: flex; align-items: center; justify-content: center; margin: 0 auto 1.5rem auto;"><i class="fa-solid fa-trophy"></i></div>
+                <h2 style="font-size: 2rem; font-weight: 800; color: #fff; margin-bottom: 0.5rem;">Topic Mastered!</h2>
+                <p style="color: var(--text-muted); margin-bottom: 1.5rem;">Your Test Score: <strong id="res-score" style="color: var(--emerald-neon); font-size: 1.2rem;">100%</strong></p>
+                <a href="/topics" id="btn-next-topic" class="primary-btn">Continue Learning <i class="fa-solid fa-arrow-right"></i></a>
+            </div>
+            {% endif %}
+        </div>
+
+    </div>
+
+    <!-- Hidden Json Data Payloads -->
+    <script id="flow-section-data" type="application/json">{{ section_data | tojson | safe }}</script>
+    <script id="flow-progress-data" type="application/json">{{ progress | tojson | safe }}</script>
+
+    <script src="/static/js/main.js"></script>
+    <script src="/static/js/topic_flow.js"></script>
+</body>
+</html>

@@ -1,0 +1,248 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Resume Builder Studio — SkillExa</title>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root {
+            --bg-dark: #090d16;
+            --bg-card: rgba(18, 26, 43, 0.75);
+            --border-glow: rgba(99, 102, 241, 0.25);
+            --primary: #6366f1;
+            --cyan-neon: #06b6d4;
+            --emerald-neon: #10b981;
+            --text-main: #f3f4f6;
+            --text-muted: #9ca3af;
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+
+        body {
+            font-family: 'Outfit', sans-serif;
+            background-color: var(--bg-dark);
+            color: var(--text-main);
+            min-height: 100vh;
+            background-image: radial-gradient(circle at 50% 10%, rgba(16, 185, 129, 0.12) 0%, transparent 40%),
+                              radial-gradient(circle at 90% 90%, rgba(99, 102, 241, 0.12) 0%, transparent 40%);
+            background-attachment: fixed;
+        }
+
+        .navbar {
+            display: flex; justify-content: space-between; align-items: center;
+            padding: 1.25rem 3rem; background: rgba(9, 13, 22, 0.85);
+            backdrop-filter: blur(16px); border-bottom: 1px solid var(--border-glow);
+            position: sticky; top: 0; z-index: 100;
+        }
+
+        .brand { display: flex; align-items: center; gap: 0.75rem; text-decoration: none; }
+        .brand-icon {
+            width: 42px; height: 42px;
+            background: linear-gradient(135deg, var(--primary), var(--cyan-neon));
+            border-radius: 12px; display: flex; align-items: center; justify-content: center;
+            font-size: 1.4rem; color: #fff; box-shadow: 0 0 20px rgba(99, 102, 241, 0.4);
+        }
+        .brand-text {
+            font-size: 1.6rem; font-weight: 800;
+            background: linear-gradient(to right, #ffffff, #a5b4fc);
+            -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+        }
+
+        .nav-links { display: flex; align-items: center; gap: 2rem; list-style: none; }
+        .nav-links a { color: var(--text-muted); text-decoration: none; font-weight: 500; font-size: 0.95rem; }
+        .nav-links a:hover, .nav-links a.active { color: #fff; }
+
+        .container { max-width: 1300px; margin: 2.5rem auto; padding: 0 2rem; }
+
+        .resume-layout {
+            display: grid; grid-template-columns: 1fr 1fr; gap: 2rem;
+        }
+
+        .form-card {
+            background: var(--bg-card); border: 1px solid var(--border-glow);
+            border-radius: 20px; padding: 2rem; backdrop-filter: blur(12px);
+            display: flex; flex-direction: column; gap: 1.25rem;
+        }
+
+        .form-group { display: flex; flex-direction: column; gap: 0.4rem; }
+        .form-group label { font-size: 0.85rem; font-weight: 600; color: var(--text-muted); }
+        
+        .form-input, .form-textarea {
+            width: 100%; background: #070a12; border: 1px solid var(--border-glow);
+            color: #fff; padding: 0.75rem 1rem; border-radius: 10px; font-family: inherit; font-size: 0.92rem;
+            outline: none; transition: border-color 0.2s ease;
+        }
+
+        .form-input:focus, .form-textarea:focus { border-color: var(--emerald-neon); }
+
+        .form-textarea { height: 90px; resize: vertical; }
+
+        .btn-generate {
+            background: linear-gradient(135deg, var(--emerald-neon), #059669);
+            color: #fff; border: none; padding: 0.9rem; border-radius: 12px;
+            font-weight: 700; font-size: 1rem; cursor: pointer; display: flex;
+            align-items: center; justify-content: center; gap: 0.6rem;
+            box-shadow: 0 4px 15px rgba(16, 185, 129, 0.35); transition: all 0.2s ease;
+        }
+
+        .btn-generate:hover { transform: translateY(-2px); box-shadow: 0 6px 20px rgba(16, 185, 129, 0.5); }
+
+        /* Preview Card */
+        .preview-card {
+            background: #0d1322; border: 1px solid var(--border-glow);
+            border-radius: 20px; padding: 2rem; display: flex; flex-direction: column; gap: 1rem;
+            height: fit-content; max-height: 820px; overflow-y: auto;
+        }
+
+        .preview-header {
+            display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border-glow); padding-bottom: 0.75rem;
+        }
+
+        .markdown-output {
+            background: #070a12; border: 1px solid rgba(255,255,255,0.08); border-radius: 12px;
+            padding: 1.5rem; color: #a5b4fc; font-family: 'JetBrains Mono', monospace; font-size: 0.85rem;
+            white-space: pre-wrap; line-height: 1.6;
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Navbar -->
+    <nav class="navbar">
+        <a href="/" class="brand">
+            <div class="brand-icon"><i class="fa-solid fa-code"></i></div>
+            <span class="brand-text">SkillExa</span>
+        </a>
+
+        <ul class="nav-links">
+            <li><a href="/"><i class="fa-solid fa-house"></i> Home</a></li>
+            <li><a href="/languages"><i class="fa-solid fa-laptop-code"></i> Languages</a></li>
+            <li><a href="/dsa"><i class="fa-solid fa-diagram-project"></i> DSA Practice</a></li>
+            <li><a href="/mock-interview"><i class="fa-solid fa-comments"></i> AI Mock Interview</a></li>
+            <li><a href="/resume-builder" class="active"><i class="fa-solid fa-file-invoice"></i> Resume Builder</a></li>
+        </ul>
+    </nav>
+
+    <!-- Main Container -->
+    <div class="container">
+        <div style="margin-bottom: 2.5rem;">
+            <h1 style="font-size: 2.5rem; font-weight: 800; margin-bottom: 0.5rem;">AI Tech Resume Builder Studio</h1>
+            <p style="color: var(--text-muted); font-size: 1.05rem;">Craft an ATS-optimized, high-impact technical resume tailored for top tech roles.</p>
+        </div>
+
+        <div class="resume-layout">
+            <!-- Form Card -->
+            <div class="form-card">
+                <div style="font-weight: 700; font-size: 1.1rem; color: #fff;"><i class="fa-solid fa-pen-to-square"></i> Resume Details</div>
+                
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+                    <div class="form-group">
+                        <label>Full Name</label>
+                        <input type="text" id="rName" class="form-input" value="Basavaraj U R">
+                    </div>
+                    <div class="form-group">
+                        <label>Professional Title</label>
+                        <input type="text" id="rTitle" class="form-input" value="Senior Backend & Systems Engineer">
+                    </div>
+                </div>
+
+                <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 1rem;">
+                    <div class="form-group">
+                        <label>Email</label>
+                        <input type="email" id="rEmail" class="form-input" value="basavaraj@skillexa.io">
+                    </div>
+                    <div class="form-group">
+                        <label>Phone</label>
+                        <input type="text" id="rPhone" class="form-input" value="+1 (555) 019-2834">
+                    </div>
+                    <div class="form-group">
+                        <label>Location</label>
+                        <input type="text" id="rLocation" class="form-input" value="San Francisco, CA">
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label>Executive Summary</label>
+                    <textarea id="rSummary" class="form-textarea">High-performance Backend Developer specializing in Python FastAPI microservices, C systems programming, and high-throughput REST APIs.</textarea>
+                </div>
+
+                <div class="form-group">
+                    <label>Technical Skills (Comma separated)</label>
+                    <input type="text" id="rSkills" class="form-input" value="Python 3, C, FastAPI, SQL, Docker, Data Structures, Subprocess Compiler, Git">
+                </div>
+
+                <div class="form-group">
+                    <label>Work Experience</label>
+                    <textarea id="rExp" class="form-textarea">• Lead Developer @ SkillExa Platform (2024 - Present)
+  - Designed and deployed 7-step sequence progress engine with zero-downtime DB migrations.
+  - Built multi-language live execution sandboxes supporting native C compilation.</textarea>
+                </div>
+
+                <div class="form-group">
+                    <label>Key Projects</label>
+                    <textarea id="rProjects" class="form-textarea">• SkillExa Interactive Learning Engine: Scalable web sandbox & AI interview simulator.</textarea>
+                </div>
+
+                <button class="btn-generate" onclick="generateResume()">
+                    <i class="fa-solid fa-wand-magic-sparkles"></i> Generate Structured Resume
+                </button>
+            </div>
+
+            <!-- Preview Card -->
+            <div class="preview-card">
+                <div class="preview-header">
+                    <span style="font-weight: 700; color: #fff;"><i class="fa-solid fa-eye"></i> Formatted Resume Preview</span>
+                    <button style="background: rgba(255,255,255,0.1); color: #fff; border: none; padding: 0.4rem 0.8rem; border-radius: 6px; font-size: 0.8rem; cursor: pointer;" onclick="copyMarkdown()">
+                        <i class="fa-solid fa-copy"></i> Copy Markdown
+                    </button>
+                </div>
+
+                <div class="markdown-output" id="resumeMarkdown">
+                    <!-- Populated by JS -->
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        async function generateResume() {
+            const payload = {
+                full_name: document.getElementById('rName').value,
+                title: document.getElementById('rTitle').value,
+                email: document.getElementById('rEmail').value,
+                phone: document.getElementById('rPhone').value,
+                location: document.getElementById('rLocation').value,
+                summary: document.getElementById('rSummary').value,
+                skills: document.getElementById('rSkills').value,
+                experience: document.getElementById('rExp').value,
+                projects: document.getElementById('rProjects').value,
+                education: 'B.S. in Computer Science & Engineering'
+            };
+
+            try {
+                const res = await fetch('/api/resume/generate', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+                const data = await res.json();
+                if (data.success) {
+                    document.getElementById('resumeMarkdown').innerText = data.markdown;
+                }
+            } catch (err) {
+                console.error("Failed to generate resume:", err);
+            }
+        }
+
+        function copyMarkdown() {
+            const text = document.getElementById('resumeMarkdown').innerText;
+            navigator.clipboard.writeText(text);
+            alert("Markdown copied to clipboard!");
+        }
+
+        document.addEventListener('DOMContentLoaded', generateResume);
+    </script>
+</body>
+</html>

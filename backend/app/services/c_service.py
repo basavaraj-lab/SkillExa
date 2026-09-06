@@ -1,17 +1,17 @@
-"""Service layer for learning flow logic, sequence enforcement, and database progress management."""
+"""Service layer for C Programming learning flow, sequence enforcement, and database progress management."""
 from fastapi import HTTPException
 from sqlalchemy.orm import Session
-from app.models.progress import StudentProgress
-from app.models.topic_catalog import PYTHON_TOPICS, TOPIC_CATALOG
+from app.models.c_progress import CStudentProgress
+from app.models.c_topic_catalog import C_TOPICS
 
 SECTION_ORDER = ["information", "examples", "programming", "fill-blanks", "test"]
 
 
-def get_or_create_progress(db: Session, student_id: str, topic_id: int) -> StudentProgress:
-    """Retrieve existing progress or initialize standard progress state based on prerequisites."""
+def get_or_create_c_progress(db: Session, student_id: str, topic_id: int) -> CStudentProgress:
+    """Retrieve existing C progress or initialize standard progress state based on prerequisites."""
     progress = (
-        db.query(StudentProgress)
-        .filter(StudentProgress.student_id == str(student_id), StudentProgress.topic_id == topic_id)
+        db.query(CStudentProgress)
+        .filter(CStudentProgress.student_id == str(student_id), CStudentProgress.topic_id == topic_id)
         .first()
     )
 
@@ -23,8 +23,8 @@ def get_or_create_progress(db: Session, student_id: str, topic_id: int) -> Stude
         initial_status = "IN_PROGRESS"
     else:
         prev_progress = (
-            db.query(StudentProgress)
-            .filter(StudentProgress.student_id == str(student_id), StudentProgress.topic_id == topic_id - 1)
+            db.query(CStudentProgress)
+            .filter(CStudentProgress.student_id == str(student_id), CStudentProgress.topic_id == topic_id - 1)
             .first()
         )
         if prev_progress and prev_progress.topic_completed:
@@ -32,7 +32,7 @@ def get_or_create_progress(db: Session, student_id: str, topic_id: int) -> Stude
         else:
             initial_status = "LOCKED"
 
-    progress = StudentProgress(
+    progress = CStudentProgress(
         student_id=str(student_id),
         topic_id=topic_id,
         status=initial_status,
@@ -51,21 +51,21 @@ def get_or_create_progress(db: Session, student_id: str, topic_id: int) -> Stude
     return progress
 
 
-def validate_topic_unlocked(progress: StudentProgress):
-    """Ensure the topic is not locked."""
+def validate_c_topic_unlocked(progress: CStudentProgress):
+    """Ensure the C topic is not locked."""
     if progress.status == "LOCKED":
         raise HTTPException(
             status_code=403,
-            detail="This topic is locked. Complete the previous topic first!",
+            detail="This C topic is locked. Complete the previous topic first!",
         )
 
 
-def validate_section_access(progress: StudentProgress, target_section: str):
+def validate_c_section_access(progress: CStudentProgress, target_section: str):
     """
-    Enforce backend learning sequence:
+    Enforce backend C learning sequence:
     Information -> Examples -> Programming -> Fill in Blanks -> SkillExa Test
     """
-    validate_topic_unlocked(progress)
+    validate_c_topic_unlocked(progress)
 
     if progress.topic_completed:
         return  # Completed topics allow reviewing any section
@@ -108,8 +108,8 @@ def validate_section_access(progress: StudentProgress, target_section: str):
     raise HTTPException(status_code=400, detail=f"Invalid section: {target_section}")
 
 
-def complete_information_section(db: Session, progress: StudentProgress) -> StudentProgress:
-    validate_topic_unlocked(progress)
+def complete_c_information_section(db: Session, progress: CStudentProgress) -> CStudentProgress:
+    validate_c_topic_unlocked(progress)
     progress.information_completed = True
     if progress.current_section in ["information"]:
         progress.current_section = "examples"
@@ -118,8 +118,8 @@ def complete_information_section(db: Session, progress: StudentProgress) -> Stud
     return progress
 
 
-def complete_examples_section(db: Session, progress: StudentProgress) -> StudentProgress:
-    validate_section_access(progress, "examples")
+def complete_c_examples_section(db: Session, progress: CStudentProgress) -> CStudentProgress:
+    validate_c_section_access(progress, "examples")
     progress.examples_completed = True
     if progress.current_section in ["information", "examples"]:
         progress.current_section = "programming"
@@ -128,8 +128,8 @@ def complete_examples_section(db: Session, progress: StudentProgress) -> Student
     return progress
 
 
-def complete_programming_section(db: Session, progress: StudentProgress) -> StudentProgress:
-    validate_section_access(progress, "programming")
+def complete_c_programming_section(db: Session, progress: CStudentProgress) -> CStudentProgress:
+    validate_c_section_access(progress, "programming")
     progress.programming_completed = True
     if progress.current_section in ["information", "examples", "programming"]:
         progress.current_section = "fill-blanks"
@@ -138,8 +138,8 @@ def complete_programming_section(db: Session, progress: StudentProgress) -> Stud
     return progress
 
 
-def complete_fill_blanks_section(db: Session, progress: StudentProgress) -> StudentProgress:
-    validate_section_access(progress, "fill-blanks")
+def complete_c_fill_blanks_section(db: Session, progress: CStudentProgress) -> CStudentProgress:
+    validate_c_section_access(progress, "fill-blanks")
     progress.fill_blanks_completed = True
     if progress.current_section in ["information", "examples", "programming", "fill-blanks"]:
         progress.current_section = "test"
@@ -148,20 +148,20 @@ def complete_fill_blanks_section(db: Session, progress: StudentProgress) -> Stud
     return progress
 
 
-def submit_skill_exa_test(
+def submit_c_skill_exa_test(
     db: Session,
-    progress: StudentProgress,
+    progress: CStudentProgress,
     user_answers: dict[str, str] | list[str] | None,
-) -> tuple[StudentProgress, float, dict | None]:
+) -> tuple[CStudentProgress, float, dict | None]:
     """
-    Validate SkillExa Test completion, compute test score, mark topic COMPLETED,
+    Validate C SkillExa Test completion, compute test score, mark topic COMPLETED,
     unlock next topic in database, and return next topic info.
     """
-    validate_section_access(progress, "test")
+    validate_c_section_access(progress, "test")
 
-    topic = PYTHON_TOPICS.get(progress.topic_id)
+    topic = C_TOPICS.get(progress.topic_id)
     if not topic:
-        raise HTTPException(status_code=404, detail="Topic content not found.")
+        raise HTTPException(status_code=404, detail="C Topic content not found.")
 
     questions = topic.get("skill_exa_test", [])
     total_questions = len(questions)
@@ -192,15 +192,15 @@ def submit_skill_exa_test(
     next_topic_id = progress.topic_id + 1
     next_topic_info = None
 
-    if next_topic_id in PYTHON_TOPICS:
-        next_progress = get_or_create_progress(db, progress.student_id, next_topic_id)
+    if next_topic_id in C_TOPICS:
+        next_progress = get_or_create_c_progress(db, progress.student_id, next_topic_id)
         if next_progress.status == "LOCKED":
             next_progress.status = "IN_PROGRESS"
             next_progress.current_section = "information"
             db.commit()
             db.refresh(next_progress)
 
-        next_topic_raw = PYTHON_TOPICS[next_topic_id]
+        next_topic_raw = C_TOPICS[next_topic_id]
         next_topic_info = {
             "id": next_topic_id,
             "title": next_topic_raw["title"],

@@ -6,13 +6,15 @@ class SkillExaTopics {
 
     async initCatalog() {
         if (!this.gridMountNode) {
-            return;
+            this.gridMountNode = document.getElementById('topics-target-grid');
+            if (!this.gridMountNode) return;
         }
 
         this.gridMountNode.innerHTML = '<div class="card-glass skeleton" style="height: 180px;"></div>';
 
         try {
-            const topics = await appEngine.dataRequest('/python/topics');
+            const res = await appEngine.dataRequest('/api/topics');
+            const topics = Array.isArray(res) ? res : (res.topics || []);
             this.renderCatalogGrid(topics);
         } catch (error) {
             this.gridMountNode.innerHTML = '';
@@ -30,8 +32,9 @@ class SkillExaTopics {
         this.gridMountNode.innerHTML = '';
 
         topics.forEach((topic) => {
-            const isUnlocked = Boolean(topic.is_unlocked);
-            const topicName = topic.name || `Topic ${topic.id}`;
+            const isUnlocked = topic.status ? topic.status !== 'LOCKED' : Boolean(topic.is_unlocked);
+            const topicName = topic.title || topic.name || `Topic ${topic.id}`;
+            const duration = topic.duration || topic.time || '20 min';
             const cardElement = document.createElement('div');
 
             cardElement.className = `card-glass animate-fade-in ${!isUnlocked ? 'topic-locked' : ''}`;
@@ -52,13 +55,13 @@ class SkillExaTopics {
                 </div>
                 <h3 style="font-size:1.15rem; margin-bottom:0.75rem; color: ${isUnlocked ? 'var(--text-main)' : 'var(--text-muted)'};">${topicName}</h3>
                 <div style="display:flex; justify-content:space-between; font-size:0.85rem; color:var(--text-muted); margin-bottom:1rem;">
-                    <span><i class="far fa-clock"></i> ${topic.time || '--'}</span>
+                    <span><i class="far fa-clock"></i> ${duration}</span>
                     <span>${topic.completeness ?? 0}% Complete</span>
                 </div>
 
-                <button ${!isUnlocked ? 'disabled' : ''} onclick="window.location.href='/lesson/${topic.id}'"
+                <button ${!isUnlocked ? 'disabled' : ''} onclick="window.location.href='/topic/${topic.id}'"
                         style="width:100%; padding:0.75rem; border:none; background:${isUnlocked ? 'var(--primary-gradient)' : 'var(--border)'}; color:${isUnlocked ? 'white' : 'var(--text-muted)'}; font-weight:600; border-radius:var(--radius-sm); cursor:${isUnlocked ? 'pointer' : 'not-allowed'};">
-                    ${!isUnlocked ? 'Unlock Previous Lesson First' : (topic.completeness > 0 ? 'Resume Track' : 'Launch Unit')}
+                    ${!isUnlocked ? 'Unlock Previous Lesson First' : (topic.completeness > 0 ? 'Resume Track' : 'Start Topic')}
                 </button>
             `;
 
@@ -67,4 +70,12 @@ class SkillExaTopics {
     }
 }
 
-const productCatalog = new SkillExaTopics();
+function bootTopicsApp() {
+    window.productCatalog = new SkillExaTopics();
+}
+
+if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', bootTopicsApp);
+} else {
+    bootTopicsApp();
+}
