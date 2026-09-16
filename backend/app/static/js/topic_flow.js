@@ -41,6 +41,13 @@ class SkillExaTopicFlow {
             if (action === 'complete-programming') return `/java/api/topic/${this.topicId}/complete/programming`;
             if (action === 'complete-fill-blanks') return `/java/api/topic/${this.topicId}/complete/fill-blanks`;
             if (action === 'submit-test') return `/java/api/topic/${this.topicId}/submit-test`;
+        } else if (this.track === 'js' || this.track === 'javascript') {
+            if (action === 'complete-information') return `/js/api/topic/${this.topicId}/complete/information`;
+            if (action === 'complete-examples') return `/js/api/topic/${this.topicId}/complete/examples`;
+            if (action === 'execute') return `/js/execute`;
+            if (action === 'complete-programming') return `/js/api/topic/${this.topicId}/complete/programming`;
+            if (action === 'complete-fill-blanks') return `/js/api/topic/${this.topicId}/complete/fill-blanks`;
+            if (action === 'submit-test') return `/js/api/topic/${this.topicId}/submit-test`;
         } else {
             if (action === 'complete-information') return `/api/progress/${this.studentId}/${this.topicId}/complete-information`;
             if (action === 'complete-examples') return `/api/progress/${this.studentId}/${this.topicId}/complete-examples`;
@@ -57,6 +64,7 @@ class SkillExaTopicFlow {
         if (this.track === 'c') prefix = '/c';
         else if (this.track === 'cpp') prefix = '/cpp';
         else if (this.track === 'java') prefix = '/java';
+        else if (this.track === 'js' || this.track === 'javascript') prefix = '/js';
         return `${prefix}/topic/${this.topicId}/${section}`;
     }
 
@@ -64,6 +72,7 @@ class SkillExaTopicFlow {
         if (this.track === 'c') return '/c/topics';
         if (this.track === 'cpp') return '/cpp/topics';
         if (this.track === 'java') return '/java/topics';
+        if (this.track === 'js' || this.track === 'javascript') return '/js/topics';
         return '/topics';
     }
 
@@ -103,6 +112,33 @@ class SkillExaTopicFlow {
     }
 
     async initExamplesHandlers() {
+        const codeBox = document.getElementById('annotated-code-container');
+        if (codeBox && codeBox.innerText) {
+            const lines = codeBox.innerText.split('\n');
+            let hasAnnotations = lines.some(l => l.includes('[TRUE') || l.includes('[FALSE') || l.includes('[EXECUTED') || l.includes('[SKIPPED'));
+            
+            if (hasAnnotations) {
+                let html = '';
+                lines.forEach((line) => {
+                    const isTrue = line.includes('[TRUE') || line.includes('[EXECUTED');
+                    const isFalse = line.includes('[FALSE') || line.includes('[SKIPPED');
+                    
+                    let lineClass = 'code-line';
+                    let badge = '';
+                    if (isTrue) {
+                        lineClass += ' line-true';
+                        badge = '<span class="badge-pill badge-blue"><i class="fa-solid fa-check"></i> TRUE / EXECUTED</span>';
+                    } else if (isFalse) {
+                        lineClass += ' line-false';
+                        badge = '<span class="badge-pill badge-red"><i class="fa-solid fa-xmark"></i> FALSE / SKIPPED</span>';
+                    }
+                    
+                    html += `<div class="${lineClass}"><span style="flex:1;">${line}</span>${badge}</div>`;
+                });
+                codeBox.innerHTML = html;
+            }
+        }
+
         const btn = document.getElementById('btn-complete-examples');
         if (!btn) return;
 
@@ -215,6 +251,20 @@ class SkillExaTopicFlow {
         const checkBtn = document.getElementById('check-fill-btn');
         const feedbackNode = document.getElementById('fill-feedback');
         const completeBtn = document.getElementById('btn-complete-fill-blanks');
+        const optionPills = document.querySelectorAll('.fill-option-pill');
+
+        optionPills.forEach(pill => {
+            pill.addEventListener('click', () => {
+                const val = pill.dataset.val || pill.textContent.trim();
+                const inputs = Array.from(document.querySelectorAll('.blank-input'));
+                const emptyInput = inputs.find(i => !i.value.trim());
+                if (emptyInput) {
+                    emptyInput.value = val;
+                } else if (inputs.length > 0) {
+                    inputs[0].value = val;
+                }
+            });
+        });
 
         if (checkBtn && feedbackNode) {
             checkBtn.addEventListener('click', () => {
@@ -259,11 +309,41 @@ class SkillExaTopicFlow {
     }
 
     initTestHandlers() {
+        // Enable unmarking (unchecking) radio option pills on click
+        document.querySelectorAll('input[type="radio"]').forEach(radio => {
+            radio.addEventListener('click', function() {
+                if (this.dataset.wasChecked === 'true') {
+                    this.checked = false;
+                    this.dataset.wasChecked = 'false';
+                } else {
+                    document.querySelectorAll(`input[name="${this.name}"]`).forEach(r => r.dataset.wasChecked = 'false');
+                    this.dataset.wasChecked = 'true';
+                }
+            });
+        });
+
         const submitBtn = document.getElementById('btn-submit-test');
         const testSectionCard = document.getElementById('test-section-card');
         const completionCard = document.getElementById('topic-completion-card');
+        const completionIconBox = document.getElementById('completion-icon-box');
+        const completionIcon = document.getElementById('completion-icon');
+        const completionTitle = document.getElementById('completion-title');
         const resScore = document.getElementById('res-score');
+        const resMinPassMsg = document.getElementById('res-min-pass-msg');
+        const btnRetryTest = document.getElementById('btn-retry-test');
         const btnNextTopic = document.getElementById('btn-next-topic');
+
+        if (btnRetryTest) {
+            btnRetryTest.addEventListener('click', () => {
+                document.querySelectorAll('input[type="radio"]').forEach(r => r.checked = false);
+                if (submitBtn) {
+                    submitBtn.disabled = false;
+                    submitBtn.innerHTML = 'Submit SkillExa Test <i class="fa-solid fa-paper-plane"></i>';
+                }
+                if (completionCard) completionCard.style.display = 'none';
+                if (testSectionCard) testSectionCard.style.display = 'block';
+            });
+        }
 
         if (submitBtn) {
             submitBtn.addEventListener('click', async () => {
@@ -281,7 +361,7 @@ class SkillExaTopicFlow {
                     submitBtn.disabled = true;
                     submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Submitting Test...';
 
-                    const payloadKey = (this.track === 'c' || this.track === 'cpp' || this.track === 'java') ? 'user_answers' : 'submitted_answers';
+                    const payloadKey = (this.track === 'c' || this.track === 'cpp' || this.track === 'java' || this.track === 'js' || this.track === 'javascript') ? 'user_answers' : 'submitted_answers';
                     const payload = {};
                     payload[payloadKey] = submittedAnswers;
 
@@ -290,19 +370,58 @@ class SkillExaTopicFlow {
                         body: JSON.stringify(payload),
                     });
 
-                    appEngine.showToast('SkillExa Test Submitted!', 'success');
+                    const isPassed = (res.passed !== undefined) ? res.passed : (res.score >= 50);
 
-                    if (testSectionCard) testSectionCard.style.display = 'none';
-                    if (completionCard) completionCard.style.display = 'block';
-                    if (resScore) resScore.textContent = `${res.score}%`;
+                    if (isPassed) {
+                        appEngine.showToast('SkillExa Test Passed!', 'success');
+                        if (testSectionCard) testSectionCard.style.display = 'none';
+                        if (completionCard) completionCard.style.display = 'block';
 
-                    const prefix = this.track === 'c' ? '/c' : (this.track === 'cpp' ? '/cpp' : (this.track === 'java' ? '/java' : ''));
-                    if (res.next_topic && btnNextTopic) {
-                        btnNextTopic.href = `${prefix}/topic/${res.next_topic.id}/information`;
-                        btnNextTopic.innerHTML = `Unlock & Start Topic ${res.next_topic.id}: ${res.next_topic.title} <i class="fas fa-arrow-right"></i>`;
-                    } else if (btnNextTopic) {
-                        btnNextTopic.href = this.getSyllabusUrl();
-                        btnNextTopic.innerHTML = 'Return to Syllabus Catalog <i class="fas fa-check"></i>';
+                        if (completionTitle) completionTitle.textContent = 'C Topic Mastered!';
+                        if (completionIconBox) {
+                            completionIconBox.style.background = 'rgba(16, 185, 129, 0.2)';
+                            completionIconBox.style.color = '#10b981';
+                        }
+                        if (completionIcon) completionIcon.className = 'fa-solid fa-trophy';
+                        if (resScore) {
+                            resScore.textContent = `${res.score}%`;
+                            resScore.style.color = '#10b981';
+                        }
+                        if (resMinPassMsg) resMinPassMsg.textContent = 'Passed (>= 50%)!';
+                        if (btnRetryTest) btnRetryTest.style.display = 'none';
+                        if (btnNextTopic) btnNextTopic.style.display = 'inline-flex';
+
+                        let prefix = '';
+                        if (this.track === 'c') prefix = '/c';
+                        else if (this.track === 'cpp') prefix = '/cpp';
+                        else if (this.track === 'java') prefix = '/java';
+                        else if (this.track === 'js' || this.track === 'javascript') prefix = '/js';
+
+                        if (res.next_topic && btnNextTopic) {
+                            btnNextTopic.href = `${prefix}/topic/${res.next_topic.id}/information`;
+                            btnNextTopic.innerHTML = `Unlock & Start Topic ${res.next_topic.id}: ${res.next_topic.title} <i class="fas fa-arrow-right"></i>`;
+                        } else if (btnNextTopic) {
+                            btnNextTopic.href = this.getSyllabusUrl();
+                            btnNextTopic.innerHTML = 'Return to Syllabus Catalog <i class="fas fa-check"></i>';
+                        }
+                    } else {
+                        appEngine.showToast('Minimum 50% score required. Please try again!', 'error');
+                        if (testSectionCard) testSectionCard.style.display = 'none';
+                        if (completionCard) completionCard.style.display = 'block';
+
+                        if (completionTitle) completionTitle.textContent = 'Minimum 50% Score Not Met';
+                        if (completionIconBox) {
+                            completionIconBox.style.background = 'rgba(244, 63, 94, 0.2)';
+                            completionIconBox.style.color = '#f43f5e';
+                        }
+                        if (completionIcon) completionIcon.className = 'fa-solid fa-rotate-left';
+                        if (resScore) {
+                            resScore.textContent = `${res.score}%`;
+                            resScore.style.color = '#f43f5e';
+                        }
+                        if (resMinPassMsg) resMinPassMsg.textContent = 'Score is below 50%. You must retry the test to pass this topic!';
+                        if (btnRetryTest) btnRetryTest.style.display = 'inline-flex';
+                        if (btnNextTopic) btnNextTopic.style.display = 'none';
                     }
                 } catch (err) {
                     submitBtn.disabled = false;

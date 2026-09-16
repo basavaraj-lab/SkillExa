@@ -287,12 +287,13 @@
                 <h3 style="font-size: 1.4rem; font-weight: 700; margin-bottom: 1.5rem; color: #fff;"><i class="fa-solid fa-vial" style="color: var(--rose-neon);"></i> Java SkillExa Test</h3>
                 
                 {% for q in section_data.questions %}
+                {% set q_idx = loop.index0 %}
                 <div style="background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.08); padding: 1.25rem; border-radius: 12px; margin-bottom: 1.25rem;">
                     <div style="font-size: 1rem; font-weight: 700; color: #fff; margin-bottom: 0.85rem;">Q{{ loop.index }}: {{ q.question }}</div>
                     <div style="display: flex; flex-direction: column; gap: 0.6rem;">
                         {% for opt in q.options %}
                         <label style="display: flex; align-items: center; gap: 0.75rem; color: var(--text-muted); cursor: pointer; font-size: 0.95rem;">
-                            <input type="radio" name="question_{{ loop.index0 }}" value="{{ opt }}" style="accent-color: var(--primary);">
+                            <input type="radio" name="question_{{ q_idx }}" value="{{ opt }}" style="accent-color: var(--primary);">
                             {{ opt }}
                         </label>
                         {% endfor %}

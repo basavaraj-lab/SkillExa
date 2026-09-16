@@ -2,9 +2,27 @@
 from fastapi import HTTPException
 from sqlalchemy.orm import Session
 from app.models.c_progress import CStudentProgress
-from app.models.c_topic_catalog import C_TOPICS
+from app.models.c_topic_catalog import C_TOPICS, C_TOPIC_CATALOG
 
 SECTION_ORDER = ["information", "examples", "programming", "fill-blanks", "test"]
+
+
+def get_next_c_topic_id(current_id: int) -> int | None:
+    order = [t["id"] for t in C_TOPIC_CATALOG]
+    if current_id in order:
+        idx = order.index(current_id)
+        if idx + 1 < len(order):
+            return order[idx + 1]
+    return None
+
+
+def get_prev_c_topic_id(current_id: int) -> int | None:
+    order = [t["id"] for t in C_TOPIC_CATALOG]
+    if current_id in order:
+        idx = order.index(current_id)
+        if idx > 0:
+            return order[idx - 1]
+    return None
 
 
 def get_or_create_c_progress(db: Session, student_id: str, topic_id: int) -> CStudentProgress:
@@ -18,19 +36,24 @@ def get_or_create_c_progress(db: Session, student_id: str, topic_id: int) -> CSt
     if progress:
         return progress
 
-    # Determine initial status: topic 1 is unlocked by default, otherwise dependent on previous topic completion
-    if topic_id == 1:
+    # Determine initial status: first topic in catalog is unlocked by default
+    order = [t["id"] for t in C_TOPIC_CATALOG]
+    if order and topic_id == order[0]:
         initial_status = "IN_PROGRESS"
     else:
-        prev_progress = (
-            db.query(CStudentProgress)
-            .filter(CStudentProgress.student_id == str(student_id), CStudentProgress.topic_id == topic_id - 1)
-            .first()
-        )
-        if prev_progress and prev_progress.topic_completed:
-            initial_status = "IN_PROGRESS"
+        prev_id = get_prev_c_topic_id(topic_id)
+        if prev_id is not None:
+            prev_progress = (
+                db.query(CStudentProgress)
+                .filter(CStudentProgress.student_id == str(student_id), CStudentProgress.topic_id == prev_id)
+                .first()
+            )
+            if prev_progress and prev_progress.topic_completed:
+                initial_status = "IN_PROGRESS"
+            else:
+                initial_status = "LOCKED"
         else:
-            initial_status = "LOCKED"
+            initial_status = "IN_PROGRESS"
 
     progress = CStudentProgress(
         student_id=str(student_id),
@@ -152,10 +175,11 @@ def submit_c_skill_exa_test(
     db: Session,
     progress: CStudentProgress,
     user_answers: dict[str, str] | list[str] | None,
-) -> tuple[CStudentProgress, float, dict | None]:
+) -> tuple[CStudentProgress, float, dict | None, bool]:
     """
-    Validate C SkillExa Test completion, compute test score, mark topic COMPLETED,
-    unlock next topic in database, and return next topic info.
+    Validate C SkillExa Test completion, compute test score (min passing threshold: 50%).
+    If passed (score >= 50%), mark topic COMPLETED, unlock next topic in database, and return next topic info.
+    If failed (score < 50%), keep topic IN_PROGRESS, require retrying test, and return passed=False.
     """
     validate_c_section_access(progress, "test")
 
@@ -167,48 +191,60 @@ def submit_c_skill_exa_test(
     total_questions = len(questions)
     correct_count = 0
 
-    if total_questions > 0 and user_answers:
-        if isinstance(user_answers, list):
-            for i, q in enumerate(questions):
-                if i < len(user_answers) and str(user_answers[i]).strip().lower() == str(q["answer"]).strip().lower():
-                    correct_count += 1
-        elif isinstance(user_answers, dict):
-            for i, q in enumerate(questions):
-                ans = user_answers.get(str(i)) or user_answers.get(q["question"])
-                if ans and str(ans).strip().lower() == str(q["answer"]).strip().lower():
-                    correct_count += 1
+    if total_questions > 0:
+        if user_answers:
+            if isinstance(user_answers, list):
+                for i, q in enumerate(questions):
+                    if i < len(user_answers) and str(user_answers[i]).strip().lower() == str(q["answer"]).strip().lower():
+                        correct_count += 1
+            elif isinstance(user_answers, dict):
+                for i, q in enumerate(questions):
+                    ans = user_answers.get(str(i)) or user_answers.get(q["question"])
+                    if ans and str(ans).strip().lower() == str(q["answer"]).strip().lower():
+                        correct_count += 1
         score_percent = round((correct_count / total_questions) * 100, 1)
     else:
         score_percent = 100.0
 
-    progress.test_completed = True
-    progress.test_score = score_percent
-    progress.topic_completed = True
-    progress.status = "COMPLETED"
-    progress.current_section = "completed"
-    db.commit()
+    passed = score_percent >= 50.0
 
-    # Unlock next topic
-    next_topic_id = progress.topic_id + 1
-    next_topic_info = None
+    if passed:
+        progress.test_completed = True
+        progress.test_score = score_percent
+        progress.topic_completed = True
+        progress.status = "COMPLETED"
+        progress.current_section = "completed"
+        db.commit()
 
-    if next_topic_id in C_TOPICS:
-        next_progress = get_or_create_c_progress(db, progress.student_id, next_topic_id)
-        if next_progress.status == "LOCKED":
-            next_progress.status = "IN_PROGRESS"
-            next_progress.current_section = "information"
-            db.commit()
-            db.refresh(next_progress)
+        # Unlock next topic
+        next_topic_id = get_next_c_topic_id(progress.topic_id)
+        next_topic_info = None
 
-        next_topic_raw = C_TOPICS[next_topic_id]
-        next_topic_info = {
-            "id": next_topic_id,
-            "title": next_topic_raw["title"],
-            "difficulty": next_topic_raw["difficulty"],
-            "duration": next_topic_raw["duration"],
-            "status": next_progress.status,
-            "current_section": next_progress.current_section,
-        }
+        if next_topic_id and next_topic_id in C_TOPICS:
+            next_progress = get_or_create_c_progress(db, progress.student_id, next_topic_id)
+            if next_progress.status == "LOCKED":
+                next_progress.status = "IN_PROGRESS"
+                next_progress.current_section = "information"
+                db.commit()
+                db.refresh(next_progress)
 
-    db.refresh(progress)
-    return progress, score_percent, next_topic_info
+            next_topic_raw = C_TOPICS[next_topic_id]
+            next_topic_info = {
+                "id": next_topic_id,
+                "title": next_topic_raw["title"],
+                "difficulty": next_topic_raw["difficulty"],
+                "duration": next_topic_raw["duration"],
+                "status": next_progress.status,
+                "current_section": next_progress.current_section,
+            }
+
+        db.refresh(progress)
+        return progress, score_percent, next_topic_info, True
+    else:
+        progress.test_completed = False
+        progress.test_score = score_percent
+        progress.topic_completed = False
+        progress.status = "IN_PROGRESS"
+        db.commit()
+        db.refresh(progress)
+        return progress, score_percent, None, False

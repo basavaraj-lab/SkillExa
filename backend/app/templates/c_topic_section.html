@@ -116,6 +116,32 @@
         }
 
         .blank-input:focus { border-color: var(--primary); box-shadow: 0 0 10px rgba(6, 182, 212, 0.4); }
+
+        /* Code Line Condition Execution Highlights (Blue = TRUE, Red = FALSE) */
+        .code-line {
+            display: flex; align-items: center; justify-content: space-between;
+            padding: 0.25rem 0.6rem; border-radius: 6px; margin: 3px 0;
+            font-family: 'JetBrains Mono', monospace; font-size: 0.9rem;
+            transition: all 0.2s ease; border-left: 3px solid transparent;
+        }
+
+        .code-line.line-true {
+            background: rgba(6, 182, 212, 0.15); border-left-color: #38bdf8;
+            color: #67e8f9; box-shadow: 0 0 10px rgba(6, 182, 212, 0.1);
+        }
+
+        .code-line.line-false {
+            background: rgba(244, 63, 94, 0.15); border-left-color: #f43f5e;
+            color: #fda4af; box-shadow: 0 0 10px rgba(244, 63, 94, 0.1);
+        }
+
+        .badge-pill {
+            font-size: 0.72rem; font-weight: 700; padding: 0.15rem 0.6rem; border-radius: 6px;
+            letter-spacing: 0.5px; text-transform: uppercase; margin-left: 0.75rem; white-space: nowrap;
+        }
+
+        .badge-blue { background: rgba(6, 182, 212, 0.25); color: #38bdf8; border: 1px solid rgba(6, 182, 212, 0.4); }
+        .badge-red { background: rgba(244, 63, 94, 0.25); color: #f43f5e; border: 1px solid rgba(244, 63, 94, 0.4); }
     </style>
 </head>
 <body>
@@ -202,14 +228,27 @@
                 <h3 style="font-size: 1.4rem; font-weight: 700; margin-bottom: 1rem; color: #fff;"><i class="fa-solid fa-laptop-code" style="color: var(--cyan-neon);"></i> C Program Example & Output</h3>
                 
                 <div style="margin-bottom: 1.5rem;">
-                    <div style="font-size: 0.85rem; font-weight: 700; color: var(--cyan-neon); margin-bottom: 0.5rem;">C SOURCE CODE</div>
-                    <div class="code-box">{{ section_data.example.code if section_data.example is mapping else section_data.example }}</div>
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.6rem;">
+                        <div style="font-size: 0.85rem; font-weight: 700; color: var(--cyan-neon);">C SOURCE CODE (STATEMENT EXECUTION FLOW)</div>
+                        <div style="display: flex; gap: 0.85rem; font-size: 0.78rem; font-weight: 700;">
+                            <span style="color: #38bdf8;"><i class="fa-solid fa-square" style="color: #38bdf8;"></i> Blue Line = TRUE / EXECUTED</span>
+                            <span style="color: #f43f5e;"><i class="fa-solid fa-square" style="color: #f43f5e;"></i> Red Line = FALSE / SKIPPED</span>
+                        </div>
+                    </div>
+                    <div class="code-box" id="annotated-code-container">{{ section_data.example.code if section_data.example is mapping else section_data.example }}</div>
                 </div>
 
                 {% if section_data.output %}
-                <div style="margin-bottom: 2rem;">
+                <div style="margin-bottom: 1.5rem;">
                     <div style="font-size: 0.85rem; font-weight: 700; color: var(--emerald-neon); margin-bottom: 0.5rem;">COMPILED PROGRAM OUTPUT</div>
                     <div class="code-box" style="color: var(--emerald-neon);">{{ section_data.output }}</div>
+                </div>
+                {% endif %}
+
+                {% if section_data.example is mapping and section_data.example.explanation %}
+                <div style="margin-bottom: 2rem;">
+                    <div style="font-size: 0.85rem; font-weight: 700; color: var(--amber-neon); margin-bottom: 0.5rem;"><i class="fa-solid fa-diagram-project"></i> STATEMENT FLOW & ITERATIONS TRACE</div>
+                    <div style="background: rgba(245, 158, 11, 0.08); border: 1px solid rgba(245, 158, 11, 0.25); border-radius: 12px; padding: 1.25rem; color: #fef3c7; line-height: 1.7; font-size: 0.95rem; white-space: pre-wrap; font-family: 'JetBrains Mono', monospace;">{{ section_data.example.explanation }}</div>
                 </div>
                 {% endif %}
 
@@ -258,10 +297,10 @@
                 
                 {% if section_data.fill_blanks and section_data.fill_blanks.options %}
                 <div style="margin-bottom: 1.25rem;">
-                    <div style="font-size: 0.85rem; font-weight: 700; color: var(--cyan-neon); margin-bottom: 0.6rem;">AVAILABLE OPTION PILLS</div>
+                    <div style="font-size: 0.85rem; font-weight: 700; color: var(--cyan-neon); margin-bottom: 0.6rem;">AVAILABLE OPTION PILLS (CLICK TO INSERT)</div>
                     <div style="display: flex; gap: 0.6rem; flex-wrap: wrap;">
                         {% for opt in section_data.fill_blanks.options %}
-                        <span class="option-pill-btn" style="cursor: default;">{{ opt }}</span>
+                        <button type="button" class="option-pill-btn fill-option-pill" data-val="{{ opt }}">{{ opt }}</button>
                         {% endfor %}
                     </div>
                 </div>
@@ -269,7 +308,7 @@
 
                 <div style="margin-bottom: 2rem;">
                     <div style="font-size: 0.95rem; color: var(--text-main); margin-bottom: 1rem;">Fill in the blank fields to complete the C program:</div>
-                    <div class="code-box" style="white-space: pre-wrap; font-family: 'JetBrains Mono', monospace; font-size: 0.95rem; line-height: 2.2; padding: 1.5rem;">{% set raw_q = section_data.fill_blanks.question %}{% set clean_q = raw_q.replace('{{', '{').replace('}}', '}') %}{% set parts = clean_q.split('_____') %}{% if parts|length == 1 %}{% set parts = clean_q.split('____') %}{% endif %}{% for part in parts %}{{ part }}{% if not loop.last %}<input type="text" class="blank-input" placeholder="blank" spellcheck="false" />{% endif %}{% endfor %}</div>
+                    <div class="code-box" style="white-space: pre-wrap; font-family: 'JetBrains Mono', monospace; font-size: 0.95rem; line-height: 2.2; padding: 1.5rem;">{% set raw_q = section_data.fill_blanks.question if (section_data.fill_blanks and section_data.fill_blanks.question) else '#include <stdio.h>\n\nint main(void) {\n    _____("Hello C!");\n    return 0;\n}' %}{% set clean_q = raw_q.replace('{{', '{').replace('}}', '}') %}{% set parts = clean_q.split('_____') %}{% if parts|length == 1 %}{% set parts = clean_q.split('____') %}{% endif %}{% if parts|length == 1 %}{% set parts = clean_q.split('___') %}{% endif %}{% for part in parts %}{{ part }}{% if not loop.last %}<input type="text" class="blank-input" placeholder="blank" spellcheck="false" />{% endif %}{% endfor %}</div>
                 </div>
 
                 <div style="display: flex; gap: 1rem; margin-bottom: 1.5rem;">
@@ -287,12 +326,13 @@
                 <h3 style="font-size: 1.4rem; font-weight: 700; margin-bottom: 1.5rem; color: #fff;"><i class="fa-solid fa-vial" style="color: var(--rose-neon);"></i> C SkillExa Test</h3>
                 
                 {% for q in section_data.questions %}
+                {% set q_idx = loop.index0 %}
                 <div style="background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.08); padding: 1.25rem; border-radius: 12px; margin-bottom: 1.25rem;">
                     <div style="font-size: 1rem; font-weight: 700; color: #fff; margin-bottom: 0.85rem;">Q{{ loop.index }}: {{ q.question }}</div>
                     <div style="display: flex; flex-direction: column; gap: 0.6rem;">
                         {% for opt in q.options %}
                         <label style="display: flex; align-items: center; gap: 0.75rem; color: var(--text-muted); cursor: pointer; font-size: 0.95rem;">
-                            <input type="radio" name="question_{{ loop.index0 }}" value="{{ opt }}" style="accent-color: var(--primary);">
+                            <input type="radio" name="question_{{ q_idx }}" value="{{ opt }}" style="accent-color: var(--primary);">
                             {{ opt }}
                         </label>
                         {% endfor %}
@@ -306,10 +346,13 @@
             </div>
 
             <div class="section-card" id="topic-completion-card" style="display: none; text-align: center; padding: 3rem;">
-                <div style="width: 80px; height: 80px; border-radius: 50%; background: rgba(16, 185, 129, 0.2); color: var(--emerald-neon); font-size: 2.5rem; display: flex; align-items: center; justify-content: center; margin: 0 auto 1.5rem auto;"><i class="fa-solid fa-trophy"></i></div>
-                <h2 style="font-size: 2rem; font-weight: 800; color: #fff; margin-bottom: 0.5rem;">C Topic Mastered!</h2>
-                <p style="color: var(--text-muted); margin-bottom: 1.5rem;">Your Test Score: <strong id="res-score" style="color: var(--emerald-neon); font-size: 1.2rem;">100%</strong></p>
-                <a href="/c/topics" id="btn-next-topic" class="primary-btn">Continue Learning <i class="fa-solid fa-arrow-right"></i></a>
+                <div id="completion-icon-box" style="width: 80px; height: 80px; border-radius: 50%; background: rgba(16, 185, 129, 0.2); color: var(--emerald-neon); font-size: 2.5rem; display: flex; align-items: center; justify-content: center; margin: 0 auto 1.5rem auto;"><i id="completion-icon" class="fa-solid fa-trophy"></i></div>
+                <h2 id="completion-title" style="font-size: 2rem; font-weight: 800; color: #fff; margin-bottom: 0.5rem;">C Topic Mastered!</h2>
+                <p style="color: var(--text-muted); margin-bottom: 1.5rem;">Your Test Score: <strong id="res-score" style="color: var(--emerald-neon); font-size: 1.25rem;">100%</strong><span id="res-min-pass-msg" style="display: block; font-size: 0.9rem; margin-top: 0.4rem; color: var(--text-muted);"></span></p>
+                <div style="display: flex; gap: 1rem; justify-content: center; flex-wrap: wrap;">
+                    <button type="button" id="btn-retry-test" class="primary-btn" style="display: none; background: linear-gradient(135deg, #f59e0b, #d97706);"><i class="fa-solid fa-rotate-left"></i> Try Again</button>
+                    <a href="/c/topics" id="btn-next-topic" class="primary-btn">Continue Learning <i class="fa-solid fa-arrow-right"></i></a>
+                </div>
             </div>
             {% endif %}
         </div>

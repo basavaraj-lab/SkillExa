@@ -189,14 +189,16 @@ def submit_c_test_api(
     db: Session = Depends(get_db),
 ):
     prog = c_service.get_or_create_c_progress(db, student_id, topic_id)
-    updated, score, next_topic_info = c_service.submit_c_skill_exa_test(
+    updated, score, next_topic_info, passed = c_service.submit_c_skill_exa_test(
         db, prog, payload.user_answers
     )
     return {
         "status": "success",
         "score": score,
+        "passed": passed,
         "progress": updated.to_dict(),
         "next_topic": next_topic_info,
+        "message": "Topic Mastered!" if passed else "Score is below 50%. Minimum 50% required to pass. Please try again!",
     }
 
 
