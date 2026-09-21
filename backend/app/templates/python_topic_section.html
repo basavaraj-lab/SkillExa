@@ -203,13 +203,20 @@
                 
                 <div style="margin-bottom: 1.5rem;">
                     <div style="font-size: 0.85rem; font-weight: 700; color: var(--cyan-neon); margin-bottom: 0.5rem;">EXAMPLE PYTHON CODE</div>
-                    <div class="code-box">{{ section_data.example }}</div>
+                    <div class="code-box">{{ section_data.example.code if section_data.example is mapping else section_data.example }}</div>
                 </div>
 
                 {% if section_data.output %}
-                <div style="margin-bottom: 2rem;">
+                <div style="margin-bottom: 1.5rem;">
                     <div style="font-size: 0.85rem; font-weight: 700; color: var(--emerald-neon); margin-bottom: 0.5rem;">EXPECTED OUTPUT</div>
                     <div class="code-box" style="color: var(--emerald-neon);">{{ section_data.output }}</div>
+                </div>
+                {% endif %}
+
+                {% if section_data.example is mapping and section_data.example.explanation %}
+                <div style="margin-bottom: 2rem;">
+                    <div style="font-size: 0.85rem; font-weight: 700; color: var(--amber-neon); margin-bottom: 0.5rem;"><i class="fa-solid fa-diagram-project"></i> CODE EXPLANATION & TRACE</div>
+                    <div style="background: rgba(245, 158, 11, 0.08); border: 1px solid rgba(245, 158, 11, 0.25); border-radius: 12px; padding: 1.25rem; color: #fef3c7; line-height: 1.7; font-size: 0.95rem; white-space: pre-wrap; font-family: 'JetBrains Mono', monospace;">{{ section_data.example.explanation }}</div>
                 </div>
                 {% endif %}
 

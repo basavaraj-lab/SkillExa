@@ -272,7 +272,7 @@ def dashboard(request: Request):
 def topics(request: Request):
     return templates.TemplateResponse(
         request=request,
-        name="topics.html",
+        name="python_topics.html",
         context={},
     )
 
@@ -327,7 +327,7 @@ def _render_topic_section(
     elif section == "programming":
         section_data = {
             "compiler": topic["compiler"],
-            "practice": topic["practice"],
+            "practice": topic.get("compiler", {}),
         }
     elif section == "fill-blanks":
         section_data = {
@@ -350,6 +350,7 @@ def _render_topic_section(
             "section_data": section_data,
             "progress": prog.to_dict(),
             "student_id": student_id,
+            "track": "python",
         },
     )
 

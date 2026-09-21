@@ -48,6 +48,13 @@ class SkillExaTopicFlow {
             if (action === 'complete-programming') return `/js/api/topic/${this.topicId}/complete/programming`;
             if (action === 'complete-fill-blanks') return `/js/api/topic/${this.topicId}/complete/fill-blanks`;
             if (action === 'submit-test') return `/js/api/topic/${this.topicId}/submit-test`;
+        } else if (this.track === 'python') {
+            if (action === 'complete-information') return `/python/api/topic/${this.topicId}/complete/information`;
+            if (action === 'complete-examples') return `/python/api/topic/${this.topicId}/complete/examples`;
+            if (action === 'execute') return `/python/execute`;
+            if (action === 'complete-programming') return `/python/api/topic/${this.topicId}/complete/programming`;
+            if (action === 'complete-fill-blanks') return `/python/api/topic/${this.topicId}/complete/fill-blanks`;
+            if (action === 'submit-test') return `/python/api/topic/${this.topicId}/submit-test`;
         } else {
             if (action === 'complete-information') return `/api/progress/${this.studentId}/${this.topicId}/complete-information`;
             if (action === 'complete-examples') return `/api/progress/${this.studentId}/${this.topicId}/complete-examples`;
@@ -65,6 +72,7 @@ class SkillExaTopicFlow {
         else if (this.track === 'cpp') prefix = '/cpp';
         else if (this.track === 'java') prefix = '/java';
         else if (this.track === 'js' || this.track === 'javascript') prefix = '/js';
+        else if (this.track === 'python') prefix = '/python';
         return `${prefix}/topic/${this.topicId}/${section}`;
     }
 
@@ -73,6 +81,7 @@ class SkillExaTopicFlow {
         if (this.track === 'cpp') return '/cpp/topics';
         if (this.track === 'java') return '/java/topics';
         if (this.track === 'js' || this.track === 'javascript') return '/js/topics';
+        if (this.track === 'python') return '/python/topics';
         return '/topics';
     }
 
