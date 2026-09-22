@@ -261,6 +261,17 @@
             <div class="section-card">
                 <h3 style="font-size: 1.4rem; font-weight: 700; margin-bottom: 1rem; color: #fff;"><i class="fa-solid fa-terminal" style="color: var(--primary);"></i> C Native Compiler Sandbox</h3>
                 
+                {% if section_data.compiler and section_data.compiler.question %}
+                <div style="background: rgba(6, 182, 212, 0.08); border-left: 4px solid var(--cyan-neon); border-radius: 8px; padding: 0.85rem 1.15rem; margin-bottom: 1.25rem;">
+                    <div style="font-size: 0.8rem; font-weight: 700; text-transform: uppercase; color: var(--cyan-neon); margin-bottom: 0.25rem;">
+                        <i class="fa-solid fa-circle-question"></i> {{ section_data.compiler.title or 'Programming Challenge' }}
+                    </div>
+                    <div style="font-size: 0.95rem; color: #e2e8f0; line-height: 1.5;">
+                        {{ section_data.compiler.question }}
+                    </div>
+                </div>
+                {% endif %}
+
                 {% if section_data.compiler and section_data.compiler.options %}
                 <div style="margin-bottom: 1.25rem;">
                     <div style="font-size: 0.85rem; font-weight: 700; color: var(--cyan-neon); margin-bottom: 0.6rem;">CLICK TO INSERT CODE PILL INTO BLANK (_____)</div>

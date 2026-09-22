@@ -53,18 +53,6 @@ class SkillExaLesson {
     }
 
     initFillBlanks() {
-          initFillBlanks() {
-            console.log("initFillBlanks called");
-
-            if (!this.checkButton) {
-                console.log("Check button not found");
-            return;
-            }
-
-            this.checkButton.addEventListener("click", () => {
-            console.log("Button clicked");
-    });
-}
         if (!this.checkButton) return;
 
         this.checkButton.addEventListener('click', () => {

@@ -3276,7 +3276,7 @@ TOPIC_CORE = {
         },
         'fill_blanks': {
             'question': '# Complete first parameter in Python instance method\nclass Circle:\n    def __init__(____, r):\n        ____.r = r',
-            'answers': ['self'],
+            'answers': ['self', 'self'],
             'options': [
                 'self',
                 'this',

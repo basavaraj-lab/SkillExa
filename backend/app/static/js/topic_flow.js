@@ -176,7 +176,10 @@ class SkillExaTopicFlow {
         const completeBtn = document.getElementById('btn-complete-programming');
         const optionsContainer = document.getElementById('programming-options-container');
 
-        const initialStarterCode = codeInput ? codeInput.value : '';
+        let initialStarterCode = codeInput ? codeInput.value.replace(/([a-zA-Z0-9_]+)\\\(/g, '$1(').replace(/_{3,}\\\(/g, '_____(') : '';
+        if (codeInput && codeInput.value) {
+            codeInput.value = codeInput.value.replace(/([a-zA-Z0-9_]+)\\\(/g, '$1(').replace(/_{3,}\\\(/g, '_____(');
+        }
 
         if (optionsContainer && codeInput) {
             optionsContainer.addEventListener('click', (e) => {
@@ -186,15 +189,27 @@ class SkillExaTopicFlow {
                 const optionVal = targetBtn.dataset.val;
                 let currentCode = codeInput.value;
 
-                if (/_+/.test(currentCode)) {
-                    currentCode = currentCode.replace(/_+/, optionVal);
+                const allPillVals = Array.from(optionsContainer.querySelectorAll('.option-pill-btn'))
+                    .map(btn => btn.dataset.val)
+                    .filter(Boolean);
+
+                if (/_{3,}/.test(currentCode)) {
+                    currentCode = currentCode.replace(/_{3,}\\?(?=\()?/, optionVal);
                 } else if (currentCode.includes('[?]')) {
                     currentCode = currentCode.replace('[?]', optionVal);
                 } else {
-                    const startPos = codeInput.selectionStart || currentCode.length;
-                    const endPos = codeInput.selectionEnd || currentCode.length;
-                    currentCode = currentCode.substring(0, startPos) + optionVal + currentCode.substring(endPos);
+                    const existingPill = allPillVals.find(v => currentCode.includes(v));
+                    if (existingPill) {
+                        currentCode = currentCode.replace(new RegExp(existingPill + '\\\\?(?=\\()?'), optionVal);
+                    } else {
+                        const startPos = codeInput.selectionStart || currentCode.length;
+                        const endPos = codeInput.selectionEnd || currentCode.length;
+                        currentCode = currentCode.substring(0, startPos) + optionVal + currentCode.substring(endPos);
+                    }
                 }
+
+                // Remove any stray backslash before opening parenthesis (e.g. printf\()
+                currentCode = currentCode.replace(/([a-zA-Z0-9_]+)\\\(/g, '$1(');
 
                 codeInput.value = currentCode;
 
@@ -219,6 +234,10 @@ class SkillExaTopicFlow {
 
         if (runBtn && codeInput && consoleNode) {
             runBtn.addEventListener('click', async () => {
+                // Sanitize any accidental stray backslashes before parens before compiling
+                if (codeInput.value) {
+                    codeInput.value = codeInput.value.replace(/([a-zA-Z0-9_]+)\\\(/g, '$1(');
+                }
                 const langName = this.track === 'c' ? 'native C compiler' : (this.track === 'cpp' ? 'native C++ compiler' : (this.track === 'java' ? 'native Java compiler (javac)' : 'isolated Python runtime'));
                 consoleNode.innerText = `Running ${langName}...`;
                 consoleNode.style.color = '#F59E0B';
@@ -260,51 +279,137 @@ class SkillExaTopicFlow {
         const checkBtn = document.getElementById('check-fill-btn');
         const feedbackNode = document.getElementById('fill-feedback');
         const completeBtn = document.getElementById('btn-complete-fill-blanks');
-        const optionPills = document.querySelectorAll('.fill-option-pill');
+        const optionPills = document.querySelectorAll('.fill-option-pill, #fill-options-container .option-pill-btn, .option-pill-btn[data-val]');
+        const inputs = Array.from(document.querySelectorAll('.blank-input'));
 
-        optionPills.forEach(pill => {
-            pill.addEventListener('click', () => {
-                const val = pill.dataset.val || pill.textContent.trim();
-                const inputs = Array.from(document.querySelectorAll('.blank-input'));
-                const emptyInput = inputs.find(i => !i.value.trim());
-                if (emptyInput) {
-                    emptyInput.value = val;
-                } else if (inputs.length > 0) {
-                    inputs[0].value = val;
+        let activeInput = null;
+
+        inputs.forEach((input) => {
+            input.addEventListener('focus', () => {
+                activeInput = input;
+            });
+            input.addEventListener('input', () => {
+                if (feedbackNode) feedbackNode.textContent = '';
+                input.style.borderColor = 'var(--border-glow)';
+            });
+            input.addEventListener('keydown', (e) => {
+                if (e.key === 'Enter') {
+                    e.preventDefault();
+                    if (checkBtn) checkBtn.click();
                 }
             });
         });
 
+        optionPills.forEach(pill => {
+            pill.addEventListener('click', () => {
+                const val = pill.dataset.val || pill.textContent.trim();
+                const currentInputs = Array.from(document.querySelectorAll('.blank-input'));
+                let targetInput = activeInput;
+
+                if (!targetInput || !currentInputs.includes(targetInput)) {
+                    targetInput = currentInputs.find(i => !i.value.trim()) || currentInputs[0];
+                }
+
+                if (targetInput) {
+                    targetInput.value = val;
+                    if (feedbackNode) feedbackNode.textContent = '';
+
+                    // Visual feedback animation
+                    targetInput.style.transition = 'all 0.2s ease';
+                    targetInput.style.boxShadow = '0 0 12px rgba(56, 189, 248, 0.8)';
+                    targetInput.style.borderColor = 'var(--cyan-neon)';
+                    setTimeout(() => {
+                        targetInput.style.boxShadow = '';
+                        targetInput.style.borderColor = '';
+                    }, 300);
+
+                    // Advance focus to next blank input
+                    const curIndex = currentInputs.indexOf(targetInput);
+                    const nextEmpty = currentInputs.slice(curIndex + 1).find(i => !i.value.trim());
+                    if (nextEmpty) {
+                        activeInput = nextEmpty;
+                        nextEmpty.focus();
+                    } else {
+                        activeInput = targetInput;
+                    }
+                }
+            });
+        });
+
+        const validateAnswers = () => {
+            const currentInputs = Array.from(document.querySelectorAll('.blank-input'));
+            const fillData = this.sectionData.fill_blanks || {};
+            const expected = fillData.answers || (fillData.answer ? [fillData.answer] : []);
+            const userAnswers = currentInputs.map(i => i.value.trim());
+
+            if (currentInputs.length === 0 && expected.length > 0) {
+                return { valid: false, reason: 'no_inputs', expected, userAnswers };
+            }
+
+            const hasEmpty = userAnswers.some(ans => !ans);
+            if (hasEmpty) {
+                return { valid: false, reason: 'empty', expected, userAnswers };
+            }
+
+            const isCorrect = expected.length === userAnswers.length && expected.every((ans, idx) => ans.toLowerCase() === (userAnswers[idx] || '').toLowerCase());
+            return { valid: isCorrect, reason: isCorrect ? 'correct' : 'mismatch', expected, userAnswers };
+        };
+
         if (checkBtn && feedbackNode) {
             checkBtn.addEventListener('click', () => {
-                const inputs = Array.from(document.querySelectorAll('.blank-input'));
-                const fillData = this.sectionData.fill_blanks || {};
-                const expected = fillData.answers || (fillData.answer ? [fillData.answer] : []);
-                
-                const userAnswers = inputs.map(i => i.value.trim());
-                const isCorrect = expected.length === userAnswers.length && expected.every((ans, idx) => ans.toLowerCase() === (userAnswers[idx] || '').toLowerCase());
+                const check = validateAnswers();
+                const currentInputs = Array.from(document.querySelectorAll('.blank-input'));
 
-                if (isCorrect) {
+                if (check.reason === 'empty') {
+                    feedbackNode.textContent = '⚠️ Please fill in all blank fields.';
+                    feedbackNode.style.color = '#F59E0B';
+                    return;
+                }
+
+                if (check.valid) {
                     feedbackNode.textContent = '✅ Correct answer!';
                     feedbackNode.style.color = '#10B981';
+                    currentInputs.forEach(i => i.style.borderColor = '#10B981');
+                    appEngine.showToast('Great job! Answer is correct.', 'success');
                 } else {
-                    feedbackNode.textContent = `❌ Incorrect. Expected: ${expected.join(', ')}`;
+                    const expectedStr = check.expected ? check.expected.join(', ') : '';
+                    feedbackNode.textContent = `❌ Incorrect. Expected: ${expectedStr}`;
                     feedbackNode.style.color = '#EF4444';
+                    currentInputs.forEach(i => i.style.borderColor = '#EF4444');
                 }
             });
         }
 
         if (completeBtn) {
             completeBtn.addEventListener('click', async () => {
-                const inputs = Array.from(document.querySelectorAll('.blank-input'));
-                const answers = inputs.map(i => i.value.trim());
+                const currentInputs = Array.from(document.querySelectorAll('.blank-input'));
+                const answers = currentInputs.map(i => i.value.trim());
+                const check = validateAnswers();
+
+                if (!check.valid && check.reason !== 'no_inputs') {
+                    if (check.reason === 'empty') {
+                        if (feedbackNode) {
+                            feedbackNode.textContent = '⚠️ Please fill in the blanks before continuing.';
+                            feedbackNode.style.color = '#F59E0B';
+                        }
+                        appEngine.showToast('Please fill in all blanks to continue.', 'danger');
+                    } else {
+                        const expectedStr = check.expected ? check.expected.join(', ') : '';
+                        if (feedbackNode) {
+                            feedbackNode.textContent = `❌ Incorrect. Expected: ${expectedStr}`;
+                            feedbackNode.style.color = '#EF4444';
+                        }
+                        appEngine.showToast('Please enter the correct answer to continue.', 'danger');
+                    }
+                    return;
+                }
 
                 try {
                     completeBtn.disabled = true;
                     completeBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Validating & Saving...';
                     await appEngine.dataRequest(this.getApiEndpoint('complete-fill-blanks'), {
                         method: 'POST',
-                        body: JSON.stringify({ user_answers: answers }),
+                        body: JSON.stringify({ user_answers: answers, answers: answers }),
                     });
                     appEngine.showToast('Fill in the Blanks completed!', 'success');
                     window.location.href = this.getSectionUrl('test');
