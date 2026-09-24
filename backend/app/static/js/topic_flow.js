@@ -176,10 +176,7 @@ class SkillExaTopicFlow {
         const completeBtn = document.getElementById('btn-complete-programming');
         const optionsContainer = document.getElementById('programming-options-container');
 
-        let initialStarterCode = codeInput ? codeInput.value.replace(/([a-zA-Z0-9_]+)\\\(/g, '$1(').replace(/_{3,}\\\(/g, '_____(') : '';
-        if (codeInput && codeInput.value) {
-            codeInput.value = codeInput.value.replace(/([a-zA-Z0-9_]+)\\\(/g, '$1(').replace(/_{3,}\\\(/g, '_____(');
-        }
+        const initialStarterCode = codeInput ? codeInput.value : '';
 
         if (optionsContainer && codeInput) {
             optionsContainer.addEventListener('click', (e) => {
@@ -189,27 +186,15 @@ class SkillExaTopicFlow {
                 const optionVal = targetBtn.dataset.val;
                 let currentCode = codeInput.value;
 
-                const allPillVals = Array.from(optionsContainer.querySelectorAll('.option-pill-btn'))
-                    .map(btn => btn.dataset.val)
-                    .filter(Boolean);
-
                 if (/_{3,}/.test(currentCode)) {
-                    currentCode = currentCode.replace(/_{3,}\\?(?=\()?/, optionVal);
+                    currentCode = currentCode.replace(/_{3,}/, optionVal);
                 } else if (currentCode.includes('[?]')) {
                     currentCode = currentCode.replace('[?]', optionVal);
                 } else {
-                    const existingPill = allPillVals.find(v => currentCode.includes(v));
-                    if (existingPill) {
-                        currentCode = currentCode.replace(new RegExp(existingPill + '\\\\?(?=\\()?'), optionVal);
-                    } else {
-                        const startPos = codeInput.selectionStart || currentCode.length;
-                        const endPos = codeInput.selectionEnd || currentCode.length;
-                        currentCode = currentCode.substring(0, startPos) + optionVal + currentCode.substring(endPos);
-                    }
+                    const startPos = codeInput.selectionStart || currentCode.length;
+                    const endPos = codeInput.selectionEnd || currentCode.length;
+                    currentCode = currentCode.substring(0, startPos) + optionVal + currentCode.substring(endPos);
                 }
-
-                // Remove any stray backslash before opening parenthesis (e.g. printf\()
-                currentCode = currentCode.replace(/([a-zA-Z0-9_]+)\\\(/g, '$1(');
 
                 codeInput.value = currentCode;
 
@@ -234,17 +219,39 @@ class SkillExaTopicFlow {
 
         if (runBtn && codeInput && consoleNode) {
             runBtn.addEventListener('click', async () => {
-                // Sanitize any accidental stray backslashes before parens before compiling
-                if (codeInput.value) {
-                    codeInput.value = codeInput.value.replace(/([a-zA-Z0-9_]+)\\\(/g, '$1(');
+                const codeText = codeInput.value;
+                let userInputs = null;
+
+                // Detect interactive input statements in Python, C, C++, Java, JS
+                const isInputCall = /\b(input\s*\(|scanf\s*\(|gets\s*\(|fgets\s*\(|getchar\s*\(|cin\s*>>|getline\s*\(|Scanner|BufferedReader|readline)\b/.test(codeText);
+
+                if (isInputCall) {
+                    let promptTitle = 'Program Input Required:';
+                    const promptMatch = codeText.match(/input\s*\(\s*["'](.*?)["']\s*\)/);
+                    if (promptMatch && promptMatch[1]) {
+                        promptTitle = promptMatch[1].trim();
+                    }
+
+                    const promptResult = window.prompt(promptTitle, '');
+                    if (promptResult === null) {
+                        consoleNode.innerText = 'Execution cancelled (Input prompt closed).';
+                        consoleNode.style.color = '#94A3B8';
+                        return;
+                    }
+                    userInputs = promptResult;
                 }
+
                 const langName = this.track === 'c' ? 'native C compiler' : (this.track === 'cpp' ? 'native C++ compiler' : (this.track === 'java' ? 'native Java compiler (javac)' : 'isolated Python runtime'));
                 consoleNode.innerText = `Running ${langName}...`;
                 consoleNode.style.color = '#F59E0B';
                 try {
+                    const reqPayload = { code: codeText };
+                    if (userInputs !== null) {
+                        reqPayload.inputs = userInputs;
+                    }
                     const result = await appEngine.dataRequest(this.getApiEndpoint('execute'), {
                         method: 'POST',
-                        body: JSON.stringify({ code: codeInput.value }),
+                        body: JSON.stringify(reqPayload),
                     });
                     const output = result.output || result.error || '[No output]';
                     consoleNode.innerText = output;
@@ -279,137 +286,93 @@ class SkillExaTopicFlow {
         const checkBtn = document.getElementById('check-fill-btn');
         const feedbackNode = document.getElementById('fill-feedback');
         const completeBtn = document.getElementById('btn-complete-fill-blanks');
-        const optionPills = document.querySelectorAll('.fill-option-pill, #fill-options-container .option-pill-btn, .option-pill-btn[data-val]');
-        const inputs = Array.from(document.querySelectorAll('.blank-input'));
+        const optionPills = document.querySelectorAll('.fill-option-pill, .option-pill-btn');
 
         let activeInput = null;
-
-        inputs.forEach((input) => {
+        document.querySelectorAll('.blank-input').forEach(input => {
             input.addEventListener('focus', () => {
                 activeInput = input;
-            });
-            input.addEventListener('input', () => {
-                if (feedbackNode) feedbackNode.textContent = '';
-                input.style.borderColor = 'var(--border-glow)';
-            });
-            input.addEventListener('keydown', (e) => {
-                if (e.key === 'Enter') {
-                    e.preventDefault();
-                    if (checkBtn) checkBtn.click();
-                }
             });
         });
 
         optionPills.forEach(pill => {
-            pill.addEventListener('click', () => {
+            pill.addEventListener('click', (e) => {
+                e.preventDefault();
                 const val = pill.dataset.val || pill.textContent.trim();
-                const currentInputs = Array.from(document.querySelectorAll('.blank-input'));
-                let targetInput = activeInput;
+                const inputs = Array.from(document.querySelectorAll('.blank-input'));
+                if (inputs.length === 0) return;
 
-                if (!targetInput || !currentInputs.includes(targetInput)) {
-                    targetInput = currentInputs.find(i => !i.value.trim()) || currentInputs[0];
+                let targetInput = (activeInput && inputs.includes(activeInput)) ? activeInput : null;
+                if (!targetInput) {
+                    targetInput = inputs.find(i => !i.value.trim());
+                }
+                if (!targetInput) {
+                    targetInput = inputs[0];
                 }
 
-                if (targetInput) {
-                    targetInput.value = val;
-                    if (feedbackNode) feedbackNode.textContent = '';
+                targetInput.value = val;
+                targetInput.focus();
 
-                    // Visual feedback animation
-                    targetInput.style.transition = 'all 0.2s ease';
-                    targetInput.style.boxShadow = '0 0 12px rgba(56, 189, 248, 0.8)';
-                    targetInput.style.borderColor = 'var(--cyan-neon)';
-                    setTimeout(() => {
-                        targetInput.style.boxShadow = '';
-                        targetInput.style.borderColor = '';
-                    }, 300);
+                targetInput.style.transition = 'border-color 0.2s ease, box-shadow 0.2s ease';
+                targetInput.style.borderColor = 'var(--cyan-neon, #38bdf8)';
+                targetInput.style.boxShadow = '0 0 10px rgba(56, 189, 248, 0.5)';
+                setTimeout(() => {
+                    targetInput.style.boxShadow = 'none';
+                }, 300);
 
-                    // Advance focus to next blank input
-                    const curIndex = currentInputs.indexOf(targetInput);
-                    const nextEmpty = currentInputs.slice(curIndex + 1).find(i => !i.value.trim());
-                    if (nextEmpty) {
-                        activeInput = nextEmpty;
-                        nextEmpty.focus();
-                    } else {
-                        activeInput = targetInput;
-                    }
+                const currIdx = inputs.indexOf(targetInput);
+                if (currIdx >= 0 && currIdx < inputs.length - 1 && !inputs[currIdx + 1].value.trim()) {
+                    activeInput = inputs[currIdx + 1];
+                    inputs[currIdx + 1].focus();
+                } else {
+                    activeInput = targetInput;
                 }
             });
         });
 
-        const validateAnswers = () => {
-            const currentInputs = Array.from(document.querySelectorAll('.blank-input'));
-            const fillData = this.sectionData.fill_blanks || {};
-            const expected = fillData.answers || (fillData.answer ? [fillData.answer] : []);
-            const userAnswers = currentInputs.map(i => i.value.trim());
-
-            if (currentInputs.length === 0 && expected.length > 0) {
-                return { valid: false, reason: 'no_inputs', expected, userAnswers };
-            }
-
-            const hasEmpty = userAnswers.some(ans => !ans);
-            if (hasEmpty) {
-                return { valid: false, reason: 'empty', expected, userAnswers };
-            }
-
-            const isCorrect = expected.length === userAnswers.length && expected.every((ans, idx) => ans.toLowerCase() === (userAnswers[idx] || '').toLowerCase());
-            return { valid: isCorrect, reason: isCorrect ? 'correct' : 'mismatch', expected, userAnswers };
-        };
-
         if (checkBtn && feedbackNode) {
             checkBtn.addEventListener('click', () => {
-                const check = validateAnswers();
-                const currentInputs = Array.from(document.querySelectorAll('.blank-input'));
+                const inputs = Array.from(document.querySelectorAll('.blank-input'));
+                const fillData = this.sectionData.fill_blanks || {};
+                const expected = fillData.answers || (fillData.answer ? [fillData.answer] : []);
+                
+                const userAnswers = inputs.map(i => i.value.trim());
+                
+                if (inputs.length === 0) {
+                    feedbackNode.textContent = '❌ No blank inputs found.';
+                    feedbackNode.style.color = '#EF4444';
+                    return;
+                }
 
-                if (check.reason === 'empty') {
-                    feedbackNode.textContent = '⚠️ Please fill in all blank fields.';
+                if (userAnswers.some(a => a === '')) {
+                    feedbackNode.textContent = '⚠️ Please fill in all blank fields before checking.';
                     feedbackNode.style.color = '#F59E0B';
                     return;
                 }
 
-                if (check.valid) {
+                const isCorrect = expected.length === userAnswers.length && expected.every((ans, idx) => String(ans).trim().toLowerCase() === String(userAnswers[idx] || '').trim().toLowerCase());
+
+                if (isCorrect) {
                     feedbackNode.textContent = '✅ Correct answer!';
                     feedbackNode.style.color = '#10B981';
-                    currentInputs.forEach(i => i.style.borderColor = '#10B981');
-                    appEngine.showToast('Great job! Answer is correct.', 'success');
                 } else {
-                    const expectedStr = check.expected ? check.expected.join(', ') : '';
-                    feedbackNode.textContent = `❌ Incorrect. Expected: ${expectedStr}`;
+                    feedbackNode.textContent = `❌ Incorrect. Expected: ${expected.join(', ')}`;
                     feedbackNode.style.color = '#EF4444';
-                    currentInputs.forEach(i => i.style.borderColor = '#EF4444');
                 }
             });
         }
 
         if (completeBtn) {
             completeBtn.addEventListener('click', async () => {
-                const currentInputs = Array.from(document.querySelectorAll('.blank-input'));
-                const answers = currentInputs.map(i => i.value.trim());
-                const check = validateAnswers();
-
-                if (!check.valid && check.reason !== 'no_inputs') {
-                    if (check.reason === 'empty') {
-                        if (feedbackNode) {
-                            feedbackNode.textContent = '⚠️ Please fill in the blanks before continuing.';
-                            feedbackNode.style.color = '#F59E0B';
-                        }
-                        appEngine.showToast('Please fill in all blanks to continue.', 'danger');
-                    } else {
-                        const expectedStr = check.expected ? check.expected.join(', ') : '';
-                        if (feedbackNode) {
-                            feedbackNode.textContent = `❌ Incorrect. Expected: ${expectedStr}`;
-                            feedbackNode.style.color = '#EF4444';
-                        }
-                        appEngine.showToast('Please enter the correct answer to continue.', 'danger');
-                    }
-                    return;
-                }
+                const inputs = Array.from(document.querySelectorAll('.blank-input'));
+                const answers = inputs.map(i => i.value.trim());
 
                 try {
                     completeBtn.disabled = true;
                     completeBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Validating & Saving...';
                     await appEngine.dataRequest(this.getApiEndpoint('complete-fill-blanks'), {
                         method: 'POST',
-                        body: JSON.stringify({ user_answers: answers, answers: answers }),
+                        body: JSON.stringify({ user_answers: answers }),
                     });
                     appEngine.showToast('Fill in the Blanks completed!', 'success');
                     window.location.href = this.getSectionUrl('test');
@@ -475,9 +438,10 @@ class SkillExaTopicFlow {
                     submitBtn.disabled = true;
                     submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Submitting Test...';
 
-                    const payloadKey = (this.track === 'c' || this.track === 'cpp' || this.track === 'java' || this.track === 'js' || this.track === 'javascript') ? 'user_answers' : 'submitted_answers';
-                    const payload = {};
-                    payload[payloadKey] = submittedAnswers;
+                    const payload = {
+                        user_answers: submittedAnswers,
+                        submitted_answers: submittedAnswers,
+                    };
 
                     const res = await appEngine.dataRequest(this.getApiEndpoint('submit-test'), {
                         method: 'POST',
@@ -491,7 +455,7 @@ class SkillExaTopicFlow {
                         if (testSectionCard) testSectionCard.style.display = 'none';
                         if (completionCard) completionCard.style.display = 'block';
 
-                        if (completionTitle) completionTitle.textContent = 'C Topic Mastered!';
+                        if (completionTitle) completionTitle.textContent = `${this.track.toUpperCase()} Topic Mastered!`;
                         if (completionIconBox) {
                             completionIconBox.style.background = 'rgba(16, 185, 129, 0.2)';
                             completionIconBox.style.color = '#10b981';
@@ -510,6 +474,7 @@ class SkillExaTopicFlow {
                         else if (this.track === 'cpp') prefix = '/cpp';
                         else if (this.track === 'java') prefix = '/java';
                         else if (this.track === 'js' || this.track === 'javascript') prefix = '/js';
+                        else if (this.track === 'python') prefix = '/python';
 
                         if (res.next_topic && btnNextTopic) {
                             btnNextTopic.href = `${prefix}/topic/${res.next_topic.id}/information`;
@@ -540,7 +505,9 @@ class SkillExaTopicFlow {
                 } catch (err) {
                     submitBtn.disabled = false;
                     submitBtn.innerHTML = 'Submit SkillExa Test <i class="fas fa-paper-plane"></i>';
-                    console.error(err);
+                    const errMsg = err.message || (typeof err === 'string' ? err : 'Test submission failed.');
+                    appEngine.showToast(errMsg, 'error');
+                    console.error('Test submission error:', err);
                 }
             });
         }

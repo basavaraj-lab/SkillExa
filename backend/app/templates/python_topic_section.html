@@ -229,17 +229,6 @@
             <div class="section-card">
                 <h3 style="font-size: 1.4rem; font-weight: 700; margin-bottom: 1rem; color: #fff;"><i class="fa-solid fa-terminal" style="color: var(--primary);"></i> Programming Exercise & Sandbox</h3>
                 
-                {% if section_data.compiler and section_data.compiler.question %}
-                <div style="background: rgba(99, 102, 241, 0.08); border-left: 4px solid var(--primary); border-radius: 8px; padding: 0.85rem 1.15rem; margin-bottom: 1.25rem;">
-                    <div style="font-size: 0.8rem; font-weight: 700; text-transform: uppercase; color: var(--primary); margin-bottom: 0.25rem;">
-                        <i class="fa-solid fa-circle-question"></i> {{ section_data.compiler.title or 'Programming Challenge' }}
-                    </div>
-                    <div style="font-size: 0.95rem; color: #e2e8f0; line-height: 1.5;">
-                        {{ section_data.compiler.question }}
-                    </div>
-                </div>
-                {% endif %}
-
                 {% if section_data.compiler and section_data.compiler.options %}
                 <div style="margin-bottom: 1.25rem;">
                     <div style="font-size: 0.85rem; font-weight: 700; color: var(--cyan-neon); margin-bottom: 0.6rem;">CLICK TO INSERT CODE PILL INTO BLANK (_____)</div>
@@ -276,10 +265,10 @@
                 
                 {% if section_data.fill_blanks and section_data.fill_blanks.options %}
                 <div style="margin-bottom: 1.25rem;">
-                    <div style="font-size: 0.85rem; font-weight: 700; color: var(--cyan-neon); margin-bottom: 0.6rem;">AVAILABLE OPTION PILLS (CLICK TO INSERT)</div>
-                    <div style="display: flex; gap: 0.6rem; flex-wrap: wrap;" id="fill-options-container">
+                    <div style="font-size: 0.85rem; font-weight: 700; color: var(--cyan-neon); margin-bottom: 0.6rem;">CLICK TO INSERT OPTION PILL INTO BLANK</div>
+                    <div style="display: flex; gap: 0.6rem; flex-wrap: wrap;">
                         {% for opt in section_data.fill_blanks.options %}
-                        <button type="button" class="option-pill-btn fill-option-pill" data-val="{{ opt }}">{{ opt }}</button>
+                        <button type="button" class="option-pill-btn fill-option-pill" data-val="{{ opt }}" style="cursor: pointer;">{{ opt }}</button>
                         {% endfor %}
                     </div>
                 </div>
@@ -287,7 +276,7 @@
 
                 <div style="margin-bottom: 2rem;">
                     <div style="font-size: 0.95rem; color: var(--text-main); margin-bottom: 1rem;">Fill in the blank fields to complete the Python snippet:</div>
-                    <div class="code-box" style="white-space: pre-wrap; font-family: 'JetBrains Mono', monospace; font-size: 0.95rem; line-height: 2.2; padding: 1.5rem;">{% set raw_q = section_data.fill_blanks.question if (section_data.fill_blanks and section_data.fill_blanks.question) else '' %}{% set clean_q = raw_q.replace('{{', '{').replace('}}', '}') %}{% set parts = clean_q.split('_____') %}{% if parts|length == 1 %}{% set parts = clean_q.split('____') %}{% endif %}{% if parts|length == 1 %}{% set parts = clean_q.split('___') %}{% endif %}{% for part in parts %}{{ part }}{% if not loop.last %}<input type="text" class="blank-input" placeholder="blank" spellcheck="false" />{% endif %}{% endfor %}</div>
+                    <div class="code-box" style="white-space: pre-wrap; font-family: 'JetBrains Mono', monospace; font-size: 0.95rem; line-height: 2.2; padding: 1.5rem;">{% set raw_q = section_data.fill_blanks.question %}{% set clean_q = raw_q.replace('{{', '{').replace('}}', '}') %}{% set parts = clean_q.split('_____') %}{% if parts|length == 1 %}{% set parts = clean_q.split('____') %}{% endif %}{% for part in parts %}{{ part }}{% if not loop.last %}<input type="text" class="blank-input" placeholder="blank" spellcheck="false" />{% endif %}{% endfor %}</div>
                 </div>
 
                 <div style="display: flex; gap: 1rem; margin-bottom: 1.5rem;">

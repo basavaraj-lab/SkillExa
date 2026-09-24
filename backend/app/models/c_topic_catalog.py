@@ -170,10 +170,11 @@ C_TOPIC_CORE = {
             "options": ["o", "Linking", "Parsing", "Executing", "c"],
         },
         "compiler": {
-            "title": "C Compilation & Macro Preprocessing Sandbox",
-            "question": "Fill in the macro definition to set APP_NAME before compilation.",
-            "starter_code": "#include <stdio.h>\n#define APP_NAME _____\n\nint main(void) {\n    printf(\"Target: %s\\n\", APP_NAME);\n    return 0;\n}",
-            "options": ["\"SkillExa C Engine\"", "\"Linux GCC Binary\"", "\"GCC Compiler\"", "\"C Native Executable\""],
+            "title": "C Compilation Sandbox",
+            "question": "Fill in the GCC preprocessor flag -E to stop compilation after the preprocessing stage.",
+            "starter_code": "// GCC Preprocessor Flag: gcc _____ main.c -o main.i\n\n#include <stdio.h>\n#define APP_NAME \"SkillExa C Engine\"\n\nint main(void) {\n    printf(\"Target: %s\\n\", APP_NAME);\n    return 0;\n}",
+            "options": ["-E", "-Wall", "-c", "-o"],
+            "answer": "-E",
         },
         "skill_exa_test": [
             {
@@ -1797,16 +1798,7 @@ C_TOPIC_CORE = {
     },
 
     23: {
-        "concept": """String functions in <string.h> perform essential text operations organized into 6 key categories:
-
-1. Length & Copying: strlen, strcpy, strncpy
-2. Concatenation: strcat, strncat
-3. Comparison: strcmp, strncmp
-4. Character Search: strchr, strrchr
-5. Substring & Formatting: strstr, sprintf
-6. Tokenization: strtok
-
-All functions operate on null-terminated strings.""",
+        "concept": "String functions in <string.h> perform essential text operations organized into 6 pairs: (1) Length & Copying: strlen, strcpy, strncpy; (2) Concatenation: strcat, strncat; (3) Comparison: strcmp, strncmp; (4) Character Search: strchr, strrchr; (5) Substring & Formatting: strstr, sprintf; (6) Tokenization: strtok. All functions operate on null-terminated strings.",
         "syntax": "#include <string.h>\n\nstrlen(str);               // String length\nstrcpy(dest, src);         // Copy string\nstrcat(dest, src);         // Concatenate strings\nstrcmp(s1, s2);            // Compare strings (0 if equal)\nstrchr(str, 'c');          // Search first character\nstrstr(str, \"sub\");        // Search substring\nsprintf(buf, \"fmt\", ...);  // Format string buffer\nstrtok(str, \"delim\");      // Tokenize string",
         "example": {
             "code": "#include <stdio.h>\n#include <string.h>\n\nint main(void) {\n    char src[] = \"Hello, \";\n    char dest[30] = \"World\";\n\n    // Pair 1: Length & Copy\n    printf(\"Length: %lu\\n\", strlen(src));\n    \n    // Pair 2: Concatenation\n    strcat(src, dest);\n    printf(\"Concatenated: %s\\n\", src);\n\n    // Pair 3: Comparison\n    if (strcmp(\"Apple\", \"Apple\") == 0) {\n        printf(\"Strings are equal\\n\");\n    }\n    return 0;\n}",
@@ -2619,7 +2611,7 @@ All functions operate on null-terminated strings.""",
             "explanation": "Serializes structure s1 to student.dat using fwrite() in binary write mode ('wb'), then deserializes bytes back into s2 using fread() in binary read mode ('rb').",
         },
         "fill_blanks": {
-            "question": "#include <stdio.h>\n\nstruct Student { int id; char name[20]; };\n\nint main(void) {\n    struct Student s1 = {1, \"Alice\"};\n    FILE *fp = fopen(\"data.bin\", \"_____\");\n    _____( &s1, sizeof(struct Student), 1, fp);\n    fclose(fp);\n    return 0;\n}",
+            "question": "#include <stdio.h>\n\nstruct Student { int id; char name[20]; };\n\nint main(void) {\n    struct Student s1 = {1, \"Alice\"};\n    FILE *fp = fopen(\"data.bin\", \"_____\");\n    _____(&s1, sizeof(struct Student), 1, fp);\n    fclose(fp);\n    return 0;\n}",
             "answers": ["wb", "fwrite"],
             "options": ["wb", "fwrite", "r", "fread", "fputs", "ab"],
         },
@@ -3224,15 +3216,15 @@ All functions operate on null-terminated strings.""",
         },
         "compiler": {
             "title": "C Function-Like Macro Parentheses Sandbox",
-            "question": "Fill in the function-like macro definition to safely multiply expressions with parentheses.",
-            "starter_code": "#include <stdio.h>\n\n#define SAFE_MULT(a, b) _____\n\nint main(void) {\n    int res = SAFE_MULT(2 + 3, 4 + 1);\n    printf(\"Result: %d\\n\", res);\n    return 0;\n}",
-            "options": ["((a) * (b))", "(a * b)", "a * b", "((a) + (b))"],
+            "question": "Why are parameters in function-like macros wrapped in extra parentheses like ((a) * (b))?",
+            "starter_code": "#include <stdio.h>\n\n#define SAFE_MULT(a, b) ((a) * (b))\n\nint main(void) {\n    int res = SAFE_MULT(2 + 3, 4 + 1);\n    printf(\"Result: %d\\n\", res);\n    return 0;\n}",
+            "options": ["To enforce operator precedence safety during text substitution", "To make it run faster", "To enable recursion", "To convert to float"],
         },
         "skill_exa_test": [
             {
                 "question": "What character is used at the end of a line to extend a multi-line macro definition across multiple physical lines?",
-                "options": ["Backslash (\\)", "Forward slash (/)", "Semicolon (;)", "Tilde (~)"],
-                "answer": "Backslash (\\)",
+                "options": ["Backslash (\)", "Forward slash (/)", "Semicolon (;)", "Tilde (~)"],
+                "answer": "Backslash (\)",
             },
             {
                 "question": "What is a \"Chain Macro\" in C?",
@@ -3436,11 +3428,7 @@ All functions operate on null-terminated strings.""",
     },
 
     44: {
-        "concept": """Linkage determines whether an identifier can be referenced across multiple translation units (source files) or is restricted to a single file. C defines three types of linkage:
-
-1. Internal Linkage: Declared with static at file scope; visible only within the current source file
-2. External Linkage: Default for global variables and functions (or extern); shared across multiple files
-3. No Linkage: Local variables and function parameters; accessible within block scope only""",
+        "concept": "Linkage determines whether an identifier can be referenced across multiple translation units (source files) or is restricted to a single file. C defines three types of linkage: (1) Internal Linkage (static keyword at global scope; visible only within current file), (2) External Linkage (default for global variables/functions, or extern; shared across files), and (3) No Linkage (local variables, parameters; block scope only).",
         "syntax": "// Translation Unit 1 (file1.c)\nstatic int local_counter = 0; // Internal linkage\nint global_count = 100;      // External linkage (default)\n\n// Translation Unit 2 (file2.c)\nextern int global_count;     // External linkage reference",
         "example": {
             "code": "#include <stdio.h>\n\nstatic int file_private_var = 50; // Internal Linkage\nint global_shared_var = 100;      // External Linkage\n\nvoid demo(void) {\n    int local_var = 10; // No Linkage\n    printf(\"Local: %d, Private: %d, Shared: %d\\n\", local_var, file_private_var, global_shared_var);\n}\n\nint main(void) {\n    demo();\n    return 0;\n}",
@@ -3527,12 +3515,7 @@ All functions operate on null-terminated strings.""",
     },
 
     45: {
-        "concept": """Storage classes in C define scope, visibility, memory location, default value, and lifetime of variables. C features four primary storage classes:
-
-1. auto: Default for local variables, allocated on stack with garbage initial values
-2. static: Preserves value between function calls, allocated in data segment with zero initial value
-3. register: Requests CPU register storage for fast access; address-of (&) operator is disallowed
-4. extern: Refers to a global variable defined in another source file or translation unit""",
+        "concept": "Storage classes in C define scope, visibility, memory location, default value, and lifetime of variables. C features four primary storage classes: (1) auto (default local, stack RAM, garbage initial value), (2) static (local/global, data segment RAM, zero initial value, retains value across calls), (3) register (CPU register suggestion, local scope, & operator disallowed), and (4) extern (global scope, data segment RAM, defined in another translation unit).",
         "syntax": "void demo(void) {\n    auto int a = 10;        // Automatic (stack)\n    static int count = 0;   // Static (retains value across calls)\n    register int i;         // Register (CPU register suggestion)\n}\nextern int global_var;      // External (defined elsewhere)",
         "example": {
             "code": "#include <stdio.h>\n\nvoid counter_func(void) {\n    auto int auto_val = 0;\n    static int static_val = 0;\n\n    auto_val++;\n    static_val++;\n\n    printf(\"Auto: %d, Static: %d\\n\", auto_val, static_val);\n}\n\nint main(void) {\n    printf(\"Call 1: \"); counter_func();\n    printf(\"Call 2: \"); counter_func();\n    printf(\"Call 3: \"); counter_func();\n    return 0;\n}",
@@ -3991,7 +3974,7 @@ All functions operate on null-terminated strings.""",
             "explanation": "Creates two threads executing count_up(), synchronized using a pthread_mutex_t lock to prevent race conditions on shared counter memory.",
         },
         "fill_blanks": {
-            "question": "pthread_t tid;\n_____( &tid, NULL, task, NULL);\n_____(tid, NULL); // Wait for thread completion",
+            "question": "pthread_t tid;\n_____(&tid, NULL, task, NULL);\n_____(tid, NULL); // Wait for thread completion",
             "answers": ["pthread_create", "pthread_join"],
             "options": ["pthread_create", "pthread_join", "pthread_exit", "pthread_cancel", "fork", "wait"],
         },
@@ -4050,13 +4033,7 @@ All functions operate on null-terminated strings.""",
     },
 
     52: {
-        "concept": """The memory layout of a C program divides process memory into 5 distinct segments:/n
-
-1. Text Segment: Stores compiled executable machine instructions (read-only)/n
-2. Initialized Data Segment: Stores global and static variables initialized by programmer/n
-3. Uninitialized Data Segment (BSS): Stores uninitialized global/static variables, set to 0 at runtime/n
-4. Heap Segment: Dynamic memory allocated via malloc/calloc/realloc, grows upward/n
-5. Stack Segment: Stores local variables, function arguments, and stack frames, grows downward""",
+        "concept": "The memory layout of a C program divides process memory into 5 distinct segments: (1) Text Segment (stores executable machine instructions, read-only); (2) Initialized Data Segment (stores global and static variables initialized by programmer); (3) Uninitialized Data Segment / BSS (stores global and static variables not initialized, automatically set to 0 at runtime); (4) Heap Segment (dynamic memory allocation via malloc/calloc/realloc, grows upward); (5) Stack Segment (local variables, function parameters, stack frames, grows downward).",
         "syntax": "// Memory Layout Segments:\n// Text Segment: Executable instructions (read-only)\n// Initialized Data: int gvar = 10; static int svar = 20;\n// BSS Segment: int ugvar; static int usvar; (zero-initialized)\n// Heap Segment: int *hvar = malloc(sizeof(int)); (grows up)\n// Stack Segment: int lvar = 5; (grows down, stack frames)",
         "example": {
             "code": "#include <stdio.h>\n#include <stdlib.h>\n\nint gvar = 10;            // Initialized Data Segment\nint ugvar;                // BSS Segment (uninitialized global)\nconst int cgvar = 100;    // Text/Read-Only Segment\n\nvoid foo(void) {\n    int lvar = 5;         // Stack Segment\n    printf(\"Stack (lvar): %p\\n\", (void*)&lvar);\n}\n\nint main(void) {\n    int *hvar = (int*)malloc(sizeof(int)); // Heap Segment\n    printf(\"Text (cgvar):  %p\\n\", (void*)&cgvar);\n    printf(\"Data (gvar):   %p\\n\", (void*)&gvar);\n    printf(\"BSS (ugvar):   %p\\n\", (void*)&ugvar);\n    printf(\"Heap (hvar):   %p\\n\", (void*)hvar);\n    foo();\n    free(hvar);\n    return 0;\n}",
@@ -4070,9 +4047,9 @@ All functions operate on null-terminated strings.""",
         },
         "compiler": {
             "title": "C Memory Layout Sandbox",
-            "question": "Complete the initialization of the global data segment variable.",
-            "starter_code": "#include <stdio.h>\n\nint g_init = _____; // Initialized Data Segment\nint g_uninit;     // BSS Segment\n\nint main(void) {\n    int l_var = 5; // Stack\n    printf(\"G_Init: %d, G_Uninit: %d, L_Var: %d\\n\", g_init, g_uninit, l_var);\n    return 0;\n}",
-            "options": ["100", "200", "50", "0"],
+            "question": "Identify global initialized, uninitialized (BSS), and local stack variables.",
+            "starter_code": "#include <stdio.h>\n\nint g_init = 100; // Initialized Data Segment\nint g_uninit;     // BSS Segment\n\nint main(void) {\n    int l_var = 5; // Stack\n    printf(\"G_Init: %d, G_Uninit: %d, L_Var: %d\\n\", g_init, g_uninit, l_var);\n    return 0;\n}",
+            "options": ["g_init", "g_uninit", "l_var", "main"],
         },
         "skill_exa_test": [
             {
@@ -4144,13 +4121,7 @@ All functions operate on null-terminated strings.""",
     },
 
     53: {
-        "concept": """Dynamic memory allocation manages heap memory at runtime using 4 standard functions in <stdlib.h>:
-
-1. malloc(size): Allocates uninitialized heap memory bytes
-2. calloc(n, size): Allocates contiguous heap memory for n elements and initializes all bytes to 0
-3. realloc(ptr, new_size): Resizes a previously allocated memory block
-4. free(ptr): Deallocates memory and returns it to the heap
-5. Return Value: Allocation functions return a void* pointer or NULL if allocation fails.""",
+        "concept": "Dynamic memory allocation manages heap memory at runtime using 4 standard functions in <stdlib.h>: (1) malloc(size) allocates uninitialized heap memory bytes; (2) calloc(n, size) allocates contiguous heap memory for n elements and initializes all bytes to 0; (3) realloc(ptr, new_size) resizes a previously allocated memory block; (4) free(ptr) deallocates heap memory. Allocation functions return a void* pointer (implicitly castable in C) or NULL if allocation fails.",
         "syntax": "#include <stdlib.h>\n\nint *ptr = malloc(5 * sizeof(int));           // Allocates uninitialized memory\nint *cptr = calloc(5, sizeof(int));          // Allocates zero-initialized memory\nint *temp = realloc(ptr, 10 * sizeof(int));  // Resizes memory block\nif (temp != NULL) ptr = temp;                // Safe reallocation pattern\nfree(ptr); ptr = NULL;                        // Deallocates & prevents dangling pointer",
         "example": {
             "code": "#include <stdio.h>\n#include <stdlib.h>\n\nint main(void) {\n    int *ptr = calloc(5, sizeof(int));\n\n    if (ptr == NULL) {\n        printf(\"Memory allocation failed\\n\");\n        return 1;\n    }\n\n    printf(\"Zero-initialized values: \");\n    for (int i = 0; i < 5; i++) {\n        printf(\"%d \", ptr[i]);\n    }\n    printf(\"\\n\");\n\n    free(ptr);\n    ptr = NULL;\n    return 0;\n}",

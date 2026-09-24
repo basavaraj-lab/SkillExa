@@ -169,9 +169,29 @@ def _build_js_topic(meta: dict[str, str | int]) -> dict[str, object]:
         },
         "skill_exa_test": [
             {
-                "question": f"Which standard console method is used for logging information in JavaScript for {title}?",
-                "options": ["console.log()", "print()", "System.out.println()", "cout <<"],
-                "answer": "console.log()",
+                "question": f"What is the primary role of '{title}' in JavaScript web and Node.js development?",
+                "options": [f"A core ECMAScript concept in {category} for {title}", "An unused CSS styling directive", "A hardware driver protocol only used in firmware", "A database table locking rule"],
+                "answer": f"A core ECMAScript concept in {category} for {title}",
+            },
+            {
+                "question": f"Which standard method or keyword is fundamental to '{title}' in JavaScript?",
+                "options": ["console.log() / let & const", "Direct raw disk sector formatting", "Unbounded buffer overflow execution", "Operating system power cycle reset"],
+                "answer": "console.log() / let & const",
+            },
+            {
+                "question": f"What is the recommended best practice when working with '{title}' in JavaScript?",
+                "options": ["Write clean, non-blocking asynchronous code following JS best practices", "Hardcode magic numbers without comments or error checks", "Ignore console warnings and scope rules", "Poll globally in infinite loops"],
+                "answer": "Write clean, non-blocking asynchronous code following JS best practices",
+            },
+            {
+                "question": f"What potential error can happen if '{title}' is implemented incorrectly in JavaScript?",
+                "options": ["TypeError, ReferenceError or runtime error in JS engine", "Physical GPU fan speed reduction", "Static HTML layout shift", "Automatic database deletion"],
+                "answer": "TypeError, ReferenceError or runtime error in JS engine",
+            },
+            {
+                "question": f"How does mastering '{title}' benefit frontend and backend JavaScript applications?",
+                "options": ["Enhances code responsiveness, Event Loop execution, and maintainability", "Slows down execution speed by 100x", "Prevents JavaScript from executing in browsers", "Disables DOM manipulation capability"],
+                "answer": "Enhances code responsiveness, Event Loop execution, and maintainability",
             }
         ],
     }
@@ -7926,3 +7946,6 @@ JS_TOPICS[112] = {
 
 
 
+
+
+JS_TOPIC_CORE = JS_TOPICS

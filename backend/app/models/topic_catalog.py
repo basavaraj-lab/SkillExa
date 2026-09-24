@@ -11,77 +11,79 @@ TOPIC_CATALOG = [
     {"id": 6, "title": "Keywords", "difficulty": "Beginner", "duration": "15 min", "category": "Python Fundamentals"},
     {"id": 7, "title": "Data Types", "difficulty": "Beginner", "duration": "25 min", "category": "Python Fundamentals"},
     {"id": 8, "title": "Conditional Statements", "difficulty": "Beginner", "duration": "30 min", "category": "Python Fundamentals"},
-    {"id": 9, "title": "Loops", "difficulty": "Intermediate", "duration": "35 min", "category": "Python Fundamentals"},
-    {"id": 10, "title": "Functions", "difficulty": "Intermediate", "duration": "30 min", "category": "Python Fundamentals"},
-    {"id": 11, "title": "Pass in Functions", "difficulty": "Intermediate", "duration": "20 min", "category": "Python Fundamentals"},
-    {"id": 12, "title": "Global and Local Variables", "difficulty": "Intermediate", "duration": "25 min", "category": "Python Fundamentals"},
-    {"id": 13, "title": "Recursion", "difficulty": "Intermediate", "duration": "35 min", "category": "Python Fundamentals"},
-    {"id": 14, "title": "*args and **kwargs in Functions", "difficulty": "Intermediate", "duration": "30 min", "category": "Python Fundamentals"},
-    {"id": 15, "title": "First-Class Functions", "difficulty": "Intermediate", "duration": "30 min", "category": "Python Fundamentals"},
-    {"id": 16, "title": "Lambda Functions", "difficulty": "Intermediate", "duration": "25 min", "category": "Python Fundamentals"},
-    {"id": 17, "title": "Map, Reduce and Filter Functions", "difficulty": "Intermediate", "duration": "30 min", "category": "Python Fundamentals"},
+    {"id": 9, "title": "Chapter 1. For Loop & Sequence Indexing", "difficulty": "Intermediate", "duration": "25 min", "category": "Python Fundamentals"},
+    {"id": 10, "title": "Chapter 2. While Loop & Nested Loops", "difficulty": "Intermediate", "duration": "25 min", "category": "Python Fundamentals"},
+    {"id": 11, "title": "Chapter 3. Loop Control Statements (pass, continue, break)", "difficulty": "Intermediate", "duration": "25 min", "category": "Python Fundamentals"},
+    {"id": 12, "title": "Functions", "difficulty": "Intermediate", "duration": "30 min", "category": "Python Fundamentals"},
+    {"id": 13, "title": "Pass in Functions", "difficulty": "Intermediate", "duration": "20 min", "category": "Python Fundamentals"},
+    {"id": 14, "title": "Global and Local Variables", "difficulty": "Intermediate", "duration": "25 min", "category": "Python Fundamentals"},
+    {"id": 15, "title": "Recursion", "difficulty": "Intermediate", "duration": "35 min", "category": "Python Fundamentals"},
+    {"id": 16, "title": "*args and **kwargs in Functions", "difficulty": "Intermediate", "duration": "30 min", "category": "Python Fundamentals"},
+    {"id": 17, "title": "First-Class Functions", "difficulty": "Intermediate", "duration": "30 min", "category": "Python Fundamentals"},
+    {"id": 18, "title": "Lambda Functions", "difficulty": "Intermediate", "duration": "25 min", "category": "Python Fundamentals"},
+    {"id": 19, "title": "Map, Reduce and Filter Functions", "difficulty": "Intermediate", "duration": "30 min", "category": "Python Fundamentals"},
 
     # 2. Python Built-in Data Structures & Utilities
-    {"id": 18, "title": "Counters", "difficulty": "Intermediate", "duration": "25 min", "category": "Built-in Data Structures & Utilities"},
-    {"id": 19, "title": "heapq", "difficulty": "Intermediate", "duration": "30 min", "category": "Built-in Data Structures & Utilities"},
-    {"id": 20, "title": "deque", "difficulty": "Intermediate", "duration": "25 min", "category": "Built-in Data Structures & Utilities"},
-    {"id": 21, "title": "OrderedDict", "difficulty": "Intermediate", "duration": "20 min", "category": "Built-in Data Structures & Utilities"},
-    {"id": 22, "title": "defaultdict", "difficulty": "Intermediate", "duration": "25 min", "category": "Built-in Data Structures & Utilities"},
-    {"id": 23, "title": "Decorators", "difficulty": "Advanced", "duration": "35 min", "category": "Built-in Data Structures & Utilities"},
-    {"id": 24, "title": "Strings", "difficulty": "Intermediate", "duration": "30 min", "category": "Built-in Data Structures & Utilities"},
-    {"id": 25, "title": "Lists", "difficulty": "Intermediate", "duration": "30 min", "category": "Built-in Data Structures & Utilities"},
-    {"id": 26, "title": "Tuples", "difficulty": "Intermediate", "duration": "25 min", "category": "Built-in Data Structures & Utilities"},
-    {"id": 27, "title": "Dictionaries", "difficulty": "Intermediate", "duration": "30 min", "category": "Built-in Data Structures & Utilities"},
-    {"id": 28, "title": "Sets", "difficulty": "Intermediate", "duration": "25 min", "category": "Built-in Data Structures & Utilities"},
-    {"id": 29, "title": "Arrays", "difficulty": "Intermediate", "duration": "25 min", "category": "Built-in Data Structures & Utilities"},
-    {"id": 30, "title": "List Comprehension", "difficulty": "Intermediate", "duration": "30 min", "category": "Built-in Data Structures & Utilities"},
+    {"id": 20, "title": "Counters", "difficulty": "Intermediate", "duration": "25 min", "category": "Built-in Data Structures & Utilities"},
+    {"id": 21, "title": "heapq", "difficulty": "Intermediate", "duration": "30 min", "category": "Built-in Data Structures & Utilities"},
+    {"id": 22, "title": "deque", "difficulty": "Intermediate", "duration": "25 min", "category": "Built-in Data Structures & Utilities"},
+    {"id": 23, "title": "OrderedDict", "difficulty": "Intermediate", "duration": "20 min", "category": "Built-in Data Structures & Utilities"},
+    {"id": 24, "title": "defaultdict", "difficulty": "Intermediate", "duration": "25 min", "category": "Built-in Data Structures & Utilities"},
+    {"id": 25, "title": "Decorators", "difficulty": "Advanced", "duration": "35 min", "category": "Built-in Data Structures & Utilities"},
+    {"id": 26, "title": "Strings", "difficulty": "Intermediate", "duration": "30 min", "category": "Built-in Data Structures & Utilities"},
+    {"id": 27, "title": "Lists", "difficulty": "Intermediate", "duration": "30 min", "category": "Built-in Data Structures & Utilities"},
+    {"id": 28, "title": "Tuples", "difficulty": "Intermediate", "duration": "25 min", "category": "Built-in Data Structures & Utilities"},
+    {"id": 29, "title": "Dictionaries", "difficulty": "Intermediate", "duration": "30 min", "category": "Built-in Data Structures & Utilities"},
+    {"id": 30, "title": "Sets", "difficulty": "Intermediate", "duration": "25 min", "category": "Built-in Data Structures & Utilities"},
+    {"id": 31, "title": "Arrays", "difficulty": "Intermediate", "duration": "25 min", "category": "Built-in Data Structures & Utilities"},
+    {"id": 32, "title": "List Comprehension", "difficulty": "Intermediate", "duration": "30 min", "category": "Built-in Data Structures & Utilities"},
 
     # 3. Object-Oriented Programming (OOP)
-    {"id": 31, "title": "OOP Concepts", "difficulty": "Intermediate", "duration": "30 min", "category": "Object-Oriented Programming (OOP)"},
-    {"id": 32, "title": "Python OOP", "difficulty": "Intermediate", "duration": "30 min", "category": "Object-Oriented Programming (OOP)"},
-    {"id": 33, "title": "Classes and Objects", "difficulty": "Intermediate", "duration": "35 min", "category": "Object-Oriented Programming (OOP)"},
-    {"id": 34, "title": "Constructors", "difficulty": "Intermediate", "duration": "25 min", "category": "Object-Oriented Programming (OOP)"},
-    {"id": 35, "title": "self as Default Argument", "difficulty": "Intermediate", "duration": "20 min", "category": "Object-Oriented Programming (OOP)"},
-    {"id": 36, "title": "Polymorphism", "difficulty": "Advanced", "duration": "35 min", "category": "Object-Oriented Programming (OOP)"},
-    {"id": 37, "title": "Inheritance", "difficulty": "Advanced", "duration": "35 min", "category": "Object-Oriented Programming (OOP)"},
-    {"id": 38, "title": "Abstraction", "difficulty": "Advanced", "duration": "30 min", "category": "Object-Oriented Programming (OOP)"},
-    {"id": 39, "title": "Encapsulation", "difficulty": "Advanced", "duration": "30 min", "category": "Object-Oriented Programming (OOP)"},
+    {"id": 33, "title": "OOP Concepts", "difficulty": "Intermediate", "duration": "30 min", "category": "Object-Oriented Programming (OOP)"},
+    {"id": 34, "title": "Python OOP", "difficulty": "Intermediate", "duration": "30 min", "category": "Object-Oriented Programming (OOP)"},
+    {"id": 35, "title": "Classes and Objects", "difficulty": "Intermediate", "duration": "35 min", "category": "Object-Oriented Programming (OOP)"},
+    {"id": 36, "title": "Constructors", "difficulty": "Intermediate", "duration": "25 min", "category": "Object-Oriented Programming (OOP)"},
+    {"id": 37, "title": "self as Default Argument", "difficulty": "Intermediate", "duration": "20 min", "category": "Object-Oriented Programming (OOP)"},
+    {"id": 38, "title": "Polymorphism", "difficulty": "Advanced", "duration": "35 min", "category": "Object-Oriented Programming (OOP)"},
+    {"id": 39, "title": "Inheritance", "difficulty": "Advanced", "duration": "35 min", "category": "Object-Oriented Programming (OOP)"},
+    {"id": 40, "title": "Abstraction", "difficulty": "Advanced", "duration": "30 min", "category": "Object-Oriented Programming (OOP)"},
+    {"id": 41, "title": "Encapsulation", "difficulty": "Advanced", "duration": "30 min", "category": "Object-Oriented Programming (OOP)"},
 
     # 4. Iterators & Exception Handling
-    {"id": 40, "title": "Iterators", "difficulty": "Intermediate", "duration": "30 min", "category": "Iterators & Exception Handling"},
-    {"id": 41, "title": "Exception Handling", "difficulty": "Intermediate", "duration": "30 min", "category": "Iterators & Exception Handling"},
-    {"id": 42, "title": "Built-in Exceptions", "difficulty": "Intermediate", "duration": "25 min", "category": "Iterators & Exception Handling"},
-    {"id": 43, "title": "User-Defined Exceptions", "difficulty": "Intermediate", "duration": "30 min", "category": "Iterators & Exception Handling"},
+    {"id": 42, "title": "Iterators", "difficulty": "Intermediate", "duration": "30 min", "category": "Iterators & Exception Handling"},
+    {"id": 43, "title": "Exception Handling", "difficulty": "Intermediate", "duration": "30 min", "category": "Iterators & Exception Handling"},
+    {"id": 44, "title": "Built-in Exceptions", "difficulty": "Intermediate", "duration": "25 min", "category": "Iterators & Exception Handling"},
+    {"id": 45, "title": "User-Defined Exceptions", "difficulty": "Intermediate", "duration": "30 min", "category": "Iterators & Exception Handling"},
 
     # 5. File & Directory Handling
-    {"id": 44, "title": "File Handling", "difficulty": "Intermediate", "duration": "30 min", "category": "File & Directory Handling"},
-    {"id": 45, "title": "Read Files", "difficulty": "Intermediate", "duration": "25 min", "category": "File & Directory Handling"},
-    {"id": 46, "title": "Write/Create Files", "difficulty": "Intermediate", "duration": "25 min", "category": "File & Directory Handling"},
-    {"id": 47, "title": "OS Module", "difficulty": "Intermediate", "duration": "35 min", "category": "File & Directory Handling"},
-    {"id": 48, "title": "pathlib Module", "difficulty": "Intermediate", "duration": "30 min", "category": "File & Directory Handling"},
-    {"id": 49, "title": "Directory Management", "difficulty": "Intermediate", "duration": "30 min", "category": "File & Directory Handling"},
+    {"id": 46, "title": "File Handling", "difficulty": "Intermediate", "duration": "30 min", "category": "File & Directory Handling"},
+    {"id": 47, "title": "Read Files", "difficulty": "Intermediate", "duration": "25 min", "category": "File & Directory Handling"},
+    {"id": 48, "title": "Write/Create Files", "difficulty": "Intermediate", "duration": "25 min", "category": "File & Directory Handling"},
+    {"id": 49, "title": "OS Module", "difficulty": "Intermediate", "duration": "35 min", "category": "File & Directory Handling"},
+    {"id": 50, "title": "pathlib Module", "difficulty": "Intermediate", "duration": "30 min", "category": "File & Directory Handling"},
+    {"id": 51, "title": "Directory Management", "difficulty": "Intermediate", "duration": "30 min", "category": "File & Directory Handling"},
 
     # 6. Databases
-    {"id": 50, "title": "MongoDB Introduction", "difficulty": "Advanced", "duration": "40 min", "category": "Databases"},
-    {"id": 51, "title": "MySQL Introduction", "difficulty": "Advanced", "duration": "40 min", "category": "Databases"},
+    {"id": 52, "title": "MongoDB Introduction", "difficulty": "Advanced", "duration": "40 min", "category": "Databases"},
+    {"id": 53, "title": "MySQL Introduction", "difficulty": "Advanced", "duration": "40 min", "category": "Databases"},
 
     # 7. Python Packages & Libraries
-    {"id": 52, "title": "Packages", "difficulty": "Intermediate", "duration": "30 min", "category": "Python Packages & Libraries"},
-    {"id": 53, "title": "Built-in Modules", "difficulty": "Intermediate", "duration": "30 min", "category": "Python Packages & Libraries"},
-    {"id": 54, "title": "DSA Libraries", "difficulty": "Advanced", "duration": "35 min", "category": "Python Packages & Libraries"},
-    {"id": 55, "title": "GUI Libraries", "difficulty": "Advanced", "duration": "40 min", "category": "Python Packages & Libraries"},
+    {"id": 54, "title": "Packages", "difficulty": "Intermediate", "duration": "30 min", "category": "Python Packages & Libraries"},
+    {"id": 55, "title": "Built-in Modules", "difficulty": "Intermediate", "duration": "30 min", "category": "Python Packages & Libraries"},
+    {"id": 56, "title": "DSA Libraries", "difficulty": "Advanced", "duration": "35 min", "category": "Python Packages & Libraries"},
+    {"id": 57, "title": "GUI Libraries", "difficulty": "Advanced", "duration": "40 min", "category": "Python Packages & Libraries"},
 
     # 8. Data Science
-    {"id": 56, "title": "NumPy", "difficulty": "Advanced", "duration": "40 min", "category": "Data Science"},
-    {"id": 57, "title": "Pandas", "difficulty": "Advanced", "duration": "45 min", "category": "Data Science"},
-    {"id": 58, "title": "Matplotlib", "difficulty": "Advanced", "duration": "40 min", "category": "Data Science"},
-    {"id": 59, "title": "Seaborn", "difficulty": "Advanced", "duration": "40 min", "category": "Data Science"},
-    {"id": 60, "title": "Statsmodels", "difficulty": "Advanced", "duration": "45 min", "category": "Data Science"},
-    {"id": 61, "title": "Scikit-learn", "difficulty": "Advanced", "duration": "50 min", "category": "Data Science"},
-    {"id": 62, "title": "XGBoost / LightGBM", "difficulty": "Advanced", "duration": "50 min", "category": "Data Science"},
-    {"id": 63, "title": "TensorFlow and Keras", "difficulty": "Advanced", "duration": "55 min", "category": "Data Science"},
-    {"id": 64, "title": "PyTorch", "difficulty": "Advanced", "duration": "55 min", "category": "Data Science"},
-    {"id": 65, "title": "Complete Tutorial on Data Science", "difficulty": "Advanced", "duration": "60 min", "category": "Data Science"},
+    {"id": 58, "title": "NumPy", "difficulty": "Advanced", "duration": "40 min", "category": "Data Science"},
+    {"id": 59, "title": "Pandas", "difficulty": "Advanced", "duration": "45 min", "category": "Data Science"},
+    {"id": 60, "title": "Matplotlib", "difficulty": "Advanced", "duration": "40 min", "category": "Data Science"},
+    {"id": 61, "title": "Seaborn", "difficulty": "Advanced", "duration": "40 min", "category": "Data Science"},
+    {"id": 62, "title": "Statsmodels", "difficulty": "Advanced", "duration": "45 min", "category": "Data Science"},
+    {"id": 63, "title": "Scikit-learn", "difficulty": "Advanced", "duration": "50 min", "category": "Data Science"},
+    {"id": 64, "title": "XGBoost / LightGBM", "difficulty": "Advanced", "duration": "50 min", "category": "Data Science"},
+    {"id": 65, "title": "TensorFlow and Keras", "difficulty": "Advanced", "duration": "55 min", "category": "Data Science"},
+    {"id": 66, "title": "PyTorch", "difficulty": "Advanced", "duration": "55 min", "category": "Data Science"},
+    {"id": 67, "title": "Complete Tutorial on Data Science", "difficulty": "Advanced", "duration": "60 min", "category": "Data Science"},
 ]
 
 TOPIC_CORE = {
@@ -385,7 +387,7 @@ TOPIC_CORE = {
         'compiler': {
             'title': 'Variable Swapping Sandbox',
             'question': 'Swap values of x and y in a single line.',
-            'starter_code': 'x, y = 10, 20\nx, y = _____, _____\nprint(x, y)',
+            'starter_code': 'x, y = 10, 20\nx, y = _____\nprint(x, y)',
             'options': [
                 'y, x',
                 'x, y',
@@ -833,101 +835,142 @@ TOPIC_CORE = {
         },
     },
     9: {
-        'concept': 'CHAPTER 1: FOR LOOPS & INDEXING — For loops iterate over sequences (lists, tuples, strings, ranges) directly or using sequence index positions with range(len(seq)).\n\nCHAPTER 2: WHILE LOOPS, INFINITE LOOPS & NESTED LOOPS — While loops execute repeatedly as long as a condition remains True. Features infinite while loops (while True: ...) and nested loops (loops inside loops) where the inner loop completes fully per outer loop step.',
-        'syntax': '# === CHAPTER 1: FOR LOOPS & INDEXING ===\nfor i in range(0, n):\n    print(i)\n\nfor idx in range(len(seq)):\n    print(seq[idx])\n\n# === CHAPTER 2: WHILE LOOPS & NESTED LOOPS ===\nwhile condition:\n    # Body\n    break\n\nfor i in range(1, n):\n    for j in range(i):\n        print(i, end=" ")',
+        'concept': 'CHAPTER 1: FOR LOOP & SEQUENCE INDEXING — For loops are used to iterate over a sequence (such as a list, tuple, string, or range), executing a block of code once for each item in the sequence. A for loop can also iterate through sequence elements using their index values with the help of range() and len().',
+        'syntax': '# Basic For Loop\nn = 4\nfor i in range(0, n):\n    print(i)\n\n# Iterating by Index of Sequences\na = ["geeks", "for", "geeks"]\nfor idx in range(len(a)):\n    print(a[idx])',
         'example': {
-            'code': '# ==========================================\n# CHAPTER 1: FOR LOOPS & INDEXING\n# ==========================================\na = ["geeks", "for", "geeks"]\nprint("--- Iterating by Index ---")\nfor idx in range(len(a)):\n    print(f"Index {idx}: {a[idx]}")\n\n# ==========================================\n# CHAPTER 2: WHILE LOOPS & NESTED LOOPS\n# ==========================================\nprint("\\n--- While Loop Execution ---")\ncnt = 0\nwhile cnt < 3:\n    cnt += 1\n    print("Hello Geek", cnt)\n\nprint("\\n--- Nested Loops Pattern ---")\nfor i in range(1, 5):\n    for j in range(i):\n        print(i, end=" ")\n    print()',
-            'output': '--- Iterating by Index ---\nIndex 0: geeks\nIndex 1: for\nIndex 2: geeks\n\n--- While Loop Execution ---\nHello Geek 1\nHello Geek 2\nHello Geek 3\n\n--- Nested Loops Pattern ---\n1 \n2 2 \n3 3 3 \n4 4 4 4 ',
-            'explanation': '📌 CHAPTER 1: FOR LOOPS & INDEXING\n1. len(a) returns sequence length 3; range(len(a)) generates index values 0, 1, 2.\n2. a[idx] accesses sequence elements directly using their zero-based index positions.\n\n📌 CHAPTER 2: WHILE LOOPS & NESTED LOOPS\n3. cnt counter increments inside while loop body until condition cnt < 3 evaluates False.\n4. Outer for loop controls rows 1..4; inner loop prints current row number i repeated i times.',
+            'code': 'n = 4\nprint("--- Basic For Loop ---")\nfor i in range(0, n):\n    print(i, end=" ")\n\nprint("\\n\\n--- Iterating by Index ---")\na = ["geeks", "for", "geeks"]\nfor idx in range(len(a)):\n    print(a[idx], end=" ")',
+            'output': '--- Basic For Loop ---\n0 1 2 3 \n\n--- Iterating by Index ---\ngeeks for geeks ',
+            'explanation': '1. n = 4 stores ending value; range(0, n) generates numbers from 0 to 3.\n2. for i in range(0, n): iterates through each number in range.\n3. len(a) returns total number of elements in the list (3).\n4. range(len(a)) generates index values from 0 to 2; a[idx] accesses elements using their index.',
         },
         'fill_blanks': {
             'question': '# Chapter 1: Iterate sequence by index\na = ["geeks", "for", "geeks"]\nfor idx in range(_____(a)):\n    print(a[idx])',
             'answers': ['len'],
-            'options': [
-                'len',
-                'size',
-                'count',
-                'range',
-            ],
+            'options': ['len', 'size', 'count', 'range'],
         },
         'compiler': {
-            'title': 'Nested Loops & While Sandbox',
-            'question': 'Complete the inner range parameter for pattern printing.',
-            'starter_code': 'for i in range(1, 5):\n    for j in range(_____):\n        print(i, end=" ")\n    print()',
-            'options': [
-                'i',
-                '1',
-                '5',
-                '0',
-            ],
+            'title': 'For Loop Sandbox',
+            'question': 'Complete range parameter to iterate from 0 to n-1.',
+            'starter_code': 'n = 4\nfor i in range(0, _____):\n    print(i)',
+            'options': ['n', '4', '0', '1'],
         },
         'skill_exa_test': [
             {
                 'question': 'What numbers are generated by range(0, 4) in Python?',
-                'options': [
-                    '0, 1, 2, 3',
-                    '0, 1, 2, 3, 4',
-                    '1, 2, 3, 4',
-                    '0, 4',
-                ],
+                'options': ['0, 1, 2, 3', '0, 1, 2, 3, 4', '1, 2, 3, 4', '0, 4'],
                 'answer': '0, 1, 2, 3',
             },
             {
                 'question': 'How do you iterate through list elements using index positions in a for loop?',
-                'options': [
-                    'for idx in range(len(a)):',
-                    'for idx in len(a):',
-                    'for idx in a.index():',
-                    'for idx in range(a):',
-                ],
+                'options': ['for idx in range(len(a)):', 'for idx in len(a):', 'for idx in a.index():', 'for idx in range(a):'],
                 'answer': 'for idx in range(len(a)):',
             },
             {
-                'question': "What occurs when executing a while loop with condition 'while True' without a break statement?",
-                'options': [
-                    'Executes infinitely until forcefully terminated',
-                    'Terminates after 100 iterations',
-                    'Raises SyntaxError',
-                    'Executes once',
-                ],
+                'question': 'What does len(["geeks", "for", "geeks"]) return?',
+                'options': ['3', '2', '0', 'TypeError'],
+                'answer': '3',
+            },
+        ],
+        'theory': {
+            'definition': 'For loops iterate over sequences (lists, tuples, strings, ranges) executing a block of code once per item.',
+            'why': 'Chapter 1 covers basic range iteration and sequence index-based access.',
+            'rules': ['Use range(len(seq)) to iterate through elements by zero-based index positions.'],
+            'examples': ['for i in range(0, n): print(i)', 'for idx in range(len(a)): print(a[idx])'],
+        },
+    },
+    10: {
+        'concept': 'CHAPTER 2: WHILE LOOP, INFINITE LOOPS & NESTED LOOPS — A while loop repeatedly executes a block of code as long as the given condition remains true. When the condition becomes false, execution moves to the next line. An infinite while loop (while True:) runs continuously unless forcefully terminated. A nested loop is a loop inside another loop where the inner loop executes completely for every single iteration of the outer loop.',
+        'syntax': '# While Loop\ncnt = 0\nwhile (cnt < 3):\n    cnt = cnt + 1\n    print("Hello Geek")\n\n# Nested Loops\nfor i in range(1, 5):\n    for j in range(i):\n        print(i, end=" ")\n    print()',
+        'example': {
+            'code': 'print("--- While Loop ---")\ncnt = 0\nwhile cnt < 3:\n    cnt = cnt + 1\n    print("Hello Geek", end=" ")\n\nprint("\\n\\n--- Nested Loops Pattern ---")\nfor i in range(1, 5):\n    for j in range(i):\n        print(i, end=" ")\n    print()',
+            'output': '--- While Loop ---\nHello Geek Hello Geek Hello Geek \n\n--- Nested Loops Pattern ---\n1 \n2 2 \n3 3 3 \n4 4 4 4 ',
+            'explanation': '1. cnt = 0 initializes counter; while (cnt < 3) runs while condition is true.\n2. cnt = cnt + 1 increases counter by 1.\n3. Outer loop for i in range(1, 5) controls row count.\n4. Inner loop for j in range(i) runs i times for each row.',
+        },
+        'fill_blanks': {
+            'question': '# Chapter 2: Increment counter in while loop\ncnt = 0\nwhile cnt < 3:\n    cnt = cnt _____ 1\n    print("Hello Geek")',
+            'answers': ['+'],
+            'options': ['+', '-', '*', '/'],
+        },
+        'compiler': {
+            'title': 'While & Nested Loops Sandbox',
+            'question': 'Complete inner range for pattern printing.',
+            'starter_code': 'for i in range(1, 5):\n    for j in range(_____):\n        print(i, end=" ")\n    print()',
+            'options': ['i', '1', '5', '0'],
+        },
+        'skill_exa_test': [
+            {
+                'question': 'What occurs when executing a while loop with condition while True without a break statement?',
+                'options': ['Executes infinitely until forcefully terminated', 'Terminates after 100 iterations', 'Raises SyntaxError', 'Executes once'],
                 'answer': 'Executes infinitely until forcefully terminated',
             },
             {
                 'question': 'How does a nested loop execute relative to the outer loop in Python?',
-                'options': [
-                    'The inner loop completes all its iterations for every single iteration of the outer loop',
-                    'The inner and outer loops execute simultaneously',
-                    'The outer loop completes before the inner loop starts',
-                    'The inner loop runs only once',
-                ],
+                'options': ['The inner loop completes all its iterations for every single iteration of the outer loop', 'The inner and outer loops execute simultaneously', 'The outer loop completes before the inner loop starts', 'The inner loop runs only once'],
                 'answer': 'The inner loop completes all its iterations for every single iteration of the outer loop',
             },
             {
-                'question': 'Which statement skips the remaining body of the current loop iteration and proceeds to the next iteration?',
-                'options': [
-                    'continue',
-                    'break',
-                    'pass',
-                    'return',
-                ],
-                'answer': 'continue',
+                'question': 'When does a while loop while (cnt < 3) stop executing?',
+                'options': ['When cnt becomes 3 or greater (condition evaluates False)', 'Immediately on first iteration', 'Never', 'When print() is called'],
+                'answer': 'When cnt becomes 3 or greater (condition evaluates False)',
             },
         ],
         'theory': {
-            'definition': 'Loops repeat statement execution until sequence elements are processed (For Loops) or condition becomes False (While Loops).',
-            'why': 'Chapter 1 covers sequence indexing; Chapter 2 covers condition-driven while loops and multi-dimensional nested loops.',
+            'definition': 'While loops execute as long as a condition evaluates True; nested loops place one loop inside another.',
+            'why': 'Chapter 2 explains condition-driven repetitive logic, infinite while loops, and multi-dimensional nested loops.',
             'rules': [
-                'Chapter 1: Use range(len(seq)) for index-based sequence mutation or access.',
-                'Chapter 2: Ensure while loop conditions eventually evaluate False to avoid infinite execution.',
-                'Chapter 2: In nested loops, inner loops execute fully per outer loop step.',
+                'Ensure while loop conditions eventually evaluate False to avoid infinite execution.',
+                'In nested loops, the inner loop executes fully per outer loop cycle.',
             ],
-            'examples': [
-                'for idx in range(len(a)):\n    print(a[idx])',
-                'while cnt < 3:\n    cnt += 1',
-            ],
+            'examples': ['while cnt < 3: cnt += 1', 'for i in range(3): for j in range(2): print(i, j)'],
         },
     },
-    10: {
+    11: {
+        'concept': 'CHAPTER 3: LOOP CONTROL STATEMENTS (pass, continue, break) — Loop control statements alter loop execution flow:\n1. pass: Means do nothing. Used when Python requires a statement syntax-wise, but you don\'t want to execute anything yet (e.g. empty function placeholders: def my_function(): pass).\n2. continue: Skips the remaining body of the current iteration and moves directly to the next iteration ("Skip this iteration").\n3. break: Completely stops and terminates the loop immediately.',
+        'syntax': '# 1. pass\nfor i in range(5):\n    if i == 2:\n        pass\n    print(i)\n\n# 2. continue\nfor i in range(1, 6):\n    if i == 3:\n        continue\n    print(i)\n\n# 3. break\nfor i in range(1, 6):\n    if i == 3:\n        break\n    print(i)',
+        'example': {
+            'code': 'print("--- 1. pass statement ---")\nfor i in range(5):\n    if i == 2:\n        pass\n    print(i, end=" ")\n\nprint("\\n\\n--- 2. continue statement ---")\nfor i in range(1, 6):\n    if i == 3:\n        continue\n    print(i, end=" ")\n\nprint("\\n\\n--- 3. break statement ---")\nfor i in range(1, 6):\n    if i == 3:\n        break\n    print(i, end=" ")',
+            'output': '--- 1. pass statement ---\n0 1 2 3 4 \n\n--- 2. continue statement ---\n1 2 4 5 \n\n--- 3. break statement ---\n1 2 ',
+            'explanation': '1. When i == 2, pass does nothing, so the next statement print(i) still executes (outputs 0 1 2 3 4).\n2. When i == 3, continue skips print(i) and goes to the next iteration (skipping 3, outputs 1 2 4 5).\n3. When i == 3, break stops the loop immediately (outputs 1 2).',
+        },
+        'fill_blanks': {
+            'question': '# Chapter 3: Skip current iteration when i == 3\nfor i in range(1, 6):\n    if i == 3:\n        _____\n    print(i)',
+            'answers': ['continue'],
+            'options': ['continue', 'break', 'pass', 'return'],
+        },
+        'compiler': {
+            'title': 'Loop Control Sandbox',
+            'question': 'Complete statement to break loop execution when i == 3.',
+            'starter_code': 'for i in range(1, 6):\n    if i == 3:\n        _____\n    print(i)',
+            'options': ['break', 'continue', 'pass', 'exit'],
+        },
+        'skill_exa_test': [
+            {
+                'question': 'Which statement skips the current iteration and proceeds to the next iteration of the loop?',
+                'options': ['continue', 'break', 'pass', 'return'],
+                'answer': 'continue',
+            },
+            {
+                'question': 'Which statement completely stops and exits the loop immediately?',
+                'options': ['break', 'continue', 'pass', 'exit'],
+                'answer': 'break',
+            },
+            {
+                'question': 'What is the purpose of the pass statement in Python?',
+                'options': ['It acts as a placeholder that does nothing when Python syntax requires a statement', 'It terminates the loop immediately', 'It skips to the next iteration', 'It returns a default value'],
+                'answer': 'It acts as a placeholder that does nothing when Python syntax requires a statement',
+            },
+        ],
+        'theory': {
+            'definition': 'Loop control statements (pass, continue, break) dynamically alter loop execution flow.',
+            'why': 'Chapter 3 covers skipping iterations, early loop termination, and syntactic placeholders.',
+            'rules': [
+                'pass is a syntactic no-op placeholder.',
+                'continue skips the rest of the current iteration body.',
+                'break immediately exits the enclosing loop.',
+            ],
+            'examples': ['if i == 2: pass', 'if i == 3: continue', 'if i == 3: break'],
+        },
+    },
+    12: {
         'concept': "CHAPTER 1: DEFINING, CALLING & ARGUMENT TYPES — Python functions are defined using def. Supports Default Arguments (y=50), Keyword Arguments (fname='Geeks', lname='Practice'), Positional Arguments, and Arbitrary Arguments (*args, **kwargs).\n\nCHAPTER 2: RETURN STATEMENT & PASS-BY-OBJECT-REFERENCE — Return sends calculated values back to the caller. Pass-by-object-reference mutates mutable objects (lists) in-place while keeping immutable objects (integers, strings) unchanged outside the function.",
         'syntax': '# === CHAPTER 1: DEFINING, CALLING & ARGUMENTS ===\ndef student(fname, lname):\n    print(fname, lname)\n\ndef my_fun(x, y=50):\n    print(x, y)\n\n# === CHAPTER 2: RETURN STATEMENT & MUTABILITY ===\ndef sq_value(num):\n    return num ** 2\n\ndef modify_list(lst):\n    lst[0] = 99',
         'example': {
@@ -1019,7 +1062,7 @@ TOPIC_CORE = {
             'examples': ['def sq(n): return n**2', 'def mod(lst): lst[0]=99'],
         },
     },
-    11: {
+    13: {
         'concept': 'The pass statement in Python is a placeholder that does nothing when executed. It keeps code blocks syntactically valid where statements are required but no implementation logic is needed yet. Common use cases for pass include empty functions, conditional block placeholders, loop iteration skips, and empty class or method stubs.',
         'syntax': 'def empty_function():\n    pass  # Placeholder for future logic\n\nclass EmptyClass:\n    pass',
         'example': {
@@ -1111,7 +1154,7 @@ TOPIC_CORE = {
             'examples': ['def stub():\n    pass'],
         },
     },
-    12: {
+    14: {
         'concept': 'Variable scope defines the visibility and lifetime of a variable in Python. Local variables are declared inside a function, created when called, and destroyed when returned; they cannot be accessed outside the function (doing so raises NameError). Global variables are declared outside all functions and can be read anywhere. When a local variable shares a name with a global variable, the local variable shadows the global one inside the function. Modifying a global variable inside a function requires explicitly declaring it with the global keyword.',
         'syntax': 's = "Global"\n\ndef fun():\n    global s\n    s += " Modified"  # Mutates global variable\n    l_var = "Local"  # Local variable',
         'example': {
@@ -1205,7 +1248,7 @@ TOPIC_CORE = {
             ],
         },
     },
-    13: {
+    15: {
         'concept': 'Recursion is a programming technique where a function calls itself directly or indirectly to solve a problem by breaking it into smaller subproblems. Every recursive function requires two essential parts: 1. Base Case (a stopping condition that prevents infinite recursion and stack overflow) and 2. Recursive Case (calling the function with modified parameters). Recursion can be Tail Recursive (recursive call is the final action executed) or Non-Tail Recursive (further operations happen after the recursive call returns).',
         'syntax': 'def recursive_function(n):\n    if n <= 1:  # Base case\n        return base_result\n    else:  # Recursive case\n        return recursive_function(n - 1)',
         'example': {
@@ -1299,7 +1342,7 @@ TOPIC_CORE = {
             ],
         },
     },
-    14: {
+    16: {
         'concept': '*args and **kwargs allow Python functions to accept an arbitrary number of arguments. *args collects extra positional arguments into a tuple. **kwargs collects extra keyword arguments into a dictionary. When used together in a function header, *args must precede **kwargs.',
         'syntax': 'def function_name(*args, **kwargs):\n    # args is a tuple of positional arguments\n    # kwargs is a dictionary of keyword arguments\n    pass',
         'example': {
@@ -1393,7 +1436,7 @@ TOPIC_CORE = {
             ],
         },
     },
-    15: {
+    17: {
         'concept': "In Python, functions are First-Class Objects. This means functions can be: 1. Assigned to variables (f = msg), 2. Passed as arguments to higher-order functions (fun1(msg, 'Alex')), 3. Returned from other functions (function factories), and 4. Stored in data structures like lists or dictionaries (d = {'add': add}). This foundational concept enables functional programming, callbacks, closures, and decorators.",
         'syntax': 'def greet(name):\n    return f"Hello, {name}!"\n\nsay_hi = greet  # Assigning function to variable\nresult = apply_function(greet, "Alice")',
         'example': {
@@ -1485,7 +1528,7 @@ TOPIC_CORE = {
             'examples': ["fn = print\nfn('Hello')"],
         },
     },
-    16: {
+    18: {
         'concept': 'Lambda functions are small anonymous functions defined using the lambda keyword. Syntax: lambda arguments: expression. A lambda function can take any number of arguments but contains only a single expression whose result is automatically returned without using the return keyword. Use cases include inline condition checking, tuple returns, list comprehensions, and passing transformation logic to map(), filter(), and reduce().',
         'syntax': 'square = lambda x: x ** 2\ncheck = lambda x: "Positive" if x > 0 else "Negative"\ncalc = lambda x, y: (x + y, x * y)',
         'example': {
@@ -1577,7 +1620,7 @@ TOPIC_CORE = {
             'examples': ['double = lambda x: x * 2'],
         },
     },
-    17: {
+    19: {
         'concept': "Functional sequence processing utilities and scope encapsulation:\n1. map(function, iterable) applies a function to every item in an iterable and returns a lazy iterator (map object).\n2. filter(function, iterable) extracts items for which the testing function returns True (passing None filters out falsy values like 0, '', None).\n3. reduce(function, iterable) (from functools) applies a two-argument function cumulatively to reduce a sequence step-by-step into a single scalar result.\n4. Inner Functions (nested functions) encapsulate helper logic, follow LEGB scope rules, and use the nonlocal keyword to mutate outer function variables.",
         'syntax': 'from functools import reduce\n\nmapped = list(map(lambda x: x * 2, nums))\nfiltered = list(filter(lambda x: x % 2 == 0, nums))\nreduced = reduce(lambda x, y: x + y, nums)',
         'example': {
@@ -1672,7 +1715,7 @@ TOPIC_CORE = {
             ],
         },
     },
-    23: {
+    20: {
         'concept': 'Decorators modify or extend the behavior of functions, methods, or classes without altering their source code. A decorator is a higher-order function that takes a function as input and returns a new wrapper function. Syntax shorthand @decorator is equivalent to func = decorator(func). Decorators use *args and **kwargs to support functions with arbitrary parameters. Types include: Function Decorators, Method Decorators (handling self), Class Decorators (modifying cls), Built-in Decorators (@staticmethod, @classmethod, @property with getter/setter), and Chaining Multiple Decorators (executed bottom-up).',
         'syntax': 'def decorator_name(func):\n    def wrapper(*args, **kwargs):\n        print("Before execution")\n        result = func(*args, **kwargs)\n        print("After execution")\n        return result\n    return wrapper\n\n@decorator_name\ndef add(a, b):\n    return a + b',
         'example': {
@@ -1766,7 +1809,7 @@ TOPIC_CORE = {
             ],
         },
     },
-    24: {
+    21: {
         'concept': 'Strings are immutable sequences of characters enclosed in single (\'...\') or double ("...") quotes. Multi-line strings use triple quotes (\'\'\'...\'\'\' or """..."""). Positive indexing starts at 0 from left; negative indexing starts at -1 from right. Slicing syntax is s[start:stop:step]. String operations include len(), upper(), lower(), strip(), replace(), str.join(), + concatenation, * repetition, f-strings formatting, and \'in\' membership testing.',
         'syntax': 's = "GeeksForGeeks"\nsub = s[1:4]\nrev = s[::-1]\nfmt = f"Name: {name}, Age: {age}"\nis_found = "Geeks" in s',
         'example': {
@@ -1858,7 +1901,7 @@ TOPIC_CORE = {
             'examples': ["s = 'Hello World'", 'rev = s[::-1]'],
         },
     },
-    25: {
+    22: {
         'concept': 'Lists are built-in, ordered, mutable, and dynamic data structures defined using square brackets [] or list(). Elements maintain insertion order and can store mixed data types. Python lists store memory references to underlying objects. List operations include adding (append(), insert(), extend()), updating by index (a[i] = val), removing (remove(), pop(), del, clear()), iteration, and multi-dimensional nested lists (matrices).',
         'syntax': 'a = [1, 2, 3]\na.append(4)\na.insert(1, 99)\na.extend([5, 6])\nval = a.pop()',
         'example': {
@@ -1950,7 +1993,7 @@ TOPIC_CORE = {
             'examples': ['l = [10, 20, 30]', 'l.append(40)'],
         },
     },
-    26: {
+    23: {
         'concept': 'Tuples are immutable, ordered collections of elements defined using parentheses (). Unlike lists, tuples cannot be changed, added to, or deleted from after creation. Tuples support mixed data types, single-element declaration with trailing comma (1,), indexing, slicing, tuple concatenation (+), repetition (*), full deletion (del tup), and Tuple Unpacking with Asterisk (a, *b, c = (1, 2, 3, 4, 5)).',
         'syntax': 'tup = (1, 2, 3)\na, b, c = tup  # Tuple unpacking\na, *b, c = (1, 2, 3, 4, 5)  # Asterisk unpacking\ntup3 = tup1 + tup2  # Concatenation',
         'example': {
@@ -2042,7 +2085,7 @@ TOPIC_CORE = {
             'examples': ['t = (1, 2, 3)', 'a, *b = t'],
         },
     },
-    27: {
+    24: {
         'concept': 'Dictionaries store data in key-value pairs ({key: value} or dict()). Keys must be unique and immutable (strings, numbers, tuples), while values can be of any mutable or immutable data type. Access values using d[key] (raises KeyError if missing) or d.get(key, default) (returns default value safely). Adding/updating uses d[key] = val. Deleting methods include del d[key], d.pop(key), d.popitem() (removes last inserted pair), and d.clear(). Iteration methods include keys(), values(), and items(). Supports nested dictionaries.',
         'syntax': 'd = {"name": "Jake", "age": 22}\nd["city"] = "NYC"  # Add key\nval = d.get("age", 0)  # Safe get\nfor k, v in d.items():\n    print(k, v)',
         'example': {
@@ -2137,7 +2180,7 @@ TOPIC_CORE = {
             ],
         },
     },
-    28: {
+    25: {
         'concept': 'Sets ({1, 2, 3} or set()) are unordered collections of unique elements. Duplicate values are automatically removed. Sets do not support indexing or item assignment (s[0] raises TypeError). Built on hash tables for fast O(1) average lookup. frozenset() creates an immutable, hashable set suitable for dictionary keys. Set methods & operators include: add(), clear(), Union (union() or |), Intersection (intersection() or &), Difference (difference() or -), and Symmetric Difference (^).',
         'syntax': 's = {1, 2, 3}\ns.add(4)\nu = set1 | set2  # Union\ni = set1 & set2  # Intersection\ndiff = set1 - set2  # Difference',
         'example': {
@@ -2229,7 +2272,7 @@ TOPIC_CORE = {
             'examples': ['s = set([1, 2, 2, 3])', 'u = s1 | s2'],
         },
     },
-    29: {
+    26: {
         'concept': "Arrays store homogeneous (same data type) elements sequentially in contiguous memory locations. Created using the built-in array module (import array as arr). Requires a typecode during initialization (e.g. 'i' for signed 4-byte integer, 'f' for float, 'd' for double). Differs from Python lists which store mixed types. Operations include: append(), insert(), remove(), pop(), index(), count(), reverse(), extend(), and array slicing. NumPy arrays (import numpy as np) extend this to multi-dimensional matrix computing.",
         'syntax': "import array as arr\na = arr.array('i', [1, 2, 3])\na.append(4)\na.insert(1, 99)\nval = a[0]",
         'example': {
@@ -2323,7 +2366,7 @@ TOPIC_CORE = {
             ],
         },
     },
-    30: {
+    27: {
         'concept': 'List comprehension offers a concise, single-line syntax to create new lists by applying an expression to each item in an existing iterable (list, tuple, range). Syntax: [expression for item in iterable if condition]. It is faster and cleaner than standard for loop appends. Supports optional if condition filters, nested for loops (generating coordinate pairs or matrix flattening), and element transformations.',
         'syntax': 'res = [x ** 2 for x in range(10) if x % 2 == 0]\nflat = [val for row in matrix for val in row]',
         'example': {
@@ -2415,7 +2458,7 @@ TOPIC_CORE = {
             'examples': ['[x**2 for x in nums]', '[x for x in nums if x > 0]'],
         },
     },
-    18: {
+    28: {
         'concept': 'Counter is a subclass of dict from the collections module designed to tally the frequency of elements in an iterable (lists, strings, tuples) or mapping. Missing keys return 0 instead of raising KeyError. Key methods: most_common(n) returns a list of top n (element, count) pairs; elements() returns an iterator repeating items by count; update() increases counts; subtract() decreases counts (allowing negative values); and manual increment ctr[key] += 1. Counter supports arithmetic operations: addition (+), subtraction (-), intersection (&), and union (|).',
         'syntax': 'from collections import Counter\ncnt = Counter([1, 1, 1, 2, 3, 3, 4])\ntop2 = cnt.most_common(2)\ncnt.update([2, 3])\ncnt.subtract([1])',
         'example': {
@@ -2509,7 +2552,7 @@ TOPIC_CORE = {
             ],
         },
     },
-    19: {
+    29: {
         'concept': 'heapq is a built-in module providing min-heap priority queue algorithms on regular Python lists. The smallest element is always at index 0 (heap[0]). Operations: heapify(list) converts a list into a min-heap in O(N) time; heappush(heap, item) inserts an item maintaining heap order; heappop(heap) removes and returns the smallest element; heappushpop(heap, item) pushes first then pops; heapreplace(heap, item) pops first then pushes; nlargest(n, iterable) and nsmallest(n, iterable) return extreme elements; merge(*iterables) merges sorted inputs. Max-heaps are implemented by inverting element signs (-val).',
         'syntax': 'import heapq\nli = [25, 20, 15, 30, 40]\nheapq.heapify(li)\nsmallest = heapq.heappop(li)\nheapq.heappush(li, 5)',
         'example': {
@@ -2603,7 +2646,7 @@ TOPIC_CORE = {
             ],
         },
     },
-    20: {
+    30: {
         'concept': 'deque (Double-Ended Queue) from the collections module provides O(1) time complexity insertion and deletion from both left (front) and right (rear) ends. Operates as both a FIFO Queue and a LIFO Stack. Key operations: append(), appendleft(), extend(), extendleft(), pop(), popleft(), remove(), clear(), rotate(n) (rotates items right/left), reverse(), count(), and indexing dq[0], dq[-1].',
         'syntax': 'from collections import deque\ndq = deque([10, 20, 30])\ndq.appendleft(5)\ndq.append(40)\nval = dq.popleft()\ndq.rotate(1)',
         'example': {
@@ -2697,7 +2740,7 @@ TOPIC_CORE = {
             ],
         },
     },
-    21: {
+    31: {
         'concept': 'OrderedDict is a subclass of dict from collections that remembers key insertion order with specialized order-sensitive features. Key characteristics: Order-sensitive equality check (od1 == od2 checks both key-value pairs and insertion order); move_to_end(key, last=True/False) repositions keys to front or back without re-insertion; popitem(last=True/False) pops items from either end (LIFO when last=True, FIFO when last=False); updating existing keys retains original position; and reversed(list(od.items())) reverses order.',
         'syntax': "from collections import OrderedDict\nod = OrderedDict()\nod['a'] = 1\nod['b'] = 2\nod.move_to_end('a')  # Move 'a' to end\nitem = od.popitem(last=False)  # Pop first item",
         'example': {
@@ -2706,7 +2749,7 @@ TOPIC_CORE = {
             'explanation': "1. od1 == od2 evaluates False because key insertion order differs.\n2. move_to_end('c', last=False) moves key 'c' to the front.\n3. popitem(last=False) pops the first item (FIFO order).",
         },
         'fill_blanks': {
-            'question': "# Move key to end of OrderedDict\nfrom collections import OrderedDict\nod = OrderedDict([('a', 1), ('b', 2)])\nod._____\\('a')",
+            'question': "# Move key to end of OrderedDict\nfrom collections import OrderedDict\nod = OrderedDict([('a', 1), ('b', 2)])\nod._____\('a')",
             'answers': ['move_to_end'],
             'options': [
                 'move_to_end',
@@ -2791,7 +2834,7 @@ TOPIC_CORE = {
             ],
         },
     },
-    22: {
+    32: {
         'concept': 'defaultdict is a subclass of dict from the collections module that automatically supplies a default value for missing keys using a default_factory callable (int, list, set, str, lambda), preventing KeyError. When accessing a non-existent key, default_factory() is called internally via __missing__(key) to initialize and store the default value. Common use cases include word frequency counting (defaultdict(int)), grouping items (defaultdict(list)), and text processing.',
         'syntax': "from collections import defaultdict\nd_list = defaultdict(list)\nd_int = defaultdict(int)\nd_list['fruits'].append('apple')\nd_int['counts'] += 1",
         'example': {
@@ -2885,7 +2928,7 @@ TOPIC_CORE = {
             ],
         },
     },
-    31: {
+    33: {
         'concept': 'Object-Oriented Programming (OOP) empowers developers to build modular, maintainable, and scalable applications by organizing code into classes and objects representing real-world entities. An object has state (attributes) and behavior (methods). The four pillars of OOP—Inheritance, Polymorphism, Encapsulation, and Data Abstraction—form the foundation for structured software architecture.',
         'syntax': 'class Entity:\n    def __init__(self, name):\n        self.name = name\n    def action(self):\n        pass',
         'example': {
@@ -2981,7 +3024,7 @@ TOPIC_CORE = {
             ],
         },
     },
-    32: {
+    34: {
         'concept': 'Python is an object-oriented language where everything (integers, strings, functions, classes) is an object. Classes are created using the class keyword. Attributes are variables belonging to a class or instance. Attributes are public by default in Python and are accessed using the dot (.) operator (e.g. obj.attribute). Class attributes are shared across all instances, whereas instance attributes are unique to each object.',
         'syntax': 'class Dog:\n    species = "Canine"  # Class attribute\n    def __init__(self, name, age):\n        self.name = name  # Instance attribute\n        self.age = age',
         'example': {
@@ -3077,7 +3120,7 @@ TOPIC_CORE = {
             ],
         },
     },
-    33: {
+    35: {
         'concept': 'A class is a blueprint, template, or schema for creating objects. An object is a concrete instance of a class holding state, behavior, and identity. The __str__() method in Python provides a human-readable custom string representation of an object. When print(obj) or str(obj) is executed, Python automatically invokes the __str__() method of the class instead of returning default string representations like <__main__.ClassName object at 0x...>.',
         'syntax': 'class Dog:\n    def __init__(self, name, age):\n        self.name = name\n        self.age = age\n\n    def __str__(self):\n        return f"{self.name} is {self.age} years old."',
         'example': {
@@ -3172,7 +3215,7 @@ TOPIC_CORE = {
             ],
         },
     },
-    34: {
+    36: {
         'concept': 'Constructors are special methods used to initialize objects upon creation. In Python, object creation and initialization are handled through __new__() and __init__(). __new__() allocates memory and returns a new object instance before __init__() runs. __init__() receives the new instance and initializes its attributes, returning None by default. Python supports Default Constructors (no parameters besides self) and Parameterized Constructors (accepting arguments to set custom instance values).',
         'syntax': 'class Car:\n    # Default Constructor\n    def __init__(self):\n        self.make = "Toyota"\n\nclass CustomCar:\n    # Parameterized Constructor\n    def __init__(self, make, model):\n        self.make = make\n        self.model = model',
         'example': {
@@ -3266,7 +3309,7 @@ TOPIC_CORE = {
             ],
         },
     },
-    35: {
+    37: {
         'concept': 'In Python, when defining methods inside a class, the first parameter is always self. self is not a reserved keyword, but a standard naming convention representing the current instance of the class. Python adheres to "Explicit is better than implicit": requiring self explicitly ensures clear, unambiguous access to instance attributes and methods. When invoking obj.method(arg), Python automatically converts the call into Class.method(obj, arg).',
         'syntax': 'class Circle:\n    def __init__(self, r):\n        self.r = r  # Stores radius on current instance\n\n    def area(self):\n        return 3.14 * (self.r ** 2)',
         'example': {
@@ -3275,7 +3318,7 @@ TOPIC_CORE = {
             'explanation': '1. self.r = r assigns 5 to instance attribute r on object ins.\n2. Inside area(), self.r retrieves that specific instance value.\n3. Calling ins.area() automatically passes ins as the first self argument.',
         },
         'fill_blanks': {
-            'question': '# Complete first parameter in Python instance method\nclass Circle:\n    def __init__(____, r):\n        ____.r = r',
+            'question': '# Complete first parameter in Python instance method\nclass Circle:\n    def __init__(_____, r):\n        _____.r = r',
             'answers': ['self', 'self'],
             'options': [
                 'self',
@@ -3361,7 +3404,7 @@ TOPIC_CORE = {
             ],
         },
     },
-    36: {
+    38: {
         'concept': 'Polymorphism ("same operation, different behavior") allows methods, functions, or operators to adapt based on the object or context they operate upon. Python supports multiple forms of polymorphism:\n1. Compile-Time Polymorphism (Simulated via default parameters, *args, **kwargs).\n2. Runtime Polymorphism (Method Overriding where child classes provide custom implementations of parent methods).\n3. Built-in Polymorphic Functions (len(), max() working on different iterables/types).\n4. Duck Typing ("If it walks like a duck, it\'s a duck").\n5. Operator Overloading (+ performing addition or concatenation).',
         'syntax': 'class Animal:\n    def sound(self): return "Generic"\n\nclass Dog(Animal):\n    def sound(self): return "Bark"\n\nclass Cat(Animal):\n    def sound(self): return "Meow"',
         'example': {
@@ -3456,7 +3499,7 @@ TOPIC_CORE = {
             ],
         },
     },
-    37: {
+    39: {
         'concept': 'Inheritance allows a child (derived) class to acquire properties, attributes, and methods from a parent (base) class. It promotes hierarchical classification, code reusability, and centralized maintenance. Python provides the super() function to call methods from a parent class following Python Method Resolution Order (MRO). Child classes can initialize inherited attributes using super().__init__() and can perform Method Overriding to customize behavior.',
         'syntax': 'class Parent:\n    def __init__(self, name):\n        self.name = name\n\nclass Child(Parent):\n    def __init__(self, name, breed):\n        super().__init__(name)  # Calls parent constructor\n        self.breed = breed',
         'example': {
@@ -3551,7 +3594,7 @@ TOPIC_CORE = {
             ],
         },
     },
-    38: {
+    40: {
         'concept': 'Abstraction hides complex internal implementation details while exposing only necessary functionality to the user. In Python, Data Abstraction is achieved using the abc module with Abstract Base Class (ABC) and @abstractmethod decorator. Components of Abstraction include:\n1. Abstract Method (@abstractmethod): Method declarations without body; forces subclasses to implement them.\n2. Concrete Method: Fully implemented methods inside abstract classes inherited directly.\n3. Abstract Properties (@property + @abstractmethod): Enforces property implementation in subclasses.\n4. Instantiation Limitation: Attempting to instantiate an abstract class directly raises TypeError.',
         'syntax': 'from abc import ABC, abstractmethod\n\nclass Animal(ABC):\n    @abstractmethod\n    def make_sound(self):\n        pass  # Abstract method\n\n    def move(self):\n        return "Moving"  # Concrete method',
         'example': {
@@ -3647,7 +3690,7 @@ TOPIC_CORE = {
             ],
         },
     },
-    39: {
+    41: {
         'concept': 'Encapsulation is the bundling of data attributes and methods into a single class unit while restricting unauthorized direct access to protect data integrity. Python access specifiers include:\n1. Public Members (no underscore): Fully accessible from anywhere.\n2. Protected Members (single underscore prefix _): Intended for internal class and subclass use.\n3. Private Members (double underscore prefix __): Restricts direct external access using Name Mangling (_ClassName__variable).\nEncapsulation uses Getter methods (read access) and Setter methods (write access with optional validation) to control data updates safely.',
         'syntax': 'class Employee:\n    def __init__(self, name, salary):\n        self.name = name          # Public\n        self._dept = "IT"         # Protected\n        self.__salary = salary    # Private\n\n    def get_salary(self):         # Getter\n        return self.__salary\n\n    def set_salary(self, amount): # Setter\n        if amount > 0: self.__salary = amount',
         'example': {
@@ -3743,7 +3786,7 @@ TOPIC_CORE = {
             ],
         },
     },
-    40: {
+    42: {
         'concept': 'An iterator in Python is an object used to traverse through all elements of a collection (list, tuple, string, dictionary) one item at a time. Iterators implement the Iterator Protocol:\n1. __iter__(): Returns the iterator object itself.\n2. __next__(): Returns the next item from sequence, raising StopIteration exception when elements are exhausted.\nIterable vs Iterator: An Iterable (e.g. list) can return an iterator when passed to iter(iterable). An Iterator performs the actual iteration state tracking and responds to next(iterator). Custom iterators are created by defining a class implementing __iter__() and __next__().',
         'syntax': 'class CustomIterator:\n    def __init__(self, limit):\n        self.limit = limit\n        self.n = 1\n    def __iter__(self):\n        return self\n    def __next__(self):\n        if self.n > self.limit: raise StopIteration\n        x = self.n; self.n += 1; return x',
         'example': {
@@ -3838,7 +3881,7 @@ TOPIC_CORE = {
             ],
         },
     },
-    41: {
+    43: {
         'concept': 'Exception Handling in Python allows programs to catch and handle unexpected errors during runtime gracefully without crashing abruptly. Runtime errors include invalid input, division by zero, missing files, or type mismatches. Python provides four main keywords:\n1. try: Contains code that might trigger an exception.\n2. except: Catches and handles specific or multiple exception types.\n3. else: Executes only if no exceptions occur in the try block.\n4. finally: Executes unconditionally, ideal for cleanup tasks like closing files or connections.\nExceptions can be triggered explicitly using the raise keyword (e.g. raise ValueError("Message")). Errors occur at logic/syntax compile-time, whereas exceptions occur at runtime and can be managed.',
         'syntax': 'try:\n    res = 100 / n\nexcept ZeroDivisionError:\n    print("You can\'t divide by zero!")\nexcept (ValueError, TypeError) as e:\n    print("Invalid value or type:", e)\nelse:\n    print("Result is", res)\nfinally:\n    print("Execution complete.")',
         'example': {
@@ -3935,7 +3978,7 @@ TOPIC_CORE = {
             ],
         },
     },
-    42: {
+    44: {
         'concept': 'Python provides a standard set of built-in exceptions derived from the root class BaseException. To study built-in exceptions systematically, they are organized into chapters featuring 2 exception types per chapter:\n\n- Chapter 1: Root & Base Exceptions -> BaseException (root exception hierarchy class) & Exception (base class for non-exit exceptions).\n- Chapter 2: Arithmetic Exceptions -> ArithmeticError (base class for math calculation errors) & ZeroDivisionError (division or modulo by 0).\n- Chapter 3: Numerical Overflow & Precision -> OverflowError (numeric result too large to represent) & FloatingPointError (IEEE floating-point operation error).\n- Chapter 4: Assertion & Attribute Access -> AssertionError (assert condition failure) & AttributeError (accessing non-existent object attribute).\n- Chapter 5: Sequence & Dictionary Lookups -> IndexError (sequence index out of bounds) & KeyError (missing dictionary key).\n- Chapter 6: Memory & Name Resolution -> MemoryError (RAM allocation failure) & NameError (accessing unassigned variable name).\n- Chapter 7: Operating System & File I/O -> OSError (system I/O failure) & FileNotFoundError (subclass of OSError for missing files/directories).\n- Chapter 8: Additional Standard Exceptions -> TypeError (inappropriate operand type) & ValueError (valid type but invalid value).',
         'syntax': '# Inspecting built-in exceptions dictionary\nbuiltins_dict = locals()["__builtins__"]\n\n# Catching specific built-in exception pairs\ntry:\n    val = d["missing_key"]\nexcept (IndexError, KeyError) as e:\n    print("Lookup Exception caught:", e)',
         'example': {
@@ -4036,7 +4079,7 @@ TOPIC_CORE = {
             ],
         },
     },
-    43: {
+    45: {
         'concept': 'User-Defined (Custom) Exceptions in Python are created by defining a new class that inherits from Python\'s built-in Exception class or one of its standard subclasses (e.g. RuntimeError, ValueError). Custom exceptions enable applications to define domain-specific error types (e.g. InvalidAgeError, InvalidEmailError, NetworkError).\n\nSteps to Create Custom Exceptions:\n1. Define Exception Class: Subclass Exception or a relevant standard exception.\n2. Customize Attributes & Methods: Add attributes (e.g. error_code, msg) and override __init__() and __str__() for readable error messages.\n3. Raise the Exception: Use raise CustomError(args) when a specific domain rule fails.\n4. Handle the Exception: Catch custom exceptions using targeted try-except blocks.',
         'syntax': 'class InvalidAgeError(Exception):\n    def __init__(self, age, msg="Age must be between 0 and 120", error_code=1001):\n        self.age = age\n        self.msg = msg\n        self.error_code = error_code\n        super().__init__(self.msg)\n\n    def __str__(self):\n        return f"[Error Code {self.error_code}] {self.age} -> {self.msg}"',
         'example': {
@@ -4132,7 +4175,7 @@ TOPIC_CORE = {
             ],
         },
     },
-    44: {
+    46: {
         'concept': 'File handling in Python involves performing operations on files—creating, opening, reading, writing, and closing them—to manage data flow safely between application code and secondary storage. Files are opened using open(filename, mode) where mode defaults to "r" (read mode). Once open, file object attributes can be inspected:\n1. f.name: Returns the name or path of the opened file.\n2. f.mode: Returns the access mode ("r", "w", "a", etc.).\n3. f.closed: Returns True if the file stream is closed, False otherwise.\nUsing f.close() releases system handles. The with statement (with open(...) as f:) automatically closes the file upon block termination, avoiding resource leaks. Exception handling with try-except-finally guarantees file closure even if runtime errors occur.',
         'syntax': 'with open("geek.txt", "r") as f:\n    content = f.read()\n    print("Name:", f.name, "Mode:", f.mode)',
         'example': {
@@ -4228,7 +4271,7 @@ TOPIC_CORE = {
             ],
         },
     },
-    45: {
+    47: {
         'concept': 'Reading a file accesses text, binary data, or formatted structures (CSV, JSON). Python provides several reading strategies:\n1. read(): Reads entire file or specified N bytes/chars (e.g. read(10)).\n2. readline(): Reads a single line at a time (ideal for sequential processing of huge files).\n3. Line-by-line Loop (for line in file:): Iterates over lines in a memory-efficient manner using line.strip() to trim newlines.\n4. Reading Binary Files ("rb" mode): Reads raw byte sequences for images, executables, or non-text files.\n5. Structured Data Reading: Uses csv.reader (via csv module & io.StringIO) for tabular CSV data and json.load() for parsing JSON files into Python dictionaries.',
         'syntax': '# Reading techniques in Python\nwith open("geeks.txt", "r") as f:\n    for line in f:\n        print(line.strip())\n\n# Reading CSV and JSON\nimport csv, json\ndata = json.load(open("sample.json"))',
         'example': {
@@ -4325,7 +4368,7 @@ TOPIC_CORE = {
             ],
         },
     },
-    46: {
+    48: {
         'concept': 'Writing to a file creates new files or updates existing ones. Open modes for writing include:\n- "w": Overwrite mode (creates file if missing, erases/truncates content if existing).\n- "a": Append mode (creates file if missing, appends data always at the end).\n- "x": Exclusive creation mode (creates new file, fails with FileExistsError if file already exists).\n- "b": Binary flag ("wb", "ab" for raw bytes).\n- "+": Read/Write flag ("w+", "a+").\n- encoding & newline: Controls text encoding (e.g. "utf-8") and newline translations.\nWriting methods: write(str) writes a single string, writelines(sequence) writes a list of strings (newlines \\n must be included explicitly), and pathlib.Path("file.txt").write_text() provides modern path-based writing.',
         'syntax': 'with open("file.txt", "w", encoding="utf-8") as f:\n    f.write("Line 1\\n")\n\nwith open("file.txt", "a", encoding="utf-8") as f:\n    f.write("Appended line\\n")',
         'example': {
@@ -4422,7 +4465,7 @@ TOPIC_CORE = {
             ],
         },
     },
-    47: {
+    49: {
         'concept': 'The os module provides portable operating system utility functions. To master the os module, its features are divided into two main categories:\n\n1. Directory & File System Operations: Current Working Directory (os.getcwd(), os.chdir(path)), Directory Creation (os.mkdir() for single, os.makedirs() for nested parent directories), Directory Listing (os.listdir(path)), File/Folder Deletion (os.remove(file), os.rmdir(dir)).\n\n2. Permissions, Metadata & OS Utilities: File Metadata (os.stat() returning st_size, st_mtime, st_mode), Permission Control (os.chmod(path, mode), os.chown(path, uid, gid)), OS Identifier (os.name returning "posix" or "nt"), Process Pipes (os.popen(command)), Low-level File Descriptors (os.close(fd) vs text file.close()), Renaming (os.rename(old, new)), and Path Checks (os.path.exists(path), os.path.getsize(path)).',
         'syntax': 'import os\n\ncwd = os.getcwd()\nos.chdir("../")\nos.mkdir("new_dir")\nstats = os.stat("file.txt")\nprint("Size:", os.path.getsize("file.txt"))',
         'example': {
@@ -4519,7 +4562,7 @@ TOPIC_CORE = {
             ],
         },
     },
-    48: {
+    50: {
         'concept': 'The pathlib module (Python 3.4+) provides an object-oriented, cross-platform framework to work with filesystem paths. Unlike os.path which treats paths as raw strings, pathlib represents them as objects, overloading the / operator for intuitive path joining.\n\nPathlib Classes Split into 2 Main Categories:\n\n1. Pure Paths (PurePath, PurePosixPath, PureWindowsPath): Perform purely string-based path manipulations (joining, splitting, normalizing, inspecting name/suffix/parent) without touching the actual filesystem (usable cross-platform on any OS).\n\n2. Concrete Paths (Path, PosixPath, WindowsPath): Inherit from Pure paths and perform actual filesystem I/O (checking existence with exists(), creating empty files with touch(), directory listing with iterdir(), recursive file matching with rglob(), and quick file I/O with write_text() / read_text()).',
         'syntax': 'from pathlib import Path, PurePath\n\n# 1. Pure Path Manipulation\npure = PurePath("foo/bar/file.txt")\nprint(pure.name, pure.suffix, pure.parent)\n\n# 2. Concrete Path Filesystem I/O\np = Path.cwd() / "sample.txt"\np.touch()\np.write_text("Hello Pathlib")\ncontent = p.read_text()',
         'example': {
@@ -4617,7 +4660,7 @@ TOPIC_CORE = {
             ],
         },
     },
-    49: {
+    51: {
         'concept': 'Directory Management involves programmatically managing folder structures—creating, listing, verifying, calculating directory size, renaming, copying, and deleting folders across operating systems. Directory management tools are split into two operational frameworks:\n\n1. OS & Pathlib Directory Operations: Creating (`os.mkdir`, `os.makedirs`, `Path.mkdir`), Listing (`os.listdir`, `Path.iterdir`), Directory Verification (`os.path.isdir`), Working Directory (`os.getcwd`, `os.chdir`), Timestamps (`os.path.getatime`, `os.path.getmtime`), and Recursive Tree Size calculation (`os.walk` + `os.path.getsize`).\n\n2. Shutil High-Level Management: Recursive Directory Copying (`shutil.copytree(src, dst, dirs_exist_ok=True)`), Irreversible Recursive Directory Deletion (`shutil.rmtree(path)`), and Directory Moving/Renaming (`shutil.move(src, dst)`).',
         'syntax': 'import os, shutil\nfrom pathlib import Path\n\n# OS & Pathlib directory ops\nos.makedirs("parent/child", exist_ok=True)\nis_dir = os.path.isdir("parent")\n\n# High-level Shutil directory ops\nshutil.copytree("src_dir", "dst_dir", dirs_exist_ok=True)\nshutil.rmtree("dst_dir")',
         'example': {
@@ -4715,7 +4758,7 @@ TOPIC_CORE = {
             ],
         },
     },
-    50: {
+    52: {
         'concept': 'MongoDB is a document-based NoSQL database storing data in JSON-like BSON documents. In Python, pymongo enables database connections, collection management, and CRUD operations.',
         'syntax': 'import pymongo\nclient = pymongo.MongoClient("mongodb://localhost:27017/")\ndb = client["database_name"]\ncollection = db["collection_name"]\ncollection.insert_one({"key": "value"})\ncollection.find_one({"key": "value"})',
         'example': {
@@ -4724,7 +4767,7 @@ TOPIC_CORE = {
             'explanation': 'PyMongo uses Python dictionaries to construct BSON documents for MongoDB storage and query operations.',
         },
         'fill_blanks': {
-            'question': 'Complete the PyMongo connection and document insertion snippet:',
+            'question': '# Complete the PyMongo connection and document insertion snippet:\nimport _____\nclient = pymongo._____("mongodb://localhost:27017/")\ndb = client["mydb"]\ndb.users._____({"name": "Alice"})',
             'answers': ['pymongo', 'MongoClient', 'insert_one'],
             'options': ['pymongo', 'MongoClient', 'insert_one', 'connect', 'save', 'push'],
         },
@@ -4786,7 +4829,7 @@ TOPIC_CORE = {
             ],
         },
     },
-    51: {
+    53: {
         'concept': 'MySQL is a relational database management system (RDBMS) using structured tables and SQL. In Python, mysql-connector-python enables database connectivity, parameterized SQL queries, and transactional commits.',
         'syntax': 'import mysql.connector\nconn = mysql.connector.connect(host="localhost", user="root", password="pw", database="db")\ncursor = conn.cursor()\ncursor.execute("SELECT * FROM users WHERE id = %s", (user_id,))\nresults = cursor.fetchall()\nconn.commit()\nconn.close()',
         'example': {
@@ -4795,7 +4838,7 @@ TOPIC_CORE = {
             'explanation': 'Parameterizing SQL queries using tuple binding (%s placeholders) prevents SQL injection vulnerabilities when executing statements via MySQL cursor.',
         },
         'fill_blanks': {
-            'question': 'Complete the MySQL connection and cursor execution snippet:',
+            'question': '# Complete the MySQL connection and cursor execution snippet:\nimport _____\nconn = mysql.connector._____(host="localhost", user="root")\ncur = conn._____( )\ncur._____("SELECT * FROM users")',
             'answers': ['mysql.connector', 'connect', 'cursor', 'execute'],
             'options': ['mysql.connector', 'connect', 'cursor', 'execute', 'query', 'run'],
         },
@@ -4857,7 +4900,7 @@ TOPIC_CORE = {
             ],
         },
     },
-    52: {
+    54: {
         'concept': 'Python packages organize related modules into directory hierarchies containing an __init__.py file. Packages support sub-packages, module namespace isolation, and dot-notation imports across domain ecosystems like Web, AI/ML, GUI, Web Scraping, and Game Dev.',
         'syntax': '# Package Directory Structure\n# mypackage/__init__.py\n# mypackage/basic/__init__.py\n# mypackage/basic/add.py\n\nfrom mypackage.basic.add import add\nresult = add(10, 5)',
         'example': {
@@ -4866,7 +4909,7 @@ TOPIC_CORE = {
             'explanation': 'Packages allow organizing functions into logical sub-packages (basic, advanced) and importing them cleanly using dot notation.',
         },
         'fill_blanks': {
-            'question': 'Complete the package initialization and function import statement:',
+            'question': '# Complete the package initialization and function import statement:\n# 1. Package marker file: _____\nfrom _____._____ import _____',
             'answers': ['__init__.py', 'math_operations', 'basic', 'add'],
             'options': ['__init__.py', 'math_operations', 'basic', 'add', 'import_all', 'setup.py'],
         },
@@ -4927,7 +4970,7 @@ TOPIC_CORE = {
             ],
         },
     },
-    53: {
+    55: {
         'concept': 'A Python module is a single .py file containing functions, classes, and variables. Python supports 4 import forms, 4 module categories (built-in, user-defined, third-party, package), and resolves paths via sys.path.',
         'syntax': 'import module_name\nfrom module_name import function_name\nfrom module_name import *\nimport module_name as alias_name\nimport sys\nprint(sys.path)',
         'example': {
@@ -4936,7 +4979,7 @@ TOPIC_CORE = {
             'explanation': 'Modules group related statements into reusable files. Importing specific names or using aliases keeps code organized.',
         },
         'fill_blanks': {
-            'question': 'Complete the module import and search path inspection snippet:',
+            'question': '# Complete the module import and search path inspection snippet:\n_____ math\n_____ datetime import date _____ d\nprint(_____.append("/custom/path"))',
             'answers': ['import', 'from', 'as', 'sys.path'],
             'options': ['import', 'from', 'as', 'sys.path', 'load', 'include'],
         },
@@ -4997,7 +5040,7 @@ TOPIC_CORE = {
             ],
         },
     },
-    54: {
+    56: {
         'concept': 'Python provides rich built-in DSA modules (array, deque, queue.Queue, collections, heapq, bisect, NumPy basics) and specialized external libraries (treelib, intervaltree, pygtrie) for high-performance data structures.',
         'syntax': 'from collections import deque, Counter, defaultdict\nimport heapq\nimport bisect\n\nd = deque([1, 2, 3])\nd.appendleft(0)\n\nh = [5, 1, 3]\nheapq.heapify(h)\nsmallest = heapq.heappop(h)',
         'example': {
@@ -5006,7 +5049,7 @@ TOPIC_CORE = {
             'explanation': 'Built-in modules offer optimized data structures: deque for O(1) double-ended operations, heapq for min-heaps, and bisect for binary search on sorted lists.',
         },
         'fill_blanks': {
-            'question': 'Complete the DSA library operations for deque, min-heap, and bisect:',
+            'question': '# Complete the DSA library operations for deque, min-heap, and bisect:\nfrom collections import _____\nimport _____, _____\nimport _____',
             'answers': ['deque', 'heapq', 'Counter', 'bisect'],
             'options': ['deque', 'heapq', 'Counter', 'bisect', 'tree', 'trie'],
         },
@@ -5071,7 +5114,7 @@ TOPIC_CORE = {
             ],
         },
     },
-    55: {
+    57: {
         'concept': 'Python GUI libraries enable building visual desktop and web application interfaces. Key toolkits include Tkinter (built-in), Kivy (mobile & multitouch), Streamlit (data apps), PyQt/PySide (Qt enterprise), wxPython (native look), and PySimpleGUI (simplified wrapper).',
         'syntax': 'import tkinter as tk\nroot = tk.Tk()\nroot.title("SkillExa App")\nlabel = tk.Label(root, text="Welcome")\nlabel.pack()\nbutton = tk.Button(root, text="Click", command=root.destroy)\nbutton.pack()\n# root.mainloop()',
         'example': {
@@ -5080,7 +5123,7 @@ TOPIC_CORE = {
             'explanation': 'Selecting the right GUI library depends on target platforms (desktop vs web/mobile), visual customization needs, and application scale.',
         },
         'fill_blanks': {
-            'question': 'Complete the Tkinter GUI layout and widget initialization snippet:',
+            'question': '# Complete the Tkinter GUI layout and widget initialization snippet:\nimport _____ as tk\nroot = tk._____( )\nlbl = tk._____(root, text="Hello")\nlbl._____( )',
             'answers': ['tkinter', 'Tk', 'Label', 'pack'],
             'options': ['tkinter', 'Tk', 'Label', 'pack', 'render', 'draw'],
         },
@@ -5143,7 +5186,7 @@ TOPIC_CORE = {
             ],
         },
     },
-    56: {
+    58: {
         'concept': 'NumPy (Numerical Python) is the foundation of scientific computing in Python. It provides the N-dimensional ndarray object, contiguous memory layout for high performance, vectorization to eliminate explicit loops, broadcasting for shape alignment, and routines for linear algebra, indexing, and sorting.',
         'syntax': 'import numpy as np\na = np.array([1, 2, 3])\nzeros = np.zeros((3, 3))\nones = np.ones((2, 2))\nr = np.arange(0, 10, 2)\nfiltered = a[a > 1]\nsorted_arr = np.sort(a)',
         'example': {
@@ -5152,7 +5195,7 @@ TOPIC_CORE = {
             'explanation': 'NumPy ndarrays store homogeneous elements in contiguous memory, enabling vectorization without slow Python loops.',
         },
         'fill_blanks': {
-            'question': 'Complete the NumPy array creation and boolean filtering snippet:',
+            'question': '# Complete the NumPy array creation and boolean filtering snippet:\nimport _____ as np\narr = np._____([1, 2, 3])\nz = np._____((2, 2))\nr = np._____(10)',
             'answers': ['numpy', 'array', 'zeros', 'arange'],
             'options': ['numpy', 'array', 'zeros', 'arange', 'matrix', 'list'],
         },
@@ -5214,7 +5257,7 @@ TOPIC_CORE = {
             ],
         },
     },
-    57: {
+    59: {
         'concept': 'Pandas is an open-source data analysis and manipulation library. It provides two primary data structures: 1D Series (labeled array) and 2D DataFrame (tabular grid with row and column labels), supporting CSV reading, missing data handling, boolean filtering, and GroupBy aggregations.',
         'syntax': 'import pandas as pd\ns = pd.Series([10, 20, 30], index=["a", "b", "c"])\ndf = pd.read_csv("data.csv")\nfiltered = df[df["age"] > 25]\ndf_filled = df.fillna(0)\ngrouped = df.groupby("category")["sales"].sum()',
         'example': {
@@ -5223,7 +5266,7 @@ TOPIC_CORE = {
             'explanation': 'Pandas DataFrames provide tabular data structures with labeled columns and rows, allowing SQL/Excel-like operations in Python.',
         },
         'fill_blanks': {
-            'question': 'Complete the Pandas Series, DataFrame, and GroupBy aggregation snippet:',
+            'question': '# Complete the Pandas Series, DataFrame, and GroupBy aggregation snippet:\nimport _____ as pd\ns = pd._____([10, 20])\ndf = pd._____({"A": [1, 2]})\ndf._____("A").sum()',
             'answers': ['pandas', 'Series', 'DataFrame', 'groupby'],
             'options': ['pandas', 'Series', 'DataFrame', 'groupby', 'matrix', 'table'],
         },
@@ -5285,7 +5328,7 @@ TOPIC_CORE = {
             ],
         },
     },
-    58: {
+    60: {
         'concept': 'Matplotlib is the primary data visualization library in Python. Pyplot (matplotlib.pyplot) provides functions for plot anatomy (Figure, Axes, Axis, Title, Labels, Legend) and plot types including Line, Bar, Histogram, Scatter, Pie, Boxplot, and Heatmap (imshow).',
         'syntax': 'import matplotlib.pyplot as plt\nfig, ax = plt.subplots()\nax.plot([1, 2, 3], [4, 5, 6], marker="o")\nax.set_title("Plot Title")\nax.set_xlabel("X Label")\nax.set_ylabel("Y Label")\n# plt.show()',
         'example': {
@@ -5294,7 +5337,7 @@ TOPIC_CORE = {
             'explanation': 'Matplotlib Pyplot provides specialized plotting functions for discrete categories, continuous distributions, and 2D heatmaps.',
         },
         'fill_blanks': {
-            'question': 'Complete the Matplotlib Pyplot setup and line plot snippet:',
+            'question': '# Complete the Matplotlib Pyplot setup and line plot snippet:\nimport _____ as plt\nfig, ax = plt._____( )\nax._____([1, 2], [3, 4])\nplt._____( )',
             'answers': ['matplotlib.pyplot', 'subplots', 'plot', 'show'],
             'options': ['matplotlib.pyplot', 'subplots', 'plot', 'show', 'draw', 'render'],
         },
@@ -5359,7 +5402,7 @@ TOPIC_CORE = {
             ],
         },
     },
-    59: {
+    61: {
         'concept': 'Seaborn is a Python statistical visualization library built on Matplotlib and integrated with Pandas. It offers dataset-oriented APIs and high-level plot functions across 6 categories: Relational, Categorical, Distribution, Regression, Matrix, and Multi-plot grids.',
         'syntax': 'import seaborn as sns\nimport matplotlib.pyplot as plt\ntips = sns.load_dataset("tips")\nsns.scatterplot(x="total_bill", y="tip", hue="day", data=tips)\nsns.histplot(tips["total_bill"], kde=True)\nsns.heatmap(df.corr(), annot=True, cmap="coolwarm")\nsns.pairplot(df, hue="category")\n# plt.show()',
         'example': {
@@ -5368,7 +5411,7 @@ TOPIC_CORE = {
             'explanation': 'Seaborn simplifies statistical plotting by mapping DataFrame columns directly to visual attributes like hue, style, and size.',
         },
         'fill_blanks': {
-            'question': 'Complete the Seaborn scatterplot and KDE distribution plot snippet:',
+            'question': '# Complete the Seaborn scatterplot and KDE distribution plot snippet:\nimport _____ as sns\nsns._____(x=[1, 2], y=[3, 4])\nsns._____([1, 2, 3], kde=True)\nsns._____(df.corr())',
             'answers': ['seaborn', 'scatterplot', 'histplot', 'heatmap'],
             'options': ['seaborn', 'scatterplot', 'histplot', 'heatmap', 'render', 'draw'],
         },
@@ -5430,7 +5473,7 @@ TOPIC_CORE = {
             ],
         },
     },
-    60: {
+    62: {
         'concept': 'Statsmodels is a Python library for statistical modeling, hypothesis testing, and econometric data analysis. It provides classes for fitting regression models (OLS, Logistic Regression, GLS), diagnostic tables (ANOVA, Jarque-Bera, Durbin-Watson), and time series models (ARIMA, SARIMA).',
         'syntax': 'import statsmodels.api as sm\nimport statsmodels.formula.api as smf\nmodel = smf.ols("y ~ x1 + x2", data=df).fit()\nprint(model.summary())\nanova_table = sm.stats.anova_lm(model)',
         'example': {
@@ -5439,7 +5482,7 @@ TOPIC_CORE = {
             'explanation': 'Statsmodels formula syntax ("y ~ x") provides detailed econometric outputs including R-squared, coefficients, standard errors, and p-values.',
         },
         'fill_blanks': {
-            'question': 'Complete the Statsmodels OLS regression fitting and summary snippet:',
+            'question': '# Complete the Statsmodels OLS regression fitting and summary snippet:\nimport _____ as sm\nimport _____ as smf\nmodel = smf._____("y ~ x", data=df)\nres = model._____( )',
             'answers': ['statsmodels.api', 'statsmodels.formula.api', 'ols', 'fit'],
             'options': ['statsmodels.api', 'statsmodels.formula.api', 'ols', 'fit', 'predict', 'train'],
         },
@@ -5500,7 +5543,7 @@ TOPIC_CORE = {
             ],
         },
     },
-    61: {
+    63: {
         'concept': 'Scikit-learn is the standard Python machine learning library for classification, regression, clustering, and preprocessing. It features a consistent estimator interface (.fit(), .predict(), .transform()), dataset loaders, train-test splitting, and evaluation metrics.',
         'syntax': 'from sklearn.model_selection import train_test_split\nfrom sklearn.linear_model import LogisticRegression\nfrom sklearn.metrics import accuracy_score\nfrom sklearn.preprocessing import OneHotEncoder, LabelEncoder\n\nX_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.4, random_state=42)\nmodel = LogisticRegression(max_iter=200)\nmodel.fit(X_train, y_train)\npreds = model.predict(X_test)\nacc = accuracy_score(y_test, preds)',
         'example': {
@@ -5509,7 +5552,7 @@ TOPIC_CORE = {
             'explanation': 'Scikit-learn unifies ML model building: data splitting (train_test_split), fitting parameters (model.fit), predicting test labels (model.predict), and evaluating metrics.',
         },
         'fill_blanks': {
-            'question': 'Complete the Scikit-learn model fitting and evaluation snippet:',
+            'question': '# Complete the Scikit-learn model fitting and evaluation snippet:\nimport _____\nfrom sklearn.model_selection import _____\nfrom sklearn.preprocessing import _____\nfrom sklearn.metrics import _____',
             'answers': ['sklearn', 'train_test_split', 'LabelEncoder', 'accuracy_score'],
             'options': ['sklearn', 'train_test_split', 'LabelEncoder', 'accuracy_score', 'model_fit', 'tensor'],
         },
@@ -5574,7 +5617,7 @@ TOPIC_CORE = {
             ],
         },
     },
-    62: {
+    64: {
         'concept': 'XGBoost and LightGBM are high-performance gradient boosting frameworks. XGBoost uses level-wise tree growth, regularization penalties, and sparsity-aware splitting. LightGBM uses leaf-wise tree growth, histogram-based binning, GOSS sampling, and EFB feature bundling for speed.',
         'syntax': '# XGBoost Classifier\nfrom xgboost import XGBClassifier\nmodel_xgb = XGBClassifier(max_depth=4, learning_rate=0.1, n_estimators=100)\nmodel_xgb.fit(X_train, y_train)\n\n# LightGBM Classifier\nimport lightgbm as lgb\ntrain_data = lgb.Dataset(X_train, label=y_train)\nmodel_lgb = lgb.train(params, train_data, num_boost_round=100)',
         'example': {
@@ -5583,7 +5626,7 @@ TOPIC_CORE = {
             'explanation': 'Both frameworks build sequential boosting decision trees, with LightGBM optimizing speed via leaf-wise splitting and histogram binning.',
         },
         'fill_blanks': {
-            'question': 'Complete the XGBoost and LightGBM classifier setup snippet:',
+            'question': '# Complete the XGBoost and LightGBM classifier setup snippet:\nimport _____ as xgb\nmodel = xgb._____( )\nimport _____ as lgb\ntrain_data = lgb._____(X, label=y)',
             'answers': ['xgboost', 'XGBClassifier', 'lightgbm', 'Dataset'],
             'options': ['xgboost', 'XGBClassifier', 'lightgbm', 'Dataset', 'RandomForest', 'GridSearch'],
         },
@@ -5644,7 +5687,7 @@ TOPIC_CORE = {
             ],
         },
     },
-    63: {
+    65: {
         'concept': 'TensorFlow is Google Brain\'s open-source deep learning platform featuring computational graphs, eager execution, autograd, and Keras integration (tf.keras). Supports Sequential and Functional APIs, model compilation, training, and TFLite edge deployment.',
         'syntax': 'import tensorflow as tf\nfrom tensorflow.keras.models import Sequential\nfrom tensorflow.keras.layers import Dense\n\nmodel = Sequential([\n    Dense(128, activation="relu", input_shape=(784,)),\n    Dense(10, activation="softmax")\n])\nmodel.compile(optimizer="adam", loss="sparse_categorical_crossentropy", metrics=["accuracy"])\nmodel.fit(X_train, y_train, epochs=5)',
         'example': {
@@ -5653,7 +5696,7 @@ TOPIC_CORE = {
             'explanation': 'Keras provides a high-level API inside TensorFlow, stacking Dense layers with ReLU and Softmax activations for deep learning.',
         },
         'fill_blanks': {
-            'question': 'Complete the TensorFlow Keras Sequential model construction snippet:',
+            'question': '# Complete the TensorFlow Keras Sequential model construction snippet:\nimport _____ as tf\nmodel = tf.keras.models._____( )\nmodel.add(tf.keras.layers._____(10))\nmodel._____(optimizer="adam", loss="mse")',
             'answers': ['tensorflow', 'Sequential', 'Dense', 'compile'],
             'options': ['tensorflow', 'Sequential', 'Dense', 'compile', 'fit_transform', 'tensor'],
         },
@@ -5717,7 +5760,7 @@ TOPIC_CORE = {
             ],
         },
     },
-    64: {
+    66: {
         'concept': 'PyTorch is Meta\'s Pythonic deep learning library featuring dynamic computation graphs (define-by-run), CUDA GPU acceleration, autograd automatic differentiation, custom nn.Module classes, loss functions (nn.BCELoss), optimizers (optim.Adam), and custom training loops.',
         'syntax': 'import torch\nimport torch.nn as nn\nimport torch.optim as optim\n\nclass Net(nn.Module):\n    def __init__(self):\n        super().__init__()\n        self.fc1 = nn.Linear(10, 16)\n        self.fc2 = nn.Linear(16, 1)\n    def forward(self, x):\n        x = torch.relu(self.fc1(x))\n        return torch.sigmoid(self.fc2(x))\n\nmodel = Net()\ncriterion = nn.BCELoss()\noptimizer = optim.Adam(model.parameters(), lr=0.01)\n\n# Training Loop\noptimizer.zero_grad()\noutputs = model(inputs)\nloss = criterion(outputs, targets)\nloss.backward()\noptimizer.step()',
         'example': {
@@ -5726,7 +5769,7 @@ TOPIC_CORE = {
             'explanation': 'PyTorch uses dynamic computational graphs where autograd automatically calculates gradients during backpropagation via loss.backward().',
         },
         'fill_blanks': {
-            'question': 'Complete the PyTorch neural network module and backpropagation loop snippet:',
+            'question': '# Complete the PyTorch neural network module and backpropagation loop snippet:\nimport _____\nclass Net(torch._____):\n    def __init__(self):\n        super().__init__()\n        self.fc = torch.nn._____(10, 2)\nloss._____( )',
             'answers': ['torch', 'nn.Module', 'Linear', 'backward'],
             'options': ['torch', 'nn.Module', 'Linear', 'backward', 'fit', 'tensor_flow'],
         },
@@ -5794,7 +5837,7 @@ TOPIC_CORE = {
             ],
         },
     },
-    65: {
+    67: {
         'concept': 'Complete Tutorial on Data Science brings together the entire Python Data Science pipeline: Data Loading (CSV, Excel, JSON, SQL, MongoDB, Web Scraping), Data Preprocessing (missing values, scaling, Label/One-Hot encoding, outliers), Data Analysis & EDA (hypothesis tests, correlation), Visualization (Matplotlib, Seaborn, Plotly), and Machine Learning modeling.',
         'syntax': '# Comprehensive Data Science Pipeline Syntax\nimport pandas as pd, numpy as np, matplotlib.pyplot as plt, seaborn as sns\nfrom sklearn.model_selection import train_test_split\nfrom sklearn.preprocessing import StandardScaler\nfrom sklearn.ensemble import RandomForestClassifier\nfrom sklearn.metrics import classification_report, accuracy_score\n\n# 1. Load data\ndf = pd.read_csv("dataset.csv")\n# 2. Preprocess & Clean\ndf = df.fillna(df.median(numeric_only=True))\n# 3. Split & Train\nX_tr, X_te, y_tr, y_te = train_test_split(X, y, test_size=0.25)\nclf = RandomForestClassifier().fit(X_tr, y_tr)\n# 4. Evaluate\nprint(classification_report(y_te, clf.predict(X_te)))',
         'example': {
@@ -5803,7 +5846,7 @@ TOPIC_CORE = {
             'explanation': 'The complete Data Science workflow combines data ingestion, cleaning, exploratory visualization, machine learning model fitting, and evaluation metrics.',
         },
         'fill_blanks': {
-            'question': 'Complete the full Data Science pipeline loading, cleaning, splitting, and reporting snippet:',
+            'question': '# Complete the full Data Science pipeline loading, cleaning, splitting, and reporting snippet:\ndf = pd._____("data.csv")\ndf = df._____(0)\nX_tr, X_te, y_tr, y_te = _____(X, y)\nprint(_____(y_te, preds))',
             'answers': ['read_csv', 'fillna', 'train_test_split', 'classification_report'],
             'options': ['read_csv', 'fillna', 'train_test_split', 'classification_report', 'parse', 'plot'],
         },

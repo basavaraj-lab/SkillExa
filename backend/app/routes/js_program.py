@@ -25,6 +25,10 @@ templates = Jinja2Templates(directory="app/templates")
 
 class JSCodeExecutionRequest(BaseModel):
     code: str
+    inputs: str | None = None
+
+
+DEFAULT_SIMULATED_STDIN = "SkillExa\n100 20.5\nHello\n42\nTest\n"
 
 
 class JSTestSubmissionRequest(BaseModel):
@@ -73,7 +77,7 @@ def _simulate_js_output(code: str) -> dict[str, object]:
     }
 
 
-def _run_js_code(code: str) -> dict[str, object]:
+def _run_js_code(code: str, inputs: str | None = None) -> dict[str, object]:
     """Execute JavaScript code via Node.js sandbox or fallback simulation."""
     import re
     if re.search(r'_+', code):
@@ -84,10 +88,12 @@ def _run_js_code(code: str) -> dict[str, object]:
         }
 
     node_bin = _get_js_runner()
+    stdin_data = inputs if (inputs is not None and inputs.strip()) else DEFAULT_SIMULATED_STDIN
 
     try:
         run_proc = subprocess.run(
             [node_bin, "-e", code],
+            input=stdin_data,
             capture_output=True,
             text=True,
             timeout=5,
@@ -208,7 +214,7 @@ def submit_js_test_api(
 @router.post("/execute")
 def execute_js_code(payload: JSCodeExecutionRequest) -> dict[str, object]:
     """Run JavaScript code in native Node.js or simulation sandbox."""
-    return _run_js_code(payload.code)
+    return _run_js_code(payload.code, payload.inputs)
 
 
 # --- FRONTEND PAGES FOR JAVASCRIPT TRACK ---

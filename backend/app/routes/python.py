@@ -1,6 +1,7 @@
 """FastAPI router and native execution sandbox for Python Programming track."""
 from __future__ import annotations
 
+import re
 import sys
 import subprocess
 
@@ -24,17 +25,24 @@ templates = Jinja2Templates(directory="app/templates")
 
 class PythonCodeExecutionRequest(BaseModel):
     code: str
+    inputs: str | None = None
 
 
 class PythonTestSubmissionRequest(BaseModel):
     user_answers: dict[str, str] | list[str] | None = None
+    submitted_answers: dict[str, str] | list[str] | None = None
 
 
-def _run_python_code(code: str) -> dict[str, object]:
-    """Execute Python code in a short-lived isolated subprocess."""
+DEFAULT_SIMULATED_STDIN = "SkillExa\n100 20.5\nHello\n42\nTest\n"
+
+
+def _run_python_code(code: str, inputs: str | None = None) -> dict[str, object]:
+    """Execute Python code in a short-lived isolated subprocess with standard input support."""
+    stdin_data = inputs if (inputs is not None and inputs.strip()) else DEFAULT_SIMULATED_STDIN
     try:
         completed = subprocess.run(
             [sys.executable, "-c", code],
+            input=stdin_data,
             capture_output=True,
             text=True,
             timeout=5,
@@ -155,8 +163,9 @@ def submit_python_test_api(
     db: Session = Depends(get_db),
 ):
     prog = python_service.get_or_create_progress(db, student_id, topic_id)
+    user_ans = payload.user_answers if payload.user_answers is not None else payload.submitted_answers
     updated, score, next_topic_info = python_service.submit_skill_exa_test(
-        db, prog, payload.user_answers
+        db, prog, user_ans
     )
     passed = score >= 50.0
     return {
@@ -172,7 +181,7 @@ def submit_python_test_api(
 @router.post("/execute")
 def execute_python_code(payload: PythonCodeExecutionRequest) -> dict[str, object]:
     """Execute Python code in isolated subprocess sandbox."""
-    return _run_python_code(payload.code)
+    return _run_python_code(payload.code, payload.inputs)
 
 
 # --- FRONTEND PAGES & SECTION ROUTING FOR PYTHON TRACK ---
@@ -228,8 +237,20 @@ def _render_python_topic_section(
             "practice": topic.get("compiler", {}),
         }
     elif section == "fill-blanks":
+        fb_data = dict(topic["fill_blanks"])
+        raw_q = fb_data.get("question", "")
+        answers = fb_data.get("answers") or ([fb_data.get("answer")] if fb_data.get("answer") else [])
+        normalized_q = re.sub(r'_____|____|___|\[\?\]|\{blank\}', '_____', raw_q)
+        num_placeholders = normalized_q.count('_____')
+        if len(answers) > num_placeholders:
+            missing_count = len(answers) - num_placeholders
+            extra_lines = ["\n# Fill in missing answer field:"]
+            for i in range(num_placeholders + 1, len(answers) + 1):
+                extra_lines.append(f"Blank {i}: _____")
+            normalized_q += "\n" + "\n".join(extra_lines)
+        fb_data["question"] = normalized_q
         section_data = {
-            "fill_blanks": topic["fill_blanks"],
+            "fill_blanks": fb_data,
         }
     elif section == "test":
         section_data = {

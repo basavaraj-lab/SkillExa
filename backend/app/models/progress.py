@@ -5,7 +5,7 @@ from app.database.database import Base
 
 
 class StudentProgress(Base):
-    __tablename__ = "student_progress"
+    __tablename__ = "python_student_progress"
 
     id = Column(Integer, primary_key=True, index=True)
     student_id = Column(String, index=True, nullable=False, default="1")
@@ -32,7 +32,7 @@ class StudentProgress(Base):
     updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
 
     __table_args__ = (
-        UniqueConstraint("student_id", "topic_id", name="uq_student_topic"),
+        UniqueConstraint("student_id", "topic_id", name="uq_python_student_topic"),
     )
 
     def to_dict(self):

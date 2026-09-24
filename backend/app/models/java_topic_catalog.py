@@ -193,9 +193,29 @@ def _build_java_topic(meta: dict[str, str | int]) -> dict[str, object]:
         },
         "skill_exa_test": [
             {
-                "question": f"Which standard method is the entry point for executing a Java application for {title}?",
-                "options": ["public static void main(String[] args)", "public void main()", "public static int main()", "void start()"],
+                "question": f"What is the primary role of '{title}' in Java enterprise programming?",
+                "options": [f"A core object-oriented concept in {cat} for {title}", "An unused CSS styling directive", "A hardware driver protocol only used in firmware", "A database table locking rule"],
+                "answer": f"A core object-oriented concept in {cat} for {title}",
+            },
+            {
+                "question": f"Which standard entry method or concept is fundamental to '{title}' in Java?",
+                "options": ["public static void main(String[] args)", "Direct raw disk sector formatting", "Unbounded buffer overflow execution", "Operating system power cycle reset"],
                 "answer": "public static void main(String[] args)",
+            },
+            {
+                "question": f"What is the recommended best practice when working with '{title}' in Java?",
+                "options": ["Write structured, object-oriented code following Java clean code conventions", "Hardcode magic numbers without comments or error checks", "Ignore compiler warnings and memory safety guidelines", "Bypass package encapsulation and use global state everywhere"],
+                "answer": "Write structured, object-oriented code following Java clean code conventions",
+            },
+            {
+                "question": f"What potential exception or error can happen if '{title}' is implemented incorrectly?",
+                "options": ["NullPointerException or runtime execution error in Java", "Physical GPU fan speed reduction", "Static HTML layout shift", "Automatic database deletion"],
+                "answer": "NullPointerException or runtime execution error in Java",
+            },
+            {
+                "question": f"How does mastering '{title}' benefit Java application development?",
+                "options": ["Improves program encapsulation, JVM memory safety, and readability", "Slows down program compilation by 10x", "Prevents the program from running on JVM", "Removes the need for class declarations"],
+                "answer": "Improves program encapsulation, JVM memory safety, and readability",
             }
         ],
     }
@@ -271,3 +291,6 @@ JAVA_TOPICS[3] = {
         }
     ],
 }
+
+
+JAVA_TOPIC_CORE = JAVA_TOPICS

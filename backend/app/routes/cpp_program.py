@@ -26,6 +26,10 @@ templates = Jinja2Templates(directory="app/templates")
 
 class CPPCodeExecutionRequest(BaseModel):
     code: str
+    inputs: str | None = None
+
+
+DEFAULT_SIMULATED_STDIN = "SkillExa\n100 20.5\nHello\n42\nTest\n"
 
 
 class CPPTestSubmissionRequest(BaseModel):
@@ -37,7 +41,7 @@ def _get_cpp_compiler() -> str:
     return shutil.which("g++") or shutil.which("clang++") or "g++"
 
 
-def _run_cpp_code(code: str) -> dict[str, object]:
+def _run_cpp_code(code: str, inputs: str | None = None) -> dict[str, object]:
     """Compile and execute C++ source code in a short-lived isolated subprocess."""
     compiler = _get_cpp_compiler()
 
@@ -78,9 +82,11 @@ def _run_cpp_code(code: str) -> dict[str, object]:
             }
 
         # 2. Execute Compiled Binary
+        stdin_data = inputs if (inputs is not None and inputs.strip()) else DEFAULT_SIMULATED_STDIN
         try:
             run_proc = subprocess.run(
                 [binary_path],
+                input=stdin_data,
                 capture_output=True,
                 text=True,
                 timeout=5,
@@ -203,7 +209,7 @@ def submit_cpp_test_api(
 @router.post("/execute")
 def execute_cpp_code(payload: CPPCodeExecutionRequest) -> dict[str, object]:
     """Compile and run C++ code in native subprocess sandbox."""
-    return _run_cpp_code(payload.code)
+    return _run_cpp_code(payload.code, payload.inputs)
 
 
 # --- FRONTEND PAGES FOR C++ TRACK ---

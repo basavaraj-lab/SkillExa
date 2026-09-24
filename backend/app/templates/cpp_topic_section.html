@@ -258,10 +258,10 @@
                 
                 {% if section_data.fill_blanks and section_data.fill_blanks.options %}
                 <div style="margin-bottom: 1.25rem;">
-                    <div style="font-size: 0.85rem; font-weight: 700; color: #c084fc; margin-bottom: 0.6rem;">AVAILABLE OPTION PILLS</div>
+                    <div style="font-size: 0.85rem; font-weight: 700; color: #c084fc; margin-bottom: 0.6rem;">CLICK TO INSERT OPTION PILL INTO BLANK</div>
                     <div style="display: flex; gap: 0.6rem; flex-wrap: wrap;">
                         {% for opt in section_data.fill_blanks.options %}
-                        <span class="option-pill-btn" style="cursor: default;">{{ opt }}</span>
+                        <button type="button" class="option-pill-btn fill-option-pill" data-val="{{ opt }}" style="cursor: pointer;">{{ opt }}</button>
                         {% endfor %}
                     </div>
                 </div>

@@ -137,9 +137,29 @@ def _build_cpp_topic(meta: dict[str, str | int]) -> dict[str, object]:
         },
         "skill_exa_test": [
             {
-                "question": f"Which standard stream object is used for outputting text in C++ for {title}?",
-                "options": ["std::cout", "std::cin", "std::cerr", "printf"],
-                "answer": "std::cout",
+                "question": f"What is the primary role of '{title}' in C++ programming?",
+                "options": [f"A core programming concept in {cat} for {title}", "An unused CSS styling directive", "A hardware driver protocol only used in firmware", "A database table locking rule"],
+                "answer": f"A core programming concept in {cat} for {title}",
+            },
+            {
+                "question": f"Which standard header file or stream object is fundamental to '{title}' in C++?",
+                "options": ["std::cout / <iostream>", "Direct raw disk sector formatting", "Unbounded buffer overflow execution", "Operating system power cycle reset"],
+                "answer": "std::cout / <iostream>",
+            },
+            {
+                "question": f"What is the recommended best practice when working with '{title}' in C++?",
+                "options": ["Write structured, maintainable code following C++ standards", "Hardcode magic numbers without comments or error checks", "Ignore compiler warnings and memory safety guidelines", "Bypass function scope and use global state everywhere"],
+                "answer": "Write structured, maintainable code following C++ standards",
+            },
+            {
+                "question": f"What potential error or bug can happen if '{title}' is implemented incorrectly?",
+                "options": ["Syntax or runtime execution errors in C++", "Physical GPU fan speed reduction", "Static HTML layout shift", "Automatic database deletion"],
+                "answer": "Syntax or runtime execution errors in C++",
+            },
+            {
+                "question": f"How does mastering '{title}' benefit software development in C++?",
+                "options": ["Improves program modularity, execution safety, and readability", "Slows down program compilation by 10x", "Prevents the program from running on modern operating systems", "Removes the need for variable type definitions"],
+                "answer": "Improves program modularity, execution safety, and readability",
             }
         ],
     }
@@ -7056,3 +7076,6 @@ CPP_TOPICS[73] = {
 }
 
 
+
+
+CPP_TOPIC_CORE = CPP_TOPICS
