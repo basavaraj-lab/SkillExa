@@ -16,16 +16,21 @@ import {
 import { useAuth, UserRole } from "../components/auth-context";
 import { Palette, Radii, Shadows } from "../constants/theme";
 
+import { signInWithEmailAndPassword, createUserWithEmailAndPassword } from 'firebase/auth';
+import { auth } from '../services/firebase';
+
 export default function LoginScreen() {
   const [role, setRole] = useState<UserRole>("STUDENT");
   const [showPassword, setShowPassword] = useState(false);
   const [email, setEmail] = useState("student@skillexa.edu");
   const [password, setPassword] = useState("scholar123");
   const [isLoading, setIsLoading] = useState(false);
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const { login } = useAuth();
 
   const handleRoleChange = (newRole: UserRole) => {
     setRole(newRole);
+    setErrorMessage(null);
     if (newRole === "FACULTY") {
       setEmail("faculty@skillexa.edu");
       setPassword("prof123");
@@ -35,14 +40,33 @@ export default function LoginScreen() {
     }
   };
 
-  const handleLogin = () => {
+  const handleLogin = async () => {
     setIsLoading(true);
-    setTimeout(() => {
-      setIsLoading(false);
+    setErrorMessage(null);
+
+    let firebaseUid = null;
+    try {
+      // 1. Authenticate with Firebase Auth
+      try {
+        const userCred = await signInWithEmailAndPassword(auth, email, password);
+        firebaseUid = userCred.user.uid;
+      } catch (err: any) {
+        // If user not found, auto-create Firebase user for seamless demo login
+        if (err.code === 'auth/user-not-found' || err.code === 'auth/invalid-credential') {
+          try {
+            const newCred = await createUserWithEmailAndPassword(auth, email, password);
+            firebaseUid = newCred.user.uid;
+          } catch (createErr) {
+            // fallback if account creation fails
+          }
+        }
+      }
+
+      // 2. Log in through SkillExa Auth Context
       if (role === "FACULTY") {
         login({
-          id: "fac-101",
-          name: "Dr. Kusumadhara S",
+          id: firebaseUid || "fac-101",
+          name: email.split("@")[0] || "Dr. Kusumadhara S",
           email,
           password,
           role: "FACULTY",
@@ -55,7 +79,7 @@ export default function LoginScreen() {
         });
       } else {
         login({
-          id: "std-101",
+          id: firebaseUid || "std-101",
           name: email.split("@")[0] || "Ganesh Sharan",
           email,
           password,
@@ -69,12 +93,16 @@ export default function LoginScreen() {
         });
       }
 
+      setIsLoading(false);
       if (role === "FACULTY") {
         router.replace("/faculty-dashboard" as any);
       } else {
         router.replace("/home" as any);
       }
-    }, 300);
+    } catch (e: any) {
+      setIsLoading(false);
+      setErrorMessage(e.message || "Firebase Login Failed. Check credentials.");
+    }
   };
 
   return (

@@ -17,6 +17,8 @@ import { useAuth } from "../components/auth-context";
 import { GlassCard } from "../components/ui/GlassCard";
 import { GradientButton } from "../components/ui/GradientButton";
 import { Gradients, Palette } from "../constants/theme";
+import { createUserWithEmailAndPassword } from 'firebase/auth';
+import { auth } from '../services/firebase';
 
 export default function RegisterLecturer() {
   const [name, setName] = useState("");
@@ -32,24 +34,33 @@ export default function RegisterLecturer() {
   const [isLoading, setIsLoading] = useState(false);
   const { login } = useAuth();
 
-  const handleRegister = () => {
+  const handleRegister = async () => {
     setIsLoading(true);
-    setTimeout(() => {
-      setIsLoading(false);
-      login({
-        name: name || "Prof. " + (name || "Educator"),
-        email,
-        password,
-        role: "FACULTY",
-        collegeId: "clg-kvg",
-        collegeName: collegeName || "KVG College of Engineering",
-        department: department || "ECE",
-        facultyDesignation: qualification ? `Faculty (${qualification})` : "Associate Professor",
-        subjectsTaught: skills ? skills.split(",").map((s) => s.trim()) : ["Embedded Systems", "Microcontrollers"],
-        verificationStatus: "APPROVED",
-      });
-      router.replace("/faculty-dashboard" as any);
-    }, 400);
+    let firebaseUid = null;
+    try {
+      if (email && password) {
+        const userCred = await createUserWithEmailAndPassword(auth, email, password);
+        firebaseUid = userCred.user.uid;
+      }
+    } catch (e: any) {
+      console.log('Firebase lecturer registration note:', e.message);
+    }
+
+    setIsLoading(false);
+    login({
+      id: firebaseUid || `fac-${Date.now()}`,
+      name: name || "Prof. " + (name || "Educator"),
+      email,
+      password,
+      role: "FACULTY",
+      collegeId: "clg-kvg",
+      collegeName: collegeName || "KVG College of Engineering",
+      department: department || "ECE",
+      facultyDesignation: qualification ? `Faculty (${qualification})` : "Associate Professor",
+      subjectsTaught: skills ? skills.split(",").map((s) => s.trim()) : ["Embedded Systems", "Microcontrollers"],
+      verificationStatus: "APPROVED",
+    });
+    router.replace("/faculty-dashboard" as any);
   };
 
   return (

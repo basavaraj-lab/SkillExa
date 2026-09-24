@@ -17,6 +17,8 @@ import { useAuth } from "../components/auth-context";
 import { GlassCard } from "../components/ui/GlassCard";
 import { GradientButton } from "../components/ui/GradientButton";
 import { Gradients, Palette } from "../constants/theme";
+import { createUserWithEmailAndPassword } from 'firebase/auth';
+import { auth } from '../services/firebase';
 
 export default function RegisterUser() {
   const [name, setName] = useState("");
@@ -31,24 +33,33 @@ export default function RegisterUser() {
   const [isLoading, setIsLoading] = useState(false);
   const { login } = useAuth();
 
-  const handleRegister = () => {
+  const handleRegister = async () => {
     setIsLoading(true);
-    setTimeout(() => {
-      setIsLoading(false);
-      login({
-        name: name || "Scholar",
-        email,
-        password,
-        role: "STUDENT",
-        collegeId: "clg-kvg",
-        collegeName: collegeName || "KVG College of Engineering",
-        department: branch || "ECE",
-        academicYear: year || "3rd Year",
-        section: section || "A",
-        verificationStatus: "APPROVED",
-      });
-      router.replace("/pathselection" as any);
-    }, 400);
+    let firebaseUid = null;
+    try {
+      if (email && password) {
+        const userCred = await createUserWithEmailAndPassword(auth, email, password);
+        firebaseUid = userCred.user.uid;
+      }
+    } catch (e: any) {
+      console.log('Firebase registration note:', e.message);
+    }
+
+    setIsLoading(false);
+    login({
+      id: firebaseUid || `std-${Date.now()}`,
+      name: name || "Scholar",
+      email,
+      password,
+      role: "STUDENT",
+      collegeId: "clg-kvg",
+      collegeName: collegeName || "KVG College of Engineering",
+      department: branch || "ECE",
+      academicYear: year || "3rd Year",
+      section: section || "A",
+      verificationStatus: "APPROVED",
+    });
+    router.replace("/pathselection" as any);
   };
 
   return (

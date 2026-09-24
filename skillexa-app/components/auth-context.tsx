@@ -1,3 +1,5 @@
+import { onAuthStateChanged, signOut } from 'firebase/auth';
+import { auth } from '../services/firebase';
 import { Feather } from "@expo/vector-icons";
 import { LinearGradient } from "expo-linear-gradient";
 import { router, usePathname } from "expo-router";
@@ -83,12 +85,30 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [isAuthenticated, setIsAuthenticated] = useState(true);
   const [profile, setProfile] = useState<UserProfile>(defaultStudentProfile);
 
+  React.useEffect(() => {
+    const unsubscribe = onAuthStateChanged(auth, (firebaseUser) => {
+      if (firebaseUser) {
+        setIsAuthenticated(true);
+        if (firebaseUser.email) {
+          setProfile((prev) => ({
+            ...prev,
+            id: firebaseUser.uid,
+            email: firebaseUser.email || prev.email,
+            name: firebaseUser.displayName || (firebaseUser.email ? firebaseUser.email.split('@')[0] : '') || prev.name,
+          }));
+        }
+      }
+    });
+    return () => unsubscribe();
+  }, []);
+
   const login = React.useCallback((nextProfile: UserProfile) => {
     setProfile(nextProfile);
     setIsAuthenticated(true);
   }, []);
 
   const logout = React.useCallback(() => {
+    signOut(auth).catch(() => {});
     setProfile(defaultStudentProfile);
     setIsAuthenticated(false);
   }, []);
