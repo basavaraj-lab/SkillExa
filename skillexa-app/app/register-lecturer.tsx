@@ -387,6 +387,26 @@ export default function RegisterLecturer() {
               </View>
             ) : null}
 
+            {/* Official SkillExa OTP Email Verification Box */}
+            {otpSent && generatedOtp ? (
+              <View style={[styles.emailNotificationBox, { borderColor: "rgba(139, 92, 246, 0.35)", backgroundColor: "rgba(139, 92, 246, 0.08)" }]}>
+                <View style={styles.emailHeaderRow}>
+                  <Feather name="mail" size={16} color={Palette.purpleLight} />
+                  <Text style={[styles.emailSenderText, { color: Palette.purpleLight }]}>From: SkillExa Platform (noreply@skillexa.com)</Text>
+                </View>
+                <Text style={styles.emailSubjectText}>
+                  To: {email || mobile} | Subject: Faculty Account Verification OTP Code
+                </Text>
+                <View style={[styles.otpHighlightBox, { borderColor: Palette.purpleLight }]}>
+                  <Text style={[styles.otpHighlightLabel, { color: Palette.purpleLight }]}>YOUR 6-DIGIT VERIFICATION CODE</Text>
+                  <Text style={styles.otpCodeBigText}>{generatedOtp}</Text>
+                </View>
+                <Text style={styles.emailInstructions}>
+                  Enter this 6-digit verification code in the input below to complete faculty registration.
+                </Text>
+              </View>
+            ) : null}
+
             {/* OTP Input Field if OTP is sent */}
             {otpSent ? (
               <View style={[styles.inputWrapper, styles.otpInputHighlight]}>
@@ -394,14 +414,14 @@ export default function RegisterLecturer() {
                 <TextInput
                   placeholder="Enter 6-digit OTP Code"
                   placeholderTextColor={Palette.textMutedDark}
-                  style={[styles.input, { letterSpacing: 3, fontWeight: "800", fontSize: 16 }]}
+                  style={[styles.input, { letterSpacing: 4, fontWeight: "900", fontSize: 18 }]}
                   keyboardType="number-pad"
                   maxLength={6}
                   value={userEnteredOtp}
                   onChangeText={setUserEnteredOtp}
                 />
                 <TouchableOpacity onPress={handleSendOtp} style={styles.resendBtn}>
-                  <Text style={styles.resendBtnText}>Resend</Text>
+                  <Text style={styles.resendBtnText}>Resend OTP</Text>
                 </TouchableOpacity>
               </View>
             ) : null}
@@ -587,6 +607,58 @@ const styles = StyleSheet.create({
   notificationTextError: {
     color: "#FCA5A5",
     fontWeight: "600",
+  },
+  emailNotificationBox: {
+    backgroundColor: "rgba(139, 92, 246, 0.08)",
+    borderWidth: 1,
+    borderColor: "rgba(139, 92, 246, 0.35)",
+    borderRadius: 16,
+    padding: 16,
+    marginBottom: 16,
+  },
+  emailHeaderRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 8,
+    marginBottom: 4,
+  },
+  emailSenderText: {
+    fontSize: 12.5,
+    fontWeight: "700",
+    color: Palette.purpleLight,
+  },
+  emailSubjectText: {
+    fontSize: 11.5,
+    color: Palette.textSecondaryDark,
+    marginBottom: 12,
+  },
+  otpHighlightBox: {
+    backgroundColor: "#0F172A",
+    borderWidth: 1.5,
+    borderColor: Palette.purpleLight,
+    borderRadius: 12,
+    paddingVertical: 14,
+    alignItems: "center",
+    marginBottom: 10,
+  },
+  otpHighlightLabel: {
+    fontSize: 10,
+    fontWeight: "800",
+    color: Palette.purpleLight,
+    letterSpacing: 1.2,
+    marginBottom: 4,
+  },
+  otpCodeBigText: {
+    fontSize: 28,
+    fontWeight: "900",
+    color: "#FFFFFF",
+    letterSpacing: 6,
+  },
+  emailInstructions: {
+    fontSize: 12,
+    color: Palette.textSecondaryDark,
+    textAlign: "center",
+    lineHeight: 16,
   },
   otpInputHighlight: {
     borderColor: Palette.purpleLight,
