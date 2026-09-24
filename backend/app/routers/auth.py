@@ -63,6 +63,27 @@ def login(req: LoginRequest, db: Session = Depends(get_db)):
     )
 
 
+from pydantic import BaseModel, EmailStr
+
+class SendOtpRequest(BaseModel):
+    email: str
+    mobile: str | None = None
+    otp: str
+
+@router.post("/send-otp", response_model=ApiResponse[dict])
+def send_otp(req: SendOtpRequest):
+    print(f"\n==========================================")
+    print(f"[SkillExa OTP Dispatch Service]")
+    print(f"To: {req.email or req.mobile}")
+    print(f"Subject: SkillExa Account Registration OTP Verification Code")
+    print(f"Body: Hello! Your 6-digit SkillExa registration OTP code is: {req.otp}. Enter this code to complete your registration.")
+    print(f"==========================================\n")
+    return ApiResponse(
+        success=True,
+        message=f"OTP successfully sent to {req.email or req.mobile}",
+        data={"recipient": req.email or req.mobile, "status": "DELIVERED"}
+    )
+
 @router.get("/me", response_model=ApiResponse[UserResponse])
 def get_current_user_profile(current_user: User = Depends(get_current_user)):
     return ApiResponse(

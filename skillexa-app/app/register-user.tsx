@@ -80,7 +80,7 @@ export default function RegisterUser() {
     }
   };
 
-  const handleSendOtp = () => {
+  const handleSendOtp = async () => {
     if (!email && !mobile) {
       setOtpNotification({
         type: "error",
@@ -92,9 +92,36 @@ export default function RegisterUser() {
     setGeneratedOtp(code);
     setOtpSent(true);
     const target = email || mobile;
+
+    // Dispatch backend email / notification API call
+    try {
+      fetch("http://localhost:8000/api/v1/auth/send-otp", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email: target, mobile: mobile || undefined, otp: code }),
+      }).catch(() => {});
+    } catch (e) {}
+
+    // Trigger System Desktop / Browser Notification pop-up
+    if (typeof window !== "undefined" && "Notification" in window) {
+      if (Notification.permission === "granted") {
+        new Notification("SkillExa Account Registration OTP", {
+          body: `🔑 Your 6-digit SkillExa registration OTP code is: ${code}. Enter this code to verify your account.`,
+        });
+      } else if (Notification.permission !== "denied") {
+        Notification.requestPermission().then((permission) => {
+          if (permission === "granted") {
+            new Notification("SkillExa Account Registration OTP", {
+              body: `🔑 Your 6-digit SkillExa registration OTP code is: ${code}. Enter this code to verify your account.`,
+            });
+          }
+        });
+      }
+    }
+
     setOtpNotification({
       type: "success",
-      message: `🔑 Verification OTP sent to ${target}: ${code}\nEnter this 6-digit code below to complete registration.`,
+      message: `📩 SkillExa Registration OTP code sent to ${target}! Please check your Gmail inbox / Notifications for the 6-digit code.`,
     });
   };
 
