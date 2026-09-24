@@ -16,13 +16,15 @@ import {
 import { useAuth, UserRole } from "../components/auth-context";
 import { Palette, Radii, Shadows } from "../constants/theme";
 
-import { signInWithEmailAndPassword, createUserWithEmailAndPassword } from 'firebase/auth';
-import { auth } from '../services/firebase';
+import { signInWithEmailAndPassword, createUserWithEmailAndPassword, signInWithPopup } from 'firebase/auth';
+import { auth, googleProvider } from '../services/firebase';
 
 export default function LoginScreen() {
   const [role, setRole] = useState<UserRole>("STUDENT");
+  const [authMethod, setAuthMethod] = useState<"EMAIL" | "PHONE">("EMAIL");
   const [showPassword, setShowPassword] = useState(false);
   const [email, setEmail] = useState("student@skillexa.edu");
+  const [phone, setPhone] = useState("+91 9876543210");
   const [password, setPassword] = useState("scholar123");
   const [isLoading, setIsLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
@@ -40,21 +42,55 @@ export default function LoginScreen() {
     }
   };
 
+  const handleGoogleSignIn = async () => {
+    setIsLoading(true);
+    setErrorMessage(null);
+    try {
+      const result = await signInWithPopup(auth, googleProvider);
+      const gUser = result.user;
+
+      login({
+        id: gUser.uid,
+        name: gUser.displayName || gUser.email?.split("@")[0] || "Scholar",
+        email: gUser.email || "user@google.com",
+        password: "",
+        role: role,
+        collegeId: "clg-kvg",
+        collegeName: "KVG College of Engineering",
+        department: "ECE",
+        academicYear: "3rd Year",
+        section: "A",
+        verificationStatus: "APPROVED",
+      });
+
+      setIsLoading(false);
+      if (role === "FACULTY") {
+        router.replace("/faculty-dashboard" as any);
+      } else {
+        router.replace("/home" as any);
+      }
+    } catch (e: any) {
+      setIsLoading(false);
+      setErrorMessage(e.message || "Google Sign-In failed.");
+    }
+  };
+
   const handleLogin = async () => {
     setIsLoading(true);
     setErrorMessage(null);
 
     let firebaseUid = null;
+    const loginIdentifier = authMethod === "EMAIL" ? email : `${phone.replace(/\D/g, '')}@skillexa-phone.com`;
+
     try {
       // 1. Authenticate with Firebase Auth
       try {
-        const userCred = await signInWithEmailAndPassword(auth, email, password);
+        const userCred = await signInWithEmailAndPassword(auth, loginIdentifier, password);
         firebaseUid = userCred.user.uid;
       } catch (err: any) {
-        // If user not found, auto-create Firebase user for seamless demo login
         if (err.code === 'auth/user-not-found' || err.code === 'auth/invalid-credential') {
           try {
-            const newCred = await createUserWithEmailAndPassword(auth, email, password);
+            const newCred = await createUserWithEmailAndPassword(auth, loginIdentifier, password);
             firebaseUid = newCred.user.uid;
           } catch (createErr) {
             // fallback if account creation fails
@@ -66,8 +102,8 @@ export default function LoginScreen() {
       if (role === "FACULTY") {
         login({
           id: firebaseUid || "fac-101",
-          name: email.split("@")[0] || "Dr. Kusumadhara S",
-          email,
+          name: authMethod === "EMAIL" ? email.split("@")[0] : "Faculty Educator",
+          email: loginIdentifier,
           password,
           role: "FACULTY",
           collegeId: "clg-kvg",
@@ -80,8 +116,8 @@ export default function LoginScreen() {
       } else {
         login({
           id: firebaseUid || "std-101",
-          name: email.split("@")[0] || "Ganesh Sharan",
-          email,
+          name: authMethod === "EMAIL" ? email.split("@")[0] || "Ganesh Sharan" : "Student Scholar",
+          email: loginIdentifier,
           password,
           role: "STUDENT",
           collegeId: "clg-kvg",
@@ -167,24 +203,81 @@ export default function LoginScreen() {
               </TouchableOpacity>
             </View>
 
-            {/* Email Input */}
-            <View style={styles.inputGroup}>
-              <Text style={styles.inputLabel}>
-                {role === "FACULTY" ? "FACULTY EMAIL ADDRESS" : "STUDENT EMAIL ADDRESS"}
-              </Text>
-              <View style={styles.inputContainer}>
-                <Feather name="mail" size={18} color={Palette.textSecondary} style={styles.inputIcon} />
-                <TextInput
-                  placeholder={role === "FACULTY" ? "professor@university.edu" : "name@university.edu"}
-                  placeholderTextColor={Palette.textMuted}
-                  style={styles.input}
-                  keyboardType="email-address"
-                  autoCapitalize="none"
-                  value={email}
-                  onChangeText={setEmail}
-                />
-              </View>
+            {/* Google Sign-In Button */}
+            <TouchableOpacity
+              style={styles.googleBtn}
+              onPress={handleGoogleSignIn}
+              activeOpacity={0.85}
+            >
+              <Feather name="globe" size={18} color="#EA4335" />
+              <Text style={styles.googleBtnText}>Continue with Google</Text>
+            </TouchableOpacity>
+
+            {/* OR Divider */}
+            <View style={styles.orDividerRow}>
+              <View style={styles.dividerLine} />
+              <Text style={styles.orText}>OR SIGN IN WITH</Text>
+              <View style={styles.dividerLine} />
             </View>
+
+            {/* Auth Method Switcher (Email / Phone) */}
+            <View style={styles.methodTabsRow}>
+              <TouchableOpacity
+                style={[styles.methodTab, authMethod === "EMAIL" && styles.methodTabActive]}
+                onPress={() => setAuthMethod("EMAIL")}
+              >
+                <Feather name="mail" size={14} color={authMethod === "EMAIL" ? Palette.primary : Palette.textSecondary} />
+                <Text style={[styles.methodTabText, authMethod === "EMAIL" && styles.methodTabTextActive]}>
+                  Email / Gmail
+                </Text>
+              </TouchableOpacity>
+
+              <TouchableOpacity
+                style={[styles.methodTab, authMethod === "PHONE" && styles.methodTabActive]}
+                onPress={() => setAuthMethod("PHONE")}
+              >
+                <Feather name="phone" size={14} color={authMethod === "PHONE" ? Palette.primary : Palette.textSecondary} />
+                <Text style={[styles.methodTabText, authMethod === "PHONE" && styles.methodTabTextActive]}>
+                  Phone Number
+                </Text>
+              </TouchableOpacity>
+            </View>
+
+            {/* Email or Phone Input */}
+            {authMethod === "EMAIL" ? (
+              <View style={styles.inputGroup}>
+                <Text style={styles.inputLabel}>
+                  {role === "FACULTY" ? "FACULTY GMAIL / EMAIL ADDRESS" : "STUDENT GMAIL / EMAIL ADDRESS"}
+                </Text>
+                <View style={styles.inputContainer}>
+                  <Feather name="mail" size={18} color={Palette.textSecondary} style={styles.inputIcon} />
+                  <TextInput
+                    placeholder={role === "FACULTY" ? "professor@gmail.com" : "student@gmail.com"}
+                    placeholderTextColor={Palette.textMuted}
+                    style={styles.input}
+                    keyboardType="email-address"
+                    autoCapitalize="none"
+                    value={email}
+                    onChangeText={setEmail}
+                  />
+                </View>
+              </View>
+            ) : (
+              <View style={styles.inputGroup}>
+                <Text style={styles.inputLabel}>PHONE NUMBER</Text>
+                <View style={styles.inputContainer}>
+                  <Feather name="phone" size={18} color={Palette.textSecondary} style={styles.inputIcon} />
+                  <TextInput
+                    placeholder="+91 9876543210"
+                    placeholderTextColor={Palette.textMuted}
+                    style={styles.input}
+                    keyboardType="phone-pad"
+                    value={phone}
+                    onChangeText={setPhone}
+                  />
+                </View>
+              </View>
+            )}
 
             {/* Password Input */}
             <View style={styles.inputGroup}>
@@ -211,6 +304,13 @@ export default function LoginScreen() {
                 </TouchableOpacity>
               </View>
             </View>
+
+            {/* Error Message */}
+            {errorMessage ? (
+              <View style={styles.errorBanner}>
+                <Text style={styles.errorText}>{errorMessage}</Text>
+              </View>
+            ) : null}
 
             {/* Sign In Button */}
             <TouchableOpacity
@@ -343,6 +443,84 @@ const styles = StyleSheet.create({
   roleTabTextActiveFaculty: {
     color: Palette.aiPurple,
     fontWeight: "700",
+  },
+  googleBtn: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    backgroundColor: "#F8FAFC",
+    borderWidth: 1,
+    borderColor: Palette.border,
+    paddingVertical: 12,
+    borderRadius: Radii.button,
+    gap: 10,
+    marginBottom: 16,
+  },
+  googleBtnText: {
+    fontSize: 14.5,
+    fontWeight: "700",
+    color: Palette.textTitle,
+  },
+  orDividerRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    marginBottom: 16,
+  },
+  dividerLine: {
+    flex: 1,
+    height: 1,
+    backgroundColor: Palette.border,
+  },
+  orText: {
+    fontSize: 10.5,
+    fontWeight: "800",
+    color: Palette.textMuted,
+    paddingHorizontal: 10,
+    letterSpacing: 0.8,
+  },
+  methodTabsRow: {
+    flexDirection: "row",
+    backgroundColor: Palette.backgroundSecondary,
+    borderRadius: Radii.input,
+    padding: 3,
+    gap: 4,
+    marginBottom: 16,
+  },
+  methodTab: {
+    flex: 1,
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    gap: 6,
+    paddingVertical: 8,
+    borderRadius: 6,
+  },
+  methodTabActive: {
+    backgroundColor: "#FFFFFF",
+    ...Shadows.card,
+  },
+  methodTabText: {
+    fontSize: 12,
+    fontWeight: "600",
+    color: Palette.textSecondary,
+  },
+  methodTabTextActive: {
+    color: Palette.primary,
+    fontWeight: "700",
+  },
+  errorBanner: {
+    backgroundColor: "#FEF2F2",
+    borderWidth: 1,
+    borderColor: "#FCA5A5",
+    borderRadius: 10,
+    padding: 10,
+    marginBottom: 12,
+  },
+  errorText: {
+    color: "#DC2626",
+    fontSize: 13,
+    textAlign: "center",
+    fontWeight: "600",
   },
   inputGroup: {
     marginBottom: 16,

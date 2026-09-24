@@ -1,5 +1,5 @@
 import { initializeApp, getApps, getApp } from "firebase/app";
-import { getAuth } from "firebase/auth";
+import { getAuth, GoogleAuthProvider } from "firebase/auth";
 
 // SkillExa Firebase configuration
 const firebaseConfig = {
@@ -15,7 +15,8 @@ const firebaseConfig = {
 // Initialize Firebase App singleton
 const app = getApps().length === 0 ? initializeApp(firebaseConfig) : getApp();
 
-// Initialize Firebase Auth
+// Initialize Firebase Auth & Google Provider
 export const auth = getAuth(app);
+export const googleProvider = new GoogleAuthProvider();
 
 export default app;

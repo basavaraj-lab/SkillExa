@@ -183,7 +183,7 @@ const styles = StyleSheet.create({
     backgroundColor: Palette.bgDark,
   },
   ambientContainer: {
-    ...StyleSheet.absoluteFillObject,
+    ...StyleSheet.absoluteFill,
     overflow: "hidden",
   },
   glowOrbTop: {
