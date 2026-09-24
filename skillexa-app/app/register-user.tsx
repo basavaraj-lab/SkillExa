@@ -29,16 +29,59 @@ export default function RegisterUser() {
   const [year, setYear] = useState("3rd Year");
   const [section, setSection] = useState("A");
   const [password, setPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
 
   // OTP Verification state
   const [otpSent, setOtpSent] = useState(false);
-  const [generatedOtp, setGeneratedOtp] = useState("");
+  const [otpVerified, setOtpVerified] = useState(false);
   const [userEnteredOtp, setUserEnteredOtp] = useState("");
   const [otpNotification, setOtpNotification] = useState<{ type: "success" | "error"; message: string } | null>(null);
 
+  // Timers: 5-minute expiration (300s) & 60s resend cooldown
+  const [expirySeconds, setExpirySeconds] = useState(300);
+  const [cooldownSeconds, setCooldownSeconds] = useState(0);
+
   const { login } = useAuth();
+
+  // 5-minute timer countdown effect
+  React.useEffect(() => {
+    let interval: any = null;
+    if (otpSent && expirySeconds > 0 && !otpVerified) {
+      interval = setInterval(() => {
+        setExpirySeconds((prev) => prev - 1);
+      }, 1000);
+    } else if (expirySeconds === 0) {
+      setOtpNotification({
+        type: "error",
+        message: "OTP expired. Please request a new OTP.",
+      });
+    }
+    return () => {
+      if (interval) clearInterval(interval);
+    };
+  }, [otpSent, expirySeconds, otpVerified]);
+
+  // 60-second resend cooldown timer effect
+  React.useEffect(() => {
+    let interval: any = null;
+    if (cooldownSeconds > 0) {
+      interval = setInterval(() => {
+        setCooldownSeconds((prev) => prev - 1);
+      }, 1000);
+    }
+    return () => {
+      if (interval) clearInterval(interval);
+    };
+  }, [cooldownSeconds]);
+
+  const formatTimer = (seconds: number) => {
+    const mins = Math.floor(seconds / 60);
+    const secs = seconds % 60;
+    return `${mins.toString().padStart(2, "0")}:${secs.toString().padStart(2, "0")}`;
+  };
 
   const handleGoogleRegister = async () => {
     setIsLoading(true);
@@ -60,8 +103,7 @@ export default function RegisterUser() {
       });
       router.replace("/pathselection" as any);
     } catch (e: any) {
-      console.log('Google registration note:', e.message);
-      // Fallback local registration if popup blocked or offline
+      console.log("Google registration note:", e.message);
       login({
         id: `google-${Date.now()}`,
         name: name || "Google Scholar",
@@ -80,106 +122,186 @@ export default function RegisterUser() {
     }
   };
 
+  const validateForm = () => {
+    if (!name.trim()) {
+      setOtpNotification({ type: "error", message: "Please enter your Full Name." });
+      return false;
+    }
+    if (!email.trim() || !email.includes("@") || !email.includes(".")) {
+      setOtpNotification({ type: "error", message: "Please enter a valid Email address." });
+      return false;
+    }
+    if (!mobile.trim()) {
+      setOtpNotification({ type: "error", message: "Please enter your Phone number." });
+      return false;
+    }
+    if (!collegeName.trim() || !branch.trim() || !year.trim() || !section.trim()) {
+      setOtpNotification({ type: "error", message: "Please complete all college & academic details." });
+      return false;
+    }
+    if (!password || password.length < 6) {
+      setOtpNotification({ type: "error", message: "Password must be at least 6 characters." });
+      return false;
+    }
+    if (password !== confirmPassword) {
+      setOtpNotification({ type: "error", message: "Password and confirm-password do not match." });
+      return false;
+    }
+    return true;
+  };
+
   const handleSendOtp = async () => {
-    if (!email && !mobile) {
-      setOtpNotification({
-        type: "error",
-        message: "⚠️ Please enter your Gmail address or Mobile Number to receive the OTP.",
-      });
-      return;
-    }
-    const code = Math.floor(100000 + Math.random() * 900000).toString();
-    setGeneratedOtp(code);
-    setOtpSent(true);
-    const target = email || mobile;
+    if (!validateForm()) return;
 
-    let realEmailSent = false;
+    setIsLoading(true);
+    setOtpNotification(null);
 
-    // Send real Gmail verification email via Firebase Auth Email Service
-    if (email) {
-      try {
-        await sendPasswordResetEmail(auth, email);
-        realEmailSent = true;
-        console.log("Real email delivered to Gmail:", email);
-      } catch (e: any) {
-        console.log("Firebase Email dispatch note:", e.message);
-      }
-    }
-
-    // Dispatch backend email / notification API call
     try {
-      fetch("http://localhost:8000/api/auth/send-otp", {
+      const res = await fetch("http://localhost:8000/api/auth/send-otp", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email: target, mobile: mobile || undefined, otp: code }),
-      }).catch(() => {});
-    } catch (e) {}
+        body: JSON.stringify({ email: email.trim() }),
+      });
+      const data = await res.json();
 
-    // Trigger System Desktop / Browser Notification pop-up
-    if (typeof window !== "undefined" && "Notification" in window) {
-      if (Notification.permission === "granted") {
-        new Notification("SkillExa Account Registration OTP", {
-          body: `🔑 Your 6-digit SkillExa registration OTP code is: ${code}. Enter this code to verify your account.`,
+      if (res.ok && data.success) {
+        setOtpSent(true);
+        setExpirySeconds(300);
+        setCooldownSeconds(60);
+        setOtpNotification({
+          type: "success",
+          message: "Verification OTP sent to your email.",
         });
-      } else if (Notification.permission !== "denied") {
-        Notification.requestPermission().then((permission) => {
-          if (permission === "granted") {
-            new Notification("SkillExa Account Registration OTP", {
-              body: `🔑 Your 6-digit SkillExa registration OTP code is: ${code}. Enter this code to verify your account.`,
-            });
-          }
+      } else {
+        setOtpNotification({
+          type: "error",
+          message: data.detail || data.message || "Failed to send OTP. Please try again.",
         });
       }
+    } catch (e: any) {
+      setOtpNotification({
+        type: "error",
+        message: "Server network error. Please ensure FastAPI backend is running.",
+      });
+    } finally {
+      setIsLoading(false);
     }
+  };
 
-    setOtpNotification({
-      type: "success",
-      message: realEmailSent
-        ? `📩 Real verification email & OTP sent to ${target}! Please check your Gmail Inbox / Spam folder.`
-        : `📩 SkillExa Registration OTP dispatched to ${target}! Please check your Gmail Inbox & Notifications for the code.`,
-    });
+  const handleResendOtp = async () => {
+    if (cooldownSeconds > 0) return;
+    setIsLoading(true);
+    try {
+      const res = await fetch("http://localhost:8000/api/auth/resend-otp", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email: email.trim() }),
+      });
+      const data = await res.json();
+
+      if (res.ok && data.success) {
+        setExpirySeconds(300);
+        setCooldownSeconds(60);
+        setUserEnteredOtp("");
+        setOtpNotification({
+          type: "success",
+          message: "Verification OTP sent to your email.",
+        });
+      } else {
+        setOtpNotification({
+          type: "error",
+          message: data.detail || data.message || "Failed to resend OTP.",
+        });
+      }
+    } catch (e) {
+      setOtpNotification({
+        type: "error",
+        message: "Failed to connect to backend server.",
+      });
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   const handleVerifyAndRegister = async () => {
-    if (!userEnteredOtp || userEnteredOtp.trim() !== generatedOtp) {
+    if (!userEnteredOtp || userEnteredOtp.trim().length !== 6) {
       setOtpNotification({
         type: "error",
-        message: "❌ Invalid OTP! Please enter the correct 6-digit code or click Resend OTP.",
+        message: "Invalid OTP. Please enter the 6-digit code.",
       });
       return;
     }
 
-    setOtpNotification({
-      type: "success",
-      message: "✅ OTP Verified Successfully! Completing registration...",
-    });
-
-    setIsLoading(true);
-    let firebaseUid = null;
-    try {
-      if (email && password) {
-        const userCred = await createUserWithEmailAndPassword(auth, email, password);
-        firebaseUid = userCred.user.uid;
-      }
-    } catch (e: any) {
-      console.log('Firebase registration note:', e.message);
+    if (expirySeconds <= 0) {
+      setOtpNotification({
+        type: "error",
+        message: "OTP expired. Please request a new OTP.",
+      });
+      return;
     }
 
-    setIsLoading(false);
-    login({
-      id: firebaseUid || `std-${Date.now()}`,
-      name: name || "Scholar",
-      email,
-      password,
-      role: "STUDENT",
-      collegeId: "clg-kvg",
-      collegeName: collegeName || "KVG College of Engineering",
-      department: branch || "ECE",
-      academicYear: year || "3rd Year",
-      section: section || "A",
-      verificationStatus: "APPROVED",
-    });
-    router.replace("/pathselection" as any);
+    setIsLoading(true);
+    setOtpNotification(null);
+
+    try {
+      // Step 1: Verify OTP with FastAPI
+      const res = await fetch("http://localhost:8000/api/auth/verify-otp", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email: email.trim(), otp: userEnteredOtp.trim() }),
+      });
+      const data = await res.json();
+
+      if (!res.ok || !data.success) {
+        setOtpNotification({
+          type: "error",
+          message: data.detail || data.message || "Invalid OTP. Please try again.",
+        });
+        setIsLoading(false);
+        return;
+      }
+
+      setOtpVerified(true);
+      setOtpNotification({
+        type: "success",
+        message: "Email verified successfully.",
+      });
+
+      // Step 2: Create user in Firebase Authentication
+      let firebaseUid = null;
+      try {
+        const userCred = await createUserWithEmailAndPassword(auth, email.trim(), password);
+        firebaseUid = userCred.user.uid;
+      } catch (e: any) {
+        console.log("Firebase Auth creation note:", e.message);
+      }
+
+      // Step 3: Complete registration & store profile in SkillExa DB
+      login({
+        id: firebaseUid || `std-${Date.now()}`,
+        name: name.trim(),
+        email: email.trim(),
+        password,
+        role: "STUDENT",
+        collegeId: "clg-kvg",
+        collegeName: collegeName.trim() || "KVG College of Engineering",
+        department: branch.trim() || "ECE",
+        academicYear: year.trim() || "3rd Year",
+        section: section.trim() || "A",
+        verificationStatus: "APPROVED",
+      });
+
+      setTimeout(() => {
+        setIsLoading(false);
+        router.replace("/pathselection" as any);
+      }, 800);
+    } catch (e: any) {
+      setIsLoading(false);
+      setOtpNotification({
+        type: "error",
+        message: "Verification failed. Please try again.",
+      });
+    }
   };
 
   return (
@@ -247,6 +369,7 @@ export default function RegisterUser() {
                 style={styles.input}
                 value={name}
                 onChangeText={setName}
+                editable={!otpSent}
               />
             </View>
 
@@ -261,19 +384,21 @@ export default function RegisterUser() {
                 autoCapitalize="none"
                 value={email}
                 onChangeText={setEmail}
+                editable={!otpSent}
               />
             </View>
 
-            {/* Mobile Input */}
+            {/* Phone Number Input */}
             <View style={styles.inputWrapper}>
               <Feather name="phone" size={18} color={Palette.cyan} style={styles.inputIcon} />
               <TextInput
-                placeholder="Mobile Number"
+                placeholder="Phone Number"
                 placeholderTextColor={Palette.textMutedDark}
                 style={styles.input}
                 keyboardType="phone-pad"
                 value={mobile}
                 onChangeText={setMobile}
+                editable={!otpSent}
               />
             </View>
 
@@ -286,11 +411,12 @@ export default function RegisterUser() {
                 style={styles.input}
                 value={collegeName}
                 onChangeText={setCollegeName}
+                editable={!otpSent}
               />
             </View>
 
             {/* Branch & Year Row */}
-            <View style={{ flexDirection: 'row', gap: 10 }}>
+            <View style={{ flexDirection: "row", gap: 10 }}>
               <View style={[styles.inputWrapper, { flex: 1 }]}>
                 <Feather name="layers" size={18} color={Palette.cyan} style={styles.inputIcon} />
                 <TextInput
@@ -299,6 +425,7 @@ export default function RegisterUser() {
                   style={styles.input}
                   value={branch}
                   onChangeText={setBranch}
+                  editable={!otpSent}
                 />
               </View>
 
@@ -310,6 +437,7 @@ export default function RegisterUser() {
                   style={styles.input}
                   value={year}
                   onChangeText={setYear}
+                  editable={!otpSent}
                 />
               </View>
             </View>
@@ -323,6 +451,7 @@ export default function RegisterUser() {
                 style={styles.input}
                 value={section}
                 onChangeText={setSection}
+                editable={!otpSent}
               />
             </View>
 
@@ -336,6 +465,7 @@ export default function RegisterUser() {
                 style={styles.input}
                 value={password}
                 onChangeText={setPassword}
+                editable={!otpSent}
               />
               <TouchableOpacity
                 onPress={() => setShowPassword(!showPassword)}
@@ -349,7 +479,31 @@ export default function RegisterUser() {
               </TouchableOpacity>
             </View>
 
-            {/* OTP Email Dispatch Card & Notification Banner */}
+            {/* Confirm Password Field */}
+            <View style={styles.inputWrapper}>
+              <Feather name="lock" size={18} color={Palette.cyan} style={styles.inputIcon} />
+              <TextInput
+                placeholder="Confirm Password"
+                placeholderTextColor={Palette.textMutedDark}
+                secureTextEntry={!showConfirmPassword}
+                style={styles.input}
+                value={confirmPassword}
+                onChangeText={setConfirmPassword}
+                editable={!otpSent}
+              />
+              <TouchableOpacity
+                onPress={() => setShowConfirmPassword(!showConfirmPassword)}
+                style={styles.eyeButton}
+              >
+                <Feather
+                  name={showConfirmPassword ? "eye-off" : "eye"}
+                  size={18}
+                  color={Palette.textMutedDark}
+                />
+              </TouchableOpacity>
+            </View>
+
+            {/* Notification Banner */}
             {otpNotification ? (
               <View
                 style={[
@@ -377,48 +531,44 @@ export default function RegisterUser() {
               </View>
             ) : null}
 
-            {/* Official SkillExa OTP Email Verification Box */}
-            {otpSent && generatedOtp ? (
-              <View style={styles.emailNotificationBox}>
-                <View style={styles.emailHeaderRow}>
-                  <Feather name="mail" size={16} color="#10B981" />
-                  <Text style={styles.emailSenderText}>From: SkillExa Platform (noreply@skillexa.com)</Text>
-                </View>
-                <Text style={styles.emailSubjectText}>
-                  To: {email || mobile} | Subject: Account Verification OTP Code
-                </Text>
-                <View style={styles.otpHighlightBox}>
-                  <Text style={styles.otpHighlightLabel}>YOUR 6-DIGIT VERIFICATION CODE</Text>
-                  <Text style={styles.otpCodeBigText}>{generatedOtp}</Text>
-                </View>
-                <Text style={styles.emailInstructions}>
-                  Enter this 6-digit verification code in the input below to complete registration.
-                </Text>
-              </View>
-            ) : null}
-
-            {/* OTP Input Field if OTP is sent */}
+            {/* OTP Verification Section (Shown after OTP is sent) */}
             {otpSent ? (
-              <View style={[styles.inputWrapper, styles.otpInputHighlight]}>
-                <Feather name="shield" size={18} color={Palette.cyan} style={styles.inputIcon} />
-                <TextInput
-                  placeholder="Enter 6-digit OTP Code"
-                  placeholderTextColor={Palette.textMutedDark}
-                  style={[styles.input, { letterSpacing: 4, fontWeight: "900", fontSize: 18 }]}
-                  keyboardType="number-pad"
-                  maxLength={6}
-                  value={userEnteredOtp}
-                  onChangeText={setUserEnteredOtp}
-                />
-                <TouchableOpacity onPress={handleSendOtp} style={styles.resendBtn}>
-                  <Text style={styles.resendBtnText}>Resend OTP</Text>
-                </TouchableOpacity>
+              <View style={styles.otpVerificationCard}>
+                <View style={styles.otpHeaderRow}>
+                  <Text style={styles.otpCardTitle}>Enter 6-Digit Verification Code</Text>
+                  <Text style={styles.otpTimerText}>
+                    OTP expires in <Text style={styles.timerHighlight}>{formatTimer(expirySeconds)}</Text>
+                  </Text>
+                </View>
+
+                {/* 6-Digit OTP Input Field */}
+                <View style={[styles.inputWrapper, styles.otpInputHighlight]}>
+                  <Feather name="shield" size={18} color={Palette.cyan} style={styles.inputIcon} />
+                  <TextInput
+                    placeholder="Enter 6-digit OTP"
+                    placeholderTextColor={Palette.textMutedDark}
+                    style={[styles.input, { letterSpacing: 5, fontWeight: "900", fontSize: 18 }]}
+                    keyboardType="number-pad"
+                    maxLength={6}
+                    value={userEnteredOtp}
+                    onChangeText={setUserEnteredOtp}
+                  />
+                  <TouchableOpacity
+                    onPress={handleResendOtp}
+                    disabled={cooldownSeconds > 0}
+                    style={[styles.resendBtn, cooldownSeconds > 0 && styles.resendBtnDisabled]}
+                  >
+                    <Text style={styles.resendBtnText}>
+                      {cooldownSeconds > 0 ? `Resend (${cooldownSeconds}s)` : "Resend OTP"}
+                    </Text>
+                  </TouchableOpacity>
+                </View>
               </View>
             ) : null}
 
-            {/* Register / Verify CTA */}
+            {/* Action Buttons */}
             <GradientButton
-              title={otpSent ? "Verify OTP & Complete Registration" : "Send OTP & Register"}
+              title={otpSent ? "Verify OTP" : "Send OTP"}
               onPress={otpSent ? handleVerifyAndRegister : handleSendOtp}
               loading={isLoading}
               gradientColors={Gradients.cyanBlue}
@@ -651,6 +801,34 @@ const styles = StyleSheet.create({
     textAlign: "center",
     lineHeight: 16,
   },
+  otpVerificationCard: {
+    backgroundColor: "rgba(15, 23, 42, 0.6)",
+    borderRadius: 16,
+    padding: 14,
+    borderWidth: 1,
+    borderColor: "rgba(6, 182, 212, 0.3)",
+    marginBottom: 14,
+  },
+  otpHeaderRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    marginBottom: 10,
+  },
+  otpCardTitle: {
+    fontSize: 13,
+    fontWeight: "700",
+    color: "#FFFFFF",
+  },
+  otpTimerText: {
+    fontSize: 12,
+    color: Palette.textSecondaryDark,
+  },
+  timerHighlight: {
+    color: Palette.cyan,
+    fontWeight: "800",
+    fontFamily: Platform.OS === "ios" ? "Menlo" : "monospace",
+  },
   otpInputHighlight: {
     borderColor: Palette.cyan,
     backgroundColor: "rgba(6, 182, 212, 0.1)",
@@ -660,6 +838,10 @@ const styles = StyleSheet.create({
     paddingVertical: 6,
     backgroundColor: "rgba(6, 182, 212, 0.2)",
     borderRadius: 8,
+  },
+  resendBtnDisabled: {
+    opacity: 0.5,
+    backgroundColor: "rgba(255, 255, 255, 0.05)",
   },
   resendBtnText: {
     color: Palette.cyanLight,
