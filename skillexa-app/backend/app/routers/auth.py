@@ -28,6 +28,16 @@ class VerifyOTPPayload(BaseModel):
     otp: str
 
 
+@router.post("/register", response_model=ApiResponse[dict])
+def register_init(payload: SendOTPPayload, db: Session = Depends(get_db)):
+    result = OTPService.send_otp(db, payload.email)
+    return ApiResponse(
+        success=True,
+        message="Verification OTP sent to your email.",
+        data=result,
+    )
+
+
 @router.post("/send-otp", response_model=ApiResponse[dict])
 def send_otp(payload: SendOTPPayload, db: Session = Depends(get_db)):
     result = OTPService.send_otp(db, payload.email)

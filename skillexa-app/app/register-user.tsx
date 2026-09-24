@@ -17,7 +17,7 @@ import { useAuth } from "../components/auth-context";
 import { GlassCard } from "../components/ui/GlassCard";
 import { GradientButton } from "../components/ui/GradientButton";
 import { Gradients, Palette } from "../constants/theme";
-import { createUserWithEmailAndPassword, signInWithPopup, sendPasswordResetEmail } from 'firebase/auth';
+import { createUserWithEmailAndPassword, signInWithPopup } from 'firebase/auth';
 import { auth, googleProvider } from '../services/firebase';
 
 export default function RegisterUser() {
