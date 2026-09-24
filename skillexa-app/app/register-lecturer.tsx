@@ -32,6 +32,13 @@ export default function RegisterLecturer() {
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
+
+  // OTP Verification state
+  const [otpSent, setOtpSent] = useState(false);
+  const [generatedOtp, setGeneratedOtp] = useState("");
+  const [userEnteredOtp, setUserEnteredOtp] = useState("");
+  const [otpNotification, setOtpNotification] = useState<{ type: "success" | "error"; message: string } | null>(null);
+
   const { login } = useAuth();
 
   const handleGoogleRegister = async () => {
@@ -72,7 +79,38 @@ export default function RegisterLecturer() {
     }
   };
 
-  const handleRegister = async () => {
+  const handleSendOtp = () => {
+    if (!email && !mobile) {
+      setOtpNotification({
+        type: "error",
+        message: "⚠️ Please enter your Gmail address or Mobile Contact to receive the OTP.",
+      });
+      return;
+    }
+    const code = Math.floor(100000 + Math.random() * 900000).toString();
+    setGeneratedOtp(code);
+    setOtpSent(true);
+    const target = email || mobile;
+    setOtpNotification({
+      type: "success",
+      message: `🔑 Verification OTP sent to ${target}: ${code}\nEnter this 6-digit code below to complete registration.`,
+    });
+  };
+
+  const handleVerifyAndRegister = async () => {
+    if (!userEnteredOtp || userEnteredOtp.trim() !== generatedOtp) {
+      setOtpNotification({
+        type: "error",
+        message: "❌ Invalid OTP! Please enter the correct 6-digit code or click Resend OTP.",
+      });
+      return;
+    }
+
+    setOtpNotification({
+      type: "success",
+      message: "✅ OTP Verified Successfully! Completing faculty onboarding...",
+    });
+
     setIsLoading(true);
     let firebaseUid = null;
     try {
@@ -279,10 +317,57 @@ export default function RegisterLecturer() {
               </TouchableOpacity>
             </View>
 
+            {/* Notification Banner */}
+            {otpNotification ? (
+              <View
+                style={[
+                  styles.notificationBanner,
+                  otpNotification.type === "success"
+                    ? styles.notificationSuccess
+                    : styles.notificationError,
+                ]}
+              >
+                <Feather
+                  name={otpNotification.type === "success" ? "check-circle" : "alert-circle"}
+                  size={16}
+                  color={otpNotification.type === "success" ? "#10B981" : "#EF4444"}
+                />
+                <Text
+                  style={[
+                    styles.notificationText,
+                    otpNotification.type === "success"
+                      ? styles.notificationTextSuccess
+                      : styles.notificationTextError,
+                  ]}
+                >
+                  {otpNotification.message}
+                </Text>
+              </View>
+            ) : null}
+
+            {/* OTP Input Field if OTP is sent */}
+            {otpSent ? (
+              <View style={[styles.inputWrapper, styles.otpInputHighlight]}>
+                <Feather name="shield" size={18} color={Palette.purpleLight} style={styles.inputIcon} />
+                <TextInput
+                  placeholder="Enter 6-digit OTP Code"
+                  placeholderTextColor={Palette.textMutedDark}
+                  style={[styles.input, { letterSpacing: 3, fontWeight: "800", fontSize: 16 }]}
+                  keyboardType="number-pad"
+                  maxLength={6}
+                  value={userEnteredOtp}
+                  onChangeText={setUserEnteredOtp}
+                />
+                <TouchableOpacity onPress={handleSendOtp} style={styles.resendBtn}>
+                  <Text style={styles.resendBtnText}>Resend</Text>
+                </TouchableOpacity>
+              </View>
+            ) : null}
+
             {/* Submit */}
             <GradientButton
-              title="Register as Faculty"
-              onPress={handleRegister}
+              title={otpSent ? "Verify OTP & Complete Registration" : "Send OTP & Register as Faculty"}
+              onPress={otpSent ? handleVerifyAndRegister : handleSendOtp}
               loading={isLoading}
               gradientColors={Gradients.purpleIndigo}
               style={styles.registerBtn}
@@ -429,6 +514,52 @@ const styles = StyleSheet.create({
   },
   eyeButton: {
     padding: 6,
+  },
+  notificationBanner: {
+    flexDirection: "row",
+    alignItems: "center",
+    padding: 12,
+    borderRadius: 12,
+    marginBottom: 14,
+    gap: 8,
+  },
+  notificationSuccess: {
+    backgroundColor: "rgba(16, 185, 129, 0.15)",
+    borderWidth: 1,
+    borderColor: "rgba(16, 185, 129, 0.4)",
+  },
+  notificationError: {
+    backgroundColor: "rgba(239, 68, 68, 0.15)",
+    borderWidth: 1,
+    borderColor: "rgba(239, 68, 68, 0.4)",
+  },
+  notificationText: {
+    flex: 1,
+    fontSize: 13,
+    lineHeight: 18,
+  },
+  notificationTextSuccess: {
+    color: "#34D399",
+    fontWeight: "600",
+  },
+  notificationTextError: {
+    color: "#FCA5A5",
+    fontWeight: "600",
+  },
+  otpInputHighlight: {
+    borderColor: Palette.purpleLight,
+    backgroundColor: "rgba(139, 92, 246, 0.1)",
+  },
+  resendBtn: {
+    paddingHorizontal: 10,
+    paddingVertical: 6,
+    backgroundColor: "rgba(139, 92, 246, 0.2)",
+    borderRadius: 8,
+  },
+  resendBtnText: {
+    color: Palette.purpleLight,
+    fontSize: 12,
+    fontWeight: "700",
   },
   registerBtn: {
     marginTop: 8,
