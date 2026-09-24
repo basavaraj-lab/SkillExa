@@ -107,7 +107,7 @@ export default function RegisterLecturer() {
 
     // Dispatch backend email / notification API call
     try {
-      fetch("http://localhost:8000/api/v1/auth/send-otp", {
+      fetch("http://localhost:8000/api/auth/send-otp", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ email: target, mobile: mobile || undefined, otp: code }),
