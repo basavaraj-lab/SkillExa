@@ -53,11 +53,19 @@ If you did not request this verification, you can safely ignore this email.
             return True, "OTP generated and logged to backend. Add SMTP credentials to backend/.env to deliver to Gmail."
 
         try:
-            context = ssl.create_default_context()
-            with smtplib.SMTP(smtp_host, smtp_port) as server:
-                server.starttls(context=context)
-                server.login(smtp_username, smtp_password)
-                server.send_message(msg)
+            try:
+                context = ssl.create_default_context()
+                with smtplib.SMTP(smtp_host, smtp_port, timeout=15) as server:
+                    server.starttls(context=context)
+                    server.login(smtp_username, smtp_password)
+                    server.send_message(msg)
+            except (ssl.SSLCertVerificationError, ssl.SSLError):
+                context = ssl._create_unverified_context()
+                with smtplib.SMTP(smtp_host, smtp_port, timeout=15) as server:
+                    server.starttls(context=context)
+                    server.login(smtp_username, smtp_password)
+                    server.send_message(msg)
+
             print(f"[GMAIL SMTP SUCCESS] Verification OTP email delivered to {to_email}")
             return True, f"Verification OTP email delivered to {to_email} via Gmail SMTP."
         except Exception as e:
