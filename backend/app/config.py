@@ -48,6 +48,13 @@ class Settings(BaseSettings):
     # Video Calling / WebRTC Signaling
     WEBRTC_SIGNALING_ENABLED: bool = True
 
+    # SMTP Email Configuration
+    SMTP_HOST: str = "smtp.gmail.com"
+    SMTP_PORT: int = 587
+    SMTP_USERNAME: str = ""
+    SMTP_PASSWORD: str = ""
+    SMTP_FROM_EMAIL: str = ""
+
     class Config:
         env_file = os.path.join(os.path.dirname(__file__), "..", ".env")
         env_file_encoding = "utf-8"

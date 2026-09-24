@@ -4,20 +4,22 @@ import ssl
 from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
 
+from backend.app.config import settings
+
 
 class SMTPService:
     @staticmethod
     def send_otp_email(to_email: str, otp_code: str) -> tuple[bool, str]:
         """
         Sends custom 6-digit registration OTP via Gmail SMTP.
-        Configured via environment variables:
+        Configured via environment variables / backend/.env:
         SMTP_HOST, SMTP_PORT, SMTP_USERNAME, SMTP_PASSWORD, SMTP_FROM_EMAIL.
         """
-        smtp_host = os.getenv("SMTP_HOST", "smtp.gmail.com")
-        smtp_port = int(os.getenv("SMTP_PORT", "587"))
-        smtp_username = os.getenv("SMTP_USERNAME", os.getenv("SMTP_USER", ""))
-        smtp_password = os.getenv("SMTP_PASSWORD", "")
-        from_email = os.getenv("SMTP_FROM_EMAIL", smtp_username or "noreply@skillexa.com")
+        smtp_host = settings.SMTP_HOST or os.getenv("SMTP_HOST", "smtp.gmail.com")
+        smtp_port = int(settings.SMTP_PORT or os.getenv("SMTP_PORT", "587"))
+        smtp_username = settings.SMTP_USERNAME or os.getenv("SMTP_USERNAME", os.getenv("SMTP_USER", ""))
+        smtp_password = settings.SMTP_PASSWORD or os.getenv("SMTP_PASSWORD", "")
+        from_email = settings.SMTP_FROM_EMAIL or os.getenv("SMTP_FROM_EMAIL", smtp_username or "noreply@skillexa.com")
 
         subject = "SkillExa Account Verification OTP"
 
@@ -42,13 +44,13 @@ If you did not request this verification, you can safely ignore this email.
 
         if not smtp_username or not smtp_password:
             print(f"\n==========================================")
-            print(f"[GMAIL SMTP DISPATCH LOG - DEBUG MODE]")
+            print(f"[GMAIL SMTP DISPATCH LOG - PENDING SMTP CREDENTIALS]")
             print(f"To: {to_email}")
             print(f"Subject: {subject}")
             print(f"Body:\n{body}")
-            print(f"Note: Set SMTP_USERNAME & SMTP_PASSWORD in environment to deliver via Gmail.")
+            print(f"Notice: Set SMTP_USERNAME & SMTP_PASSWORD in backend/.env to send directly to Gmail inboxes.")
             print(f"==========================================\n")
-            return True, "OTP email dispatched to debug console (set SMTP_USERNAME & SMTP_PASSWORD for live Gmail delivery)."
+            return True, "OTP generated and logged to backend. Add SMTP credentials to backend/.env to deliver to Gmail."
 
         try:
             context = ssl.create_default_context()
