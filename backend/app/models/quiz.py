@@ -23,9 +23,10 @@ def generate_uuid() -> str:
 
 
 class DifficultyEnum(str, enum.Enum):
-    EASY = "easy"
-    MEDIUM = "medium"
-    HARD = "hard"
+    BASIC = "BASIC"
+    EASY = "EASY"
+    MEDIUM = "MEDIUM"
+    HARD = "HARD"
 
 
 class Quiz(Base):

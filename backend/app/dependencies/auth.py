@@ -109,3 +109,18 @@ async def get_current_student(
             detail="Student profile not found.",
         )
     return student_profile
+
+
+async def get_optional_student(
+    credentials: Optional[HTTPAuthorizationCredentials] = Depends(security_bearer),
+    db: Session = Depends(get_db),
+) -> Optional[StudentProfile]:
+    if not credentials:
+        return None
+    try:
+        user = await get_current_user(credentials, db)
+        if user and user.role == RoleEnum.STUDENT:
+            return db.query(StudentProfile).filter(StudentProfile.user_id == user.id).first()
+    except Exception:
+        pass
+    return None

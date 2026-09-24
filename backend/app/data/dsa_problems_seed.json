@@ -1,0 +1,278 @@
+[
+  {
+    "id": "dsa-1",
+    "problem_num": 1,
+    "title": "Largest in Array",
+    "category": "Arrays",
+    "difficulty": "Basic",
+    "description": "Given an array arr[]. The task is to find the largest element and return it.",
+    "input_format": "An integer array arr[]",
+    "output_format": "Return the maximum element in the array",
+    "constraints": "1 <= arr.size() <= 10^6\n0 <= arr[i] <= 10^6",
+    "time_complexity": "O(n)",
+    "space_complexity": "O(1)",
+    "company_tags": ["Amazon", "Microsoft", "Google"],
+    "examples": [
+      {
+        "input": "[1, 8, 7, 56, 90]",
+        "output": "90",
+        "explanation": "The largest element of the given array is 90."
+      },
+      {
+        "input": "[5, 5, 5, 5]",
+        "output": "5",
+        "explanation": "The largest element of the given array is 5."
+      },
+      {
+        "input": "[10]",
+        "output": "10",
+        "explanation": "There is only one element which is the largest."
+      }
+    ],
+    "starter_code": {
+      "c": "int largest(int arr[], int n) {\n    // Code Here\n}",
+      "cpp": "int largest(vector<int>& arr) {\n    // Code Here\n}",
+      "java": "static int largest(int[] arr) {\n    // Code Here\n}",
+      "python": "def largest(arr):\n    # Code Here\n    pass"
+    },
+    "test_cases": [
+      { "input": "1 8 7 56 90", "expected": "90", "is_hidden": false },
+      { "input": "5 5 5 5", "expected": "5", "is_hidden": false }
+    ],
+    "hidden_test_cases": [
+      { "input": "10", "expected": "10", "is_hidden": true },
+      { "input": "100 200 50 400 300", "expected": "400", "is_hidden": true }
+    ]
+  },
+  {
+    "id": "dsa-2",
+    "problem_num": 2,
+    "title": "Reverse a String",
+    "category": "Strings",
+    "difficulty": "Easy",
+    "description": "You are given a string s. You need to reverse the string and return the reversed result.",
+    "input_format": "A single string s",
+    "output_format": "Reversed string",
+    "constraints": "1 <= |s| <= 10^5",
+    "time_complexity": "O(n)",
+    "space_complexity": "O(1)",
+    "company_tags": ["Flipkart", "Adobe"],
+    "examples": [
+      {
+        "input": "Geeks",
+        "output": "skeeG",
+        "explanation": "The reverse of Geeks is skeeG."
+      }
+    ],
+    "starter_code": {
+      "c": "void reverseString(char* s) {\n    // Code Here\n}",
+      "cpp": "string reverseString(string s) {\n    // Code Here\n}",
+      "java": "static String reverseString(String s) {\n    // Code Here\n}",
+      "python": "def reverse_string(s):\n    # Code Here\n    pass"
+    },
+    "test_cases": [
+      { "input": "Geeks", "expected": "skeeG", "is_hidden": false }
+    ],
+    "hidden_test_cases": [
+      { "input": "SkillExa", "expected": "axEllikS", "is_hidden": true }
+    ]
+  },
+  {
+    "id": "dsa-3",
+    "problem_num": 3,
+    "title": "Binary Search",
+    "category": "Searching",
+    "difficulty": "Basic",
+    "description": "Given a sorted array arr[] and an integer k, return the index of k if present in the array. Otherwise, return -1.",
+    "input_format": "Sorted integer array arr[] and target key k",
+    "output_format": "Index of k (0-based) or -1",
+    "constraints": "1 <= arr.size() <= 10^5\n1 <= k <= 10^6",
+    "time_complexity": "O(log n)",
+    "space_complexity": "O(1)",
+    "company_tags": ["TCS", "Infosys", "Wipro"],
+    "examples": [
+      {
+        "input": "arr = [1, 2, 3, 4, 5], k = 4",
+        "output": "3",
+        "explanation": "4 is present at index 3."
+      }
+    ],
+    "starter_code": {
+      "c": "int binarySearch(int arr[], int n, int k) {\n    // Code Here\n}",
+      "cpp": "int binarySearch(vector<int>& arr, int k) {\n    // Code Here\n}",
+      "java": "static int binarySearch(int[] arr, int k) {\n    // Code Here\n}",
+      "python": "def binary_search(arr, k):\n    # Code Here\n    pass"
+    },
+    "test_cases": [
+      { "input": "1 2 3 4 5\n4", "expected": "3", "is_hidden": false }
+    ],
+    "hidden_test_cases": [
+      { "input": "10 20 30 40 50\n25", "expected": "-1", "is_hidden": true }
+    ]
+  },
+  {
+    "id": "dsa-4",
+    "problem_num": 4,
+    "title": "Check for Palindrome String",
+    "category": "Strings",
+    "difficulty": "Basic",
+    "description": "Given a string S, check if it is a palindrome or not. Return 1 if palindrome, 0 otherwise.",
+    "input_format": "String S",
+    "output_format": "1 or 0",
+    "constraints": "1 <= |S| <= 10^5",
+    "time_complexity": "O(n)",
+    "space_complexity": "O(1)",
+    "company_tags": ["Paytm", "Zoho"],
+    "examples": [
+      {
+        "input": "abba",
+        "output": "1",
+        "explanation": "abba is a palindrome."
+      }
+    ],
+    "starter_code": {
+      "c": "int isPalindrome(char s[]) {\n    // Code Here\n}",
+      "cpp": "int isPalindrome(string S) {\n    // Code Here\n}",
+      "java": "static int isPalindrome(String S) {\n    // Code Here\n}",
+      "python": "def is_palindrome(s):\n    # Code Here\n    pass"
+    },
+    "test_cases": [
+      { "input": "abba", "expected": "1", "is_hidden": false }
+    ],
+    "hidden_test_cases": [
+      { "input": "abc", "expected": "0", "is_hidden": true }
+    ]
+  },
+  {
+    "id": "dsa-5",
+    "problem_num": 5,
+    "title": "Bubble Sort",
+    "category": "Sorting",
+    "difficulty": "Easy",
+    "description": "Given an array arr[] of size N, sort the array in ascending order using Bubble Sort algorithm.",
+    "input_format": "Array arr[] and size N",
+    "output_format": "Sorted array elements separated by space",
+    "constraints": "1 <= N <= 10^4",
+    "time_complexity": "O(n^2)",
+    "space_complexity": "O(1)",
+    "company_tags": ["HCL", "Cognizant"],
+    "examples": [
+      {
+        "input": "N = 5, arr = [4, 1, 3, 9, 7]",
+        "output": "1 3 4 7 9",
+        "explanation": "Sorted order is 1 3 4 7 9."
+      }
+    ],
+    "starter_code": {
+      "c": "void bubbleSort(int arr[], int n) {\n    // Code Here\n}",
+      "cpp": "void bubbleSort(vector<int>& arr) {\n    // Code Here\n}",
+      "java": "static void bubbleSort(int[] arr) {\n    // Code Here\n}",
+      "python": "def bubble_sort(arr):\n    # Code Here\n    pass"
+    },
+    "test_cases": [
+      { "input": "4 1 3 9 7", "expected": "1 3 4 7 9", "is_hidden": false }
+    ],
+    "hidden_test_cases": [
+      { "input": "10 9 8 7 6", "expected": "6 7 8 9 10", "is_hidden": true }
+    ]
+  },
+  {
+    "id": "dsa-6",
+    "problem_num": 6,
+    "title": "Middle of a Linked List",
+    "category": "Linked List",
+    "difficulty": "Easy",
+    "description": "Given the head of a singly linked list, return the middle node of the linked list.",
+    "input_format": "Linked list elements",
+    "output_format": "Value of middle node",
+    "constraints": "1 <= Number of Nodes <= 10^5",
+    "time_complexity": "O(n)",
+    "space_complexity": "O(1)",
+    "company_tags": ["Amazon", "Meta"],
+    "examples": [
+      {
+        "input": "1 -> 2 -> 3 -> 4 -> 5",
+        "output": "3",
+        "explanation": "The middle node is 3."
+      }
+    ],
+    "starter_code": {
+      "c": "int getMiddle(Node* head) {\n    // Code Here\n}",
+      "cpp": "int getMiddle(Node* head) {\n    // Code Here\n}",
+      "java": "static int getMiddle(Node head) {\n    // Code Here\n}",
+      "python": "def get_middle(head):\n    # Code Here\n    pass"
+    },
+    "test_cases": [
+      { "input": "1 2 3 4 5", "expected": "3", "is_hidden": false }
+    ],
+    "hidden_test_cases": [
+      { "input": "1 2 3 4 5 6", "expected": "4", "is_hidden": true }
+    ]
+  },
+  {
+    "id": "dsa-7",
+    "problem_num": 7,
+    "title": "Implement Stack using Array",
+    "category": "Stack",
+    "difficulty": "Easy",
+    "description": "Implement a Stack data structure with push and pop operations.",
+    "input_format": "Sequence of operations",
+    "output_format": "Popped values",
+    "constraints": "1 <= Queries <= 10^4",
+    "time_complexity": "O(1) per operation",
+    "space_complexity": "O(N)",
+    "company_tags": ["Samsung", "Oracle"],
+    "examples": [
+      {
+        "input": "push(2), push(3), pop(), push(4), pop()",
+        "output": "3 4",
+        "explanation": "First pop gives 3, second pop gives 4."
+      }
+    ],
+    "starter_code": {
+      "c": "void push(int x); int pop();",
+      "cpp": "class MyStack {\npublic:\n    void push(int x);\n    int pop();\n};",
+      "java": "class MyStack {\n    void push(int a) {}\n    int pop() { return -1; }\n}",
+      "python": "class MyStack:\n    def push(self, x):\n        pass\n    def pop(self):\n        pass"
+    },
+    "test_cases": [
+      { "input": "push 2 push 3 pop push 4 pop", "expected": "3 4", "is_hidden": false }
+    ],
+    "hidden_test_cases": [
+      { "input": "pop", "expected": "-1", "is_hidden": true }
+    ]
+  },
+  {
+    "id": "dsa-8",
+    "problem_num": 8,
+    "title": "Fibonacci Series using Recursion",
+    "category": "Recursion",
+    "difficulty": "Basic",
+    "description": "Given an integer n, calculate the nth Fibonacci number using recursion.",
+    "input_format": "Integer n",
+    "output_format": "nth Fibonacci number",
+    "constraints": "0 <= n <= 30",
+    "time_complexity": "O(2^n)",
+    "space_complexity": "O(n)",
+    "company_tags": ["IBM", "Accenture"],
+    "examples": [
+      {
+        "input": "n = 5",
+        "output": "5",
+        "explanation": "Fibonacci sequence: 0, 1, 1, 2, 3, 5."
+      }
+    ],
+    "starter_code": {
+      "c": "int fibonacci(int n) {\n    // Code Here\n}",
+      "cpp": "int fibonacci(int n) {\n    // Code Here\n}",
+      "java": "static int fibonacci(int n) {\n    // Code Here\n}",
+      "python": "def fibonacci(n):\n    # Code Here\n    pass"
+    },
+    "test_cases": [
+      { "input": "5", "expected": "5", "is_hidden": false }
+    ],
+    "hidden_test_cases": [
+      { "input": "8", "expected": "21", "is_hidden": true }
+    ]
+  }
+]

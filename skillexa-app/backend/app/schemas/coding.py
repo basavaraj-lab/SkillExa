@@ -36,19 +36,26 @@ class CreateCodingProblemRequest(BaseModel):
 
 class CodingProblemResponse(BaseModel):
     id: str
+    problem_num: int = 1
     title: str
     description: str
     language: str
-    difficulty: DifficultyEnum
+    difficulty: Any
     topic: str
     subtopic: Optional[str] = None
     constraints: Optional[str] = None
     input_format: Optional[str] = None
     output_format: Optional[str] = None
+    time_complexity: Optional[str] = None
+    space_complexity: Optional[str] = None
+    company_tags: List[str] = []
     examples: List[Dict[str, Any]] = []
     starter_code: str
-    points: int
+    starter_code_map: Dict[str, str] = {}
+    test_cases: List[Dict[str, Any]] = []
+    points: int = 10
     created_at: datetime
+    is_solved: bool = False
 
     class Config:
         from_attributes = True
@@ -87,3 +94,19 @@ class SubmissionResultResponse(BaseModel):
     output_logs: Optional[str] = None
     error_message: Optional[str] = None
     created_at: datetime
+
+
+class DsaCategoryProgress(BaseModel):
+    category: str
+    solved: int
+    total: int
+
+
+class DsaProgressResponse(BaseModel):
+    total_problems: int
+    solved_problems: int
+    unsolved_problems: int
+    progress_percentage: float
+    streak: int
+    categories: List[DsaCategoryProgress]
+

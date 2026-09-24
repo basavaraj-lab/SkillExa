@@ -36,24 +36,31 @@ class CodingProblem(Base):
     __tablename__ = "coding_problems"
 
     id = Column(String(36), primary_key=True, default=generate_uuid, index=True)
+    problem_num = Column(Integer, default=1, index=True)
     title = Column(String(255), nullable=False, index=True)
     description = Column(Text, nullable=False)
     
-    language = Column(String(50), nullable=False, index=True)  # 'c', 'cpp', 'java', 'python', 'javascript', 'html_css', 'react_native'
+    language = Column(String(50), nullable=False, default="python", index=True)  # 'c', 'cpp', 'java', 'python', 'javascript'
     difficulty = Column(Enum(DifficultyEnum), default=DifficultyEnum.MEDIUM, nullable=False, index=True)
-    topic = Column(String(100), nullable=False, index=True)  # e.g., 'Arrays', 'Linked List', 'Pointers'
+    category = Column(String(100), nullable=False, default="Arrays", index=True)
+    topic = Column(String(100), nullable=False, default="Arrays", index=True)  # e.g., 'Arrays', 'Strings', 'Linked List', etc.
     subtopic = Column(String(100), nullable=True)
     
     constraints = Column(Text, nullable=True)
     input_format = Column(Text, nullable=True)
     output_format = Column(Text, nullable=True)
+    time_complexity = Column(String(100), nullable=True)
+    space_complexity = Column(String(100), nullable=True)
+    company_tags = Column(JSON, default=list, nullable=False)
     
     examples = Column(JSON, default=list, nullable=False)  # List of {input, output, explanation}
-    starter_code = Column(Text, nullable=False)
+    starter_code = Column(Text, nullable=False)  # Default/fallback starter code
+    starter_code_map = Column(JSON, default=dict, nullable=False)  # {"c": "...", "cpp": "...", "java": "...", "python": "..."}
     solution_code = Column(Text, nullable=True)
     
     # Test cases array: list of {input: str, expected: str, is_hidden: bool}
     test_cases = Column(JSON, default=list, nullable=False)
+    hidden_test_cases = Column(JSON, default=list, nullable=False)
     
     points = Column(Integer, default=10, nullable=False)
     order_index = Column(Integer, default=0)

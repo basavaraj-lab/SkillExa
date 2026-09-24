@@ -289,6 +289,33 @@ export const ApiClient = {
     request<any>(`/topics/${topicId}/complete?score=${score}&language=${language}`, {
       method: 'POST',
     }),
+
+  // 10. DSA Practice & Problem Solving Module
+  getDsaProblems: (params?: { search?: string; category?: string; difficulty?: string; language?: string; solved_status?: string }) => {
+    const query = new URLSearchParams();
+    if (params?.search) query.append('search', params.search);
+    if (params?.category) query.append('category', params.category);
+    if (params?.difficulty) query.append('difficulty', params.difficulty);
+    if (params?.language) query.append('language', params.language);
+    if (params?.solved_status) query.append('solved_status', params.solved_status);
+    return request<any[]>(`/coding/problems?${query.toString()}`);
+  },
+
+  getDsaProblemById: (id: string) => request<any>(`/coding/problems/${id}`),
+
+  executeDsaCode: (language: string, code: string, customInput?: string) =>
+    request<any>('/coding/execute', {
+      method: 'POST',
+      body: JSON.stringify({ language, code, custom_input: customInput }),
+    }),
+
+  submitDsaCode: (problemId: string, language: string, code: string) =>
+    request<any>('/coding/submit', {
+      method: 'POST',
+      body: JSON.stringify({ problem_id: problemId, language, code }),
+    }),
+
+  getDsaProgress: () => request<any>('/coding/progress'),
 };
 
 /**
