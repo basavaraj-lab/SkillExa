@@ -12,18 +12,36 @@ import {
   TouchableOpacity,
   View,
 } from 'react-native';
-import { PYTHON_FUNDAMENTALS_17_TOPICS, TopicItem } from '../data/topicCatalogData';
+import {
+  C_ALL_54_TOPICS,
+  CPP_ALL_73_TOPICS,
+  JAVA_ALL_120_TOPICS,
+  JS_ALL_108_TOPICS,
+  PYTHON_ALL_67_TOPICS,
+  TopicItem,
+} from '../data/topicCatalogData';
 import { ApiClient } from '../services/api';
 
 const { width } = Dimensions.get('window');
 const isDesktop = width > 768;
 
+export const getLanguageDetails = (langKey: string) => {
+  const l = (langKey || 'python').toLowerCase();
+  if (l === 'c') return { title: 'C Track (54 Topics)', dataset: C_ALL_54_TOPICS };
+  if (l === 'cpp' || l === 'c++') return { title: 'C++ Track (73 Topics)', dataset: CPP_ALL_73_TOPICS };
+  if (l === 'java') return { title: 'Java Track (120 Topics)', dataset: JAVA_ALL_120_TOPICS };
+  if (l === 'js' || l === 'javascript') return { title: 'JavaScript Track (108 Topics)', dataset: JS_ALL_108_TOPICS };
+  return { title: 'Python Track (67 Topics)', dataset: PYTHON_ALL_67_TOPICS };
+};
+
 export default function CodingProblemsPage() {
   const params = useLocalSearchParams<{ language?: string }>();
   const initialLanguage = (typeof params.language === 'string' && params.language) ? params.language.toLowerCase() : 'python';
   const [selectedLanguage, setSelectedLanguage] = useState<string>(initialLanguage);
-  const [topics, setTopics] = useState<TopicItem[]>(PYTHON_FUNDAMENTALS_17_TOPICS);
-  const [categoryName, setCategoryName] = useState<string>('Python Track (67 Topics)');
+  
+  const initialInfo = getLanguageDetails(initialLanguage);
+  const [topics, setTopics] = useState<TopicItem[]>(initialInfo.dataset);
+  const [categoryName, setCategoryName] = useState<string>(initialInfo.title);
 
   useEffect(() => {
     if (params.language && typeof params.language === 'string') {
@@ -44,20 +62,28 @@ export default function CodingProblemsPage() {
 
   useEffect(() => {
     let isMounted = true;
+    const currentInfo = getLanguageDetails(selectedLanguage);
+    setCategoryName(currentInfo.title);
+    setTopics(currentInfo.dataset);
+
     ApiClient.getTopics(selectedLanguage).then((res) => {
-      if (isMounted && res.success && res.data && res.data.topics) {
-        setCategoryName(res.data.category_name || `${selectedLanguage.toUpperCase()} Track (${res.data.topics.length} Topics)`);
-        setTopics(
-          res.data.topics.map((t: any) => ({
-            id: t.id,
-            title: t.title,
-            status: t.status,
-            completeness: t.completeness,
-            isUnlocked: t.is_unlocked,
-            difficulty: t.difficulty,
-            duration: t.duration,
-          }))
-        );
+      if (isMounted && res && res.success) {
+        const resTopics = res.data?.topics || (Array.isArray(res.data) ? res.data : null);
+        if (resTopics && resTopics.length > 0) {
+          const apiCatName = res.data?.category_name || `${selectedLanguage.toUpperCase()} Track (${resTopics.length} Topics)`;
+          setCategoryName(apiCatName);
+          setTopics(
+            resTopics.map((t: any) => ({
+              id: t.id,
+              title: t.title,
+              status: t.status,
+              completeness: t.completeness,
+              isUnlocked: t.is_unlocked,
+              difficulty: t.difficulty,
+              duration: t.duration,
+            }))
+          );
+        }
       }
     });
     return () => {

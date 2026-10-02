@@ -182,8 +182,8 @@ def _run_java_code(code: str, inputs: str | None = None) -> dict[str, object]:
 
 # --- REST ENDPOINTS FOR JAVA CATALOG & PROGRESS ---
 
-@router.get("/api/topics")
 @router.get("/api/java/topics")
+@router.get("/java/api/topics")
 def get_java_topics_api(student_id: str = "1", db: Session = Depends(get_db)) -> dict[str, object]:
     """Return all 120 Java topics grouped by module with student unlock status and completeness."""
     modules_map: dict[str, list[dict[str, object]]] = {}

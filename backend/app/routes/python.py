@@ -69,8 +69,8 @@ def _run_python_code(code: str, inputs: str | None = None) -> dict[str, object]:
 
 # --- API ENDPOINTS FOR PYTHON TRACK CATALOG & PROGRESS ---
 
-@router.get("/api/topics")
 @router.get("/api/python/topics")
+@router.get("/python/api/topics")
 def get_python_topics_api(student_id: str = "1", db: Session = Depends(get_db)) -> dict[str, object]:
     """Return all 23 Python topics grouped by module with student unlock status and completeness."""
     modules_map: dict[str, list[dict[str, object]]] = {}

@@ -119,8 +119,8 @@ def _run_js_code(code: str, inputs: str | None = None) -> dict[str, object]:
 
 # --- REST ENDPOINTS FOR JS CATALOG & PROGRESS ---
 
-@router.get("/api/topics")
 @router.get("/api/js/topics")
+@router.get("/js/api/topics")
 def get_js_topics_api(student_id: str = "1", db: Session = Depends(get_db)) -> dict[str, object]:
     """Return all 101 JavaScript topics grouped by module with student unlock status and completeness."""
     modules_map: dict[str, list[dict[str, object]]] = {}

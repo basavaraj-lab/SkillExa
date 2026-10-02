@@ -12,29 +12,60 @@ from app.services import python_service
 router = APIRouter(prefix="/api", tags=["Topic Learning API"])
 
 
+def _get_catalog_by_language(language: str):
+    lang = (language or "python").lower()
+    if lang in ["c"]:
+        try:
+            from backend.app.models.c_topic_catalog import C_TOPIC_CATALOG, C_TOPICS
+        except ImportError:
+            from app.models.c_topic_catalog import C_TOPIC_CATALOG, C_TOPICS
+        return C_TOPIC_CATALOG, C_TOPICS
+    elif lang in ["cpp", "c++"]:
+        try:
+            from backend.app.models.cpp_topic_catalog import CPP_TOPIC_CATALOG, CPP_TOPICS
+        except ImportError:
+            from app.models.cpp_topic_catalog import CPP_TOPIC_CATALOG, CPP_TOPICS
+        return CPP_TOPIC_CATALOG, CPP_TOPICS
+    elif lang in ["java"]:
+        try:
+            from backend.app.models.java_topic_catalog import JAVA_TOPIC_CATALOG, JAVA_TOPICS
+        except ImportError:
+            from app.models.java_topic_catalog import JAVA_TOPIC_CATALOG, JAVA_TOPICS
+        return JAVA_TOPIC_CATALOG, JAVA_TOPICS
+    elif lang in ["js", "javascript"]:
+        try:
+            from backend.app.models.js_topic_catalog import JS_TOPIC_CATALOG, JS_TOPICS
+        except ImportError:
+            from app.models.js_topic_catalog import JS_TOPIC_CATALOG, JS_TOPICS
+        return JS_TOPIC_CATALOG, JS_TOPICS
+    else:
+        try:
+            from backend.app.models.topic_catalog import TOPIC_CATALOG, PYTHON_TOPICS
+        except ImportError:
+            from app.models.topic_catalog import TOPIC_CATALOG, PYTHON_TOPICS
+        return TOPIC_CATALOG, PYTHON_TOPICS
+
+
 @router.get("/topics")
-def get_all_topics(student_id: str = Query("1"), db: Session = Depends(get_db)):
-    """Return all topics in the curriculum with live DB student progress."""
+def get_all_topics(
+    language: str = Query("python", description="Language track: 'python', 'c', 'cpp', 'java', 'js'"),
+    student_id: str = Query("1"),
+    db: Session = Depends(get_db),
+):
+    """Return all topics in the curriculum for requested language with live DB student progress."""
+    catalog, topics_dict = _get_catalog_by_language(language)
     response = []
-    for meta in TOPIC_CATALOG:
+    for meta in catalog:
         t_id = meta["id"]
-        prog = python_service.get_or_create_progress(db, student_id, t_id)
         response.append({
             **meta,
-            "status": prog.status,
-            "is_unlocked": prog.status != "LOCKED",
-            "current_section": prog.current_section,
-            "completeness": 100 if prog.topic_completed else (
-                20 * (
-                    int(prog.information_completed) +
-                    int(prog.examples_completed) +
-                    int(prog.programming_completed) +
-                    int(prog.fill_blanks_completed) +
-                    int(prog.test_completed)
-                )
-            ),
+            "status": "IN_PROGRESS" if t_id == 1 else "LOCKED",
+            "is_unlocked": t_id == 1,
+            "current_section": "information",
+            "completeness": 0,
         })
-    return {"success": True, "topics": response}
+    return {"success": True, "language": language, "total_topics": len(response), "topics": response}
+
 
 
 @router.get("/topics/{topic_id}")

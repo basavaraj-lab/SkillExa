@@ -114,8 +114,8 @@ def _run_c_code(code: str, inputs: str | None = None) -> dict[str, object]:
 
 # --- API ENDPOINTS FOR C TRACK CATALOG & PROGRESS ---
 
-@router.get("/api/topics")
 @router.get("/api/c/topics")
+@router.get("/c/api/topics")
 def get_c_topics_api(student_id: str = "1", db: Session = Depends(get_db)) -> dict[str, object]:
     """Return all 48 C topics grouped by module with student unlock status and completeness."""
     modules_map: dict[str, list[dict[str, object]]] = {}

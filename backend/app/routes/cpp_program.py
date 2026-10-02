@@ -114,8 +114,8 @@ def _run_cpp_code(code: str, inputs: str | None = None) -> dict[str, object]:
 
 # --- REST ENDPOINTS FOR C++ CATALOG & PROGRESS ---
 
-@router.get("/api/topics")
 @router.get("/api/cpp/topics")
+@router.get("/cpp/api/topics")
 def get_cpp_topics_api(student_id: str = "1", db: Session = Depends(get_db)) -> dict[str, object]:
     """Return all 70 C++ topics grouped by module with student unlock status and completeness."""
     modules_map: dict[str, list[dict[str, object]]] = {}

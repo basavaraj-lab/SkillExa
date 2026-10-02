@@ -13,26 +13,36 @@ COMPLETED_TOPICS: Dict[str, set] = defaultdict(set)
 def get_language_catalog(language: str):
     lang = (language or "python").lower()
     if lang in ["c"]:
-        from backend.app.models.c_topic_catalog import C_TOPIC_CATALOG, C_TOPIC_CORE
-        return C_TOPIC_CATALOG, C_TOPIC_CORE, "C Programming Track"
+        try:
+            from backend.app.models.c_topic_catalog import C_TOPIC_CATALOG, C_TOPICS
+        except ImportError:
+            from app.models.c_topic_catalog import C_TOPIC_CATALOG, C_TOPICS
+        return C_TOPIC_CATALOG, C_TOPICS, "C Programming Track"
     elif lang in ["cpp", "c++"]:
-        from backend.app.models.cpp_topic_catalog import CPP_TOPIC_CATALOG
-        import backend.app.models.cpp_topic_catalog as cpp_mod
-        cpp_core = getattr(cpp_mod, "CPP_TOPIC_CORE", {})
-        return CPP_TOPIC_CATALOG, cpp_core, "C++ Programming Track"
+        try:
+            from backend.app.models.cpp_topic_catalog import CPP_TOPIC_CATALOG, CPP_TOPICS
+        except ImportError:
+            from app.models.cpp_topic_catalog import CPP_TOPIC_CATALOG, CPP_TOPICS
+        return CPP_TOPIC_CATALOG, CPP_TOPICS, "C++ Programming Track"
     elif lang in ["java"]:
-        from backend.app.models.java_topic_catalog import JAVA_TOPIC_CATALOG
-        import backend.app.models.java_topic_catalog as java_mod
-        java_core = getattr(java_mod, "JAVA_TOPIC_CORE", {})
-        return JAVA_TOPIC_CATALOG, java_core, "Java Track"
+        try:
+            from backend.app.models.java_topic_catalog import JAVA_TOPIC_CATALOG, JAVA_TOPICS
+        except ImportError:
+            from app.models.java_topic_catalog import JAVA_TOPIC_CATALOG, JAVA_TOPICS
+        return JAVA_TOPIC_CATALOG, JAVA_TOPICS, "Java Track"
     elif lang in ["js", "javascript"]:
-        from backend.app.models.js_topic_catalog import JS_TOPIC_CATALOG
-        import backend.app.models.js_topic_catalog as js_mod
-        js_core = getattr(js_mod, "JS_TOPIC_CORE", {})
-        return JS_TOPIC_CATALOG, js_core, "JavaScript Track"
+        try:
+            from backend.app.models.js_topic_catalog import JS_TOPIC_CATALOG, JS_TOPICS
+        except ImportError:
+            from app.models.js_topic_catalog import JS_TOPIC_CATALOG, JS_TOPICS
+        return JS_TOPIC_CATALOG, JS_TOPICS, "JavaScript Track"
     else:
-        from backend.app.models.topic_catalog import TOPIC_CATALOG, TOPIC_CORE
-        return TOPIC_CATALOG, TOPIC_CORE, "Python Track"
+        try:
+            from backend.app.models.topic_catalog import TOPIC_CATALOG, PYTHON_TOPICS
+        except ImportError:
+            from app.models.topic_catalog import TOPIC_CATALOG, PYTHON_TOPICS
+        return TOPIC_CATALOG, PYTHON_TOPICS, "Python Track"
+
 
 
 @router.get("", response_model=ApiResponse[Dict[str, Any]])
