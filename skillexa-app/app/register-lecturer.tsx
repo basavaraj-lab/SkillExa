@@ -812,6 +812,28 @@ const styles = StyleSheet.create({
     textAlign: "center",
     lineHeight: 16,
   },
+  otpVerificationCard: {
+    borderRadius: 12,
+    borderWidth: 1,
+    padding: 12,
+    marginBottom: 12,
+  },
+  otpHeaderRow: {
+    marginBottom: 8,
+  },
+  otpCardTitle: {
+    fontSize: 14,
+    fontWeight: "700",
+    color: "#FFFFFF",
+    marginBottom: 4,
+  },
+  otpTimerText: {
+    fontSize: 12,
+    color: Palette.textSecondaryDark,
+  },
+  timerHighlight: {
+    fontWeight: "700",
+  },
   otpInputHighlight: {
     borderColor: Palette.purpleLight,
     backgroundColor: "rgba(139, 92, 246, 0.1)",
@@ -821,6 +843,9 @@ const styles = StyleSheet.create({
     paddingVertical: 6,
     backgroundColor: "rgba(139, 92, 246, 0.2)",
     borderRadius: 8,
+  },
+  resendBtnDisabled: {
+    opacity: 0.5,
   },
   resendBtnText: {
     color: Palette.purpleLight,

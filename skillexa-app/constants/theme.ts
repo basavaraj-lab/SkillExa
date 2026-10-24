@@ -111,6 +111,20 @@ export const Colors = {
 };
 
 export const Shadows = {
+  sm: {
+    shadowColor: '#0F172A',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.04,
+    shadowRadius: 4,
+    elevation: 2,
+  },
+  md: {
+    shadowColor: '#0F172A',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.08,
+    shadowRadius: 8,
+    elevation: 3,
+  },
   card: {
     shadowColor: '#0F172A',
     shadowOffset: { width: 0, height: 1 },
@@ -135,6 +149,10 @@ export const Shadows = {
 };
 
 export const Radii = {
+  sm: 8,
+  md: 12,
+  lg: 16,
+  full: 999,
   button: 12,
   card: 18,
   cardLarge: 20,

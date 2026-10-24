@@ -55,6 +55,14 @@ class Settings(BaseSettings):
     SMTP_PASSWORD: str = ""
     SMTP_FROM_EMAIL: str = ""
 
+    # AI Mock Interview Settings
+    AI_PROVIDER: str = "auto"  # 'auto', 'gemini', 'openai', 'custom_http', or 'deterministic'
+    AI_DEFAULT_QUESTIONS_COUNT: int = 5
+    AI_MAX_QUESTIONS_COUNT: int = 15
+    GEMINI_API_KEY: str = ""
+    OPENAI_API_KEY: str = ""
+    WIKIPEDIA_INTEGRATION_ENABLED: bool = True
+
     class Config:
         env_file = os.path.join(os.path.dirname(__file__), "..", ".env")
         env_file_encoding = "utf-8"

@@ -22,6 +22,21 @@ from backend.app.models.interview import (
     InterviewTypeEnum,
     InterviewStatusEnum,
 )
+from backend.app.models.ai_interview import (
+    AIQuestionBank,
+    AIInterviewSession,
+    AIInterviewQuestion,
+    AIInterviewAnswer,
+    AIInterviewReport,
+    EducationalKnowledgeSource,
+    InterviewCategoryEnum,
+    InterviewDifficultyEnum,
+    ExperienceLevelEnum,
+    InterviewModeEnum,
+    SessionStatusEnum,
+    EvaluationStatusEnum,
+    QuestionValidationStatusEnum,
+)
 from backend.app.models.notification import Notification, StudentProgress, NotificationTypeEnum
 
 __all__ = [
@@ -58,6 +73,19 @@ __all__ = [
     "VideoSession",
     "InterviewTypeEnum",
     "InterviewStatusEnum",
+    "AIQuestionBank",
+    "AIInterviewSession",
+    "AIInterviewQuestion",
+    "AIInterviewAnswer",
+    "AIInterviewReport",
+    "EducationalKnowledgeSource",
+    "InterviewCategoryEnum",
+    "InterviewDifficultyEnum",
+    "ExperienceLevelEnum",
+    "InterviewModeEnum",
+    "SessionStatusEnum",
+    "EvaluationStatusEnum",
+    "QuestionValidationStatusEnum",
     "Notification",
     "StudentProgress",
     "NotificationTypeEnum",

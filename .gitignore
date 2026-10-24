@@ -4,3 +4,7 @@ __pycache__/
 .DS_Store
 *.exe
 competative-skillexa/
+backend/uploads/
+.pytest_cache/
+*.mp3
+*.wav

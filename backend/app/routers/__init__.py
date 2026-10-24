@@ -13,6 +13,7 @@ from backend.app.routers.interviews import router as interviews_router
 from backend.app.routers.notifications import router as notifications_router
 from backend.app.routers.progress import router as progress_router
 from backend.app.routers.topics import router as topics_router
+from backend.app.routers.ai_interview import router as ai_interview_router
 
 __all__ = [
     "auth_router",
@@ -30,4 +31,5 @@ __all__ = [
     "notifications_router",
     "progress_router",
     "topics_router",
+    "ai_interview_router",
 ]

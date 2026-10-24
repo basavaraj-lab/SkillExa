@@ -15,6 +15,7 @@ import {
 } from "react-native";
 import { useAuth, UserRole } from "../components/auth-context";
 import { Palette, Radii, Shadows } from "../constants/theme";
+import { ApiClient } from "../services/api";
 
 import { signInWithEmailAndPassword, createUserWithEmailAndPassword, signInWithPopup } from 'firebase/auth';
 import { auth, googleProvider } from '../services/firebase';
@@ -63,6 +64,13 @@ export default function LoginScreen() {
         verificationStatus: "APPROVED",
       });
 
+      // Synchronize with FastAPI backend session
+      try {
+        const backendEmail = role === "FACULTY" ? "dr.ramesh@kvgce.edu.in" : "ganesh@kvgce.edu.in";
+        const backendPassword = role === "FACULTY" ? "faculty123" : "student123";
+        await ApiClient.login(backendEmail, backendPassword);
+      } catch (e) {}
+
       setIsLoading(false);
       if (role === "FACULTY") {
         router.replace("/faculty-dashboard" as any);
@@ -98,7 +106,14 @@ export default function LoginScreen() {
         }
       }
 
-      // 2. Log in through SkillExa Auth Context
+      // 2. Synchronize with FastAPI backend session
+      try {
+        const backendEmail = role === "FACULTY" ? "dr.ramesh@kvgce.edu.in" : "ganesh@kvgce.edu.in";
+        const backendPassword = role === "FACULTY" ? "faculty123" : "student123";
+        await ApiClient.login(backendEmail, backendPassword);
+      } catch (e) {}
+
+      // 3. Log in through SkillExa Auth Context
       if (role === "FACULTY") {
         login({
           id: firebaseUid || "fac-101",

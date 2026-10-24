@@ -23,6 +23,7 @@ from backend.app.models.note import FacultyNote
 from backend.app.models.quiz import Quiz
 from backend.app.models.user import User
 from backend.app.routers import (
+    ai_interview_router,
     assignments_router,
     auth_router,
     coding_router,
@@ -85,6 +86,7 @@ app.include_router(questions_router, prefix=settings.API_V1_STR)
 app.include_router(assignments_router, prefix=settings.API_V1_STR)
 app.include_router(coding_router, prefix=settings.API_V1_STR)
 app.include_router(interviews_router, prefix=settings.API_V1_STR)
+app.include_router(ai_interview_router, prefix=settings.API_V1_STR)
 app.include_router(notifications_router, prefix=settings.API_V1_STR)
 app.include_router(progress_router, prefix=settings.API_V1_STR)
 app.include_router(topics_router, prefix=settings.API_V1_STR)

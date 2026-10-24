@@ -26,6 +26,9 @@ def seed_database():
     db: Session = SessionLocal()
 
     try:
+        from backend.app.services.question_generation_service import QuestionGenerationService
+        QuestionGenerationService.seed_question_bank_if_empty(db)
+
         # Check if already seeded
         if db.query(College).first():
             print("Database already contains data. Skipping seed.")

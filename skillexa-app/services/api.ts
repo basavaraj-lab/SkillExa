@@ -21,6 +21,11 @@ export const getApiBaseUrl = (): string => {
   if (process.env.EXPO_PUBLIC_API_URL) {
     return `${process.env.EXPO_PUBLIC_API_URL.replace(/\/+$/, '')}/api`;
   }
+  if (Platform.OS === 'web' && typeof window !== 'undefined' && window.location?.hostname) {
+    const host = window.location.hostname;
+    const protocol = window.location.protocol || 'http:';
+    return `${protocol}//${host}:8000/api`;
+  }
   return Platform.select({
     android: 'http://10.0.2.2:8000/api', // Android Emulator default
     ios: 'http://localhost:8000/api',     // iOS Simulator default
@@ -30,16 +35,79 @@ export const getApiBaseUrl = (): string => {
 
 let authToken: string | null = null;
 
+// Initialize token from localStorage if in web environment
+if (typeof window !== 'undefined' && window.localStorage) {
+  try {
+    const stored = window.localStorage.getItem('skillexa_jwt_token');
+    if (stored && stored !== 'null' && stored !== 'undefined') {
+      authToken = stored;
+    }
+  } catch (e) {}
+}
+
 export const setAuthToken = (token: string | null) => {
   authToken = token;
+  if (typeof window !== 'undefined' && window.localStorage) {
+    try {
+      if (token) {
+        window.localStorage.setItem('skillexa_jwt_token', token);
+      } else {
+        window.localStorage.removeItem('skillexa_jwt_token');
+      }
+    } catch (e) {}
+  }
 };
 
 export const getAuthToken = () => authToken;
+
+export const ensureAuthToken = async (forceRefresh = false): Promise<string | null> => {
+  if (!forceRefresh && authToken) return authToken;
+
+  if (!forceRefresh && typeof window !== 'undefined' && window.localStorage) {
+    try {
+      const saved = window.localStorage.getItem('skillexa_jwt_token');
+      if (saved && saved !== 'null' && saved !== 'undefined') {
+        authToken = saved;
+        return saved;
+      }
+    } catch (e) {}
+  }
+
+  // Clear invalid or stale token before requesting a fresh one
+  setAuthToken(null);
+
+  // Acquire active student session from backend
+  try {
+    const url = `${getApiBaseUrl()}/auth/login`;
+    const res = await fetch(url, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email: 'ganesh@kvgce.edu.in', password: 'student123' }),
+    });
+    if (res.ok) {
+      const data = await res.json();
+      if (data?.data?.access_token) {
+        setAuthToken(data.data.access_token);
+        return data.data.access_token;
+      }
+    } else {
+      console.warn('Auto-authentication responded with status:', res.status);
+    }
+  } catch (e) {
+    console.warn('Auto-authentication failed:', e);
+  }
+  return null;
+};
 
 async function request<T>(
   endpoint: string,
   options: RequestInit = {}
 ): Promise<{ success: boolean; data?: T; message?: string; code?: string; isOffline?: boolean }> {
+  // Ensure authenticated token for non-auth endpoints
+  if (!authToken && !endpoint.includes('/auth/login') && !endpoint.includes('/health')) {
+    await ensureAuthToken();
+  }
+
   const url = `${getApiBaseUrl()}${endpoint}`;
   const headers: Record<string, string> = {
     'Content-Type': 'application/json',
@@ -52,14 +120,26 @@ async function request<T>(
 
   try {
     const controller = new AbortController();
-    const timeoutId = setTimeout(() => controller.abort(), 6000); // 6s timeout
+    const timeoutId = setTimeout(() => controller.abort(), 30000); // 30s timeout for deep evaluations
 
-    const response = await fetch(url, {
+    let response = await fetch(url, {
       ...options,
       headers,
       signal: controller.signal,
     });
     clearTimeout(timeoutId);
+
+    // If unauthorized, clear token, attempt one re-login refresh and retry request
+    if (response.status === 401 && !endpoint.includes('/auth/login')) {
+      const refreshedToken = await ensureAuthToken(true);
+      if (refreshedToken) {
+        headers['Authorization'] = `Bearer ${refreshedToken}`;
+        response = await fetch(url, {
+          ...options,
+          headers,
+        });
+      }
+    }
 
     const data = await response.json();
     return data;
@@ -144,11 +224,18 @@ export const ApiClient = {
   },
 
   // 1. Authentication
-  login: (email: string, password: string) =>
-    request<any>('/auth/login', {
+  ensureAuthToken: (forceRefresh = false) => ensureAuthToken(forceRefresh),
+
+  login: async (email: string, password: string) => {
+    const res = await request<any>('/auth/login', {
       method: 'POST',
       body: JSON.stringify({ email, password }),
-    }),
+    });
+    if (res.success && res.data?.access_token) {
+      setAuthToken(res.data.access_token);
+    }
+    return res;
+  },
 
   registerStudent: (payload: any) =>
     request<any>('/auth/register/student', {
@@ -316,6 +403,71 @@ export const ApiClient = {
     }),
 
   getDsaProgress: () => request<any>('/coding/progress'),
+
+  // 7. AI Mock Interview Module
+  startAIInterview: (payload: {
+    interview_category: string;
+    job_role: string;
+    subject: string;
+    programming_language?: string;
+    difficulty: string;
+    experience_level: string;
+    total_questions: number;
+    interview_mode: string;
+    preferred_language?: string;
+    duration_minutes?: number;
+  }) =>
+    request<any>('/ai-interview/start', {
+      method: 'POST',
+      body: JSON.stringify(payload),
+    }),
+
+  getAIInterviewState: (interviewId: string) =>
+    request<any>(`/ai-interview/${interviewId}`),
+
+  submitAIAnswer: (
+    interviewId: string,
+    payload: {
+      question_id: string;
+      answer_text: string;
+      answer_mode: string;
+      speech_metrics?: any;
+    }
+  ) =>
+    request<any>(`/ai-interview/${interviewId}/answer`, {
+      method: 'POST',
+      body: JSON.stringify(payload),
+    }),
+
+  getNextAIQuestion: (interviewId: string) =>
+    request<any>(`/ai-interview/${interviewId}/next-question`, {
+      method: 'POST',
+    }),
+
+  finishAIInterview: (interviewId: string) =>
+    request<any>(`/ai-interview/${interviewId}/finish`, {
+      method: 'POST',
+    }),
+
+  getAIInterviewReport: (interviewId: string) =>
+    request<any>(`/ai-interview/${interviewId}/report`),
+
+  getAIInterviewHistory: (page = 1, limit = 20) =>
+    request<any>(`/ai-interview/history?page=${page}&limit=${limit}`),
+
+  synthesizeTTS: (text: string, voice = 'alloy', language = 'en') =>
+    request<any>('/ai-interview/tts', {
+      method: 'POST',
+      body: JSON.stringify({ text, voice, language }),
+    }),
+
+  getQuestionBank: (params?: { category?: string; subject?: string; difficulty?: string }) => {
+    const query = new URLSearchParams();
+    if (params?.category) query.append('category', params.category);
+    if (params?.subject) query.append('subject', params.subject);
+    if (params?.difficulty) query.append('difficulty', params.difficulty);
+    return request<any[]>(`/ai-interview/questions?${query.toString()}`);
+  },
 };
 
 /**

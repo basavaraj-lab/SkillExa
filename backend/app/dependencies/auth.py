@@ -60,6 +60,23 @@ async def get_current_user(
     return user
 
 
+async def get_current_user_optional(
+    credentials: Optional[HTTPAuthorizationCredentials] = Depends(security_bearer),
+    db: Session = Depends(get_db),
+) -> Optional[User]:
+    """Optionally validate Bearer token without rejecting unauthenticated requests."""
+    if not credentials:
+        return None
+    token = credentials.credentials
+    payload = decode_access_token(token)
+    if not payload:
+        return None
+    user_id = payload.get("sub")
+    if not user_id:
+        return None
+    return db.query(User).filter(User.id == user_id, User.is_active == True).first()
+
+
 def require_role(allowed_roles: List[RoleEnum]):
     """Enforce role-based access control."""
     def role_checker(current_user: User = Depends(get_current_user)) -> User:
