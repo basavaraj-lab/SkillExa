@@ -2,6 +2,7 @@ import { Feather } from '@expo/vector-icons';
 import { router } from 'expo-router';
 import React, { useEffect, useState } from 'react';
 import {
+  Modal,
   SafeAreaView,
   ScrollView,
   StatusBar,
@@ -13,11 +14,26 @@ import {
 import { useAuth } from '../components/auth-context';
 import { AppHeader } from '../components/common/AppHeader';
 import { Palette, Radii, Shadows } from '../constants/theme';
+import { setAuthToken } from '../services/api';
 import { FacultySystemStore } from '../services/facultyStore';
 
 export default function FacultyDashboardScreen() {
-  const { profile } = useAuth();
+  const { profile, logout } = useAuth();
+  const [showLogoutModal, setShowLogoutModal] = useState(false);
   const [stats, setStats] = useState(FacultySystemStore.getStats());
+
+  const performLogout = () => {
+    setShowLogoutModal(false);
+    logout();
+    setAuthToken(null);
+    if (typeof window !== 'undefined' && window.localStorage) {
+      try {
+        window.localStorage.removeItem('skillexa_jwt_token');
+        window.localStorage.removeItem('skillexa_user_profile');
+      } catch (e) {}
+    }
+    router.replace('/login' as any);
+  };
 
   useEffect(() => {
     const unsub = FacultySystemStore.subscribe(() => {
@@ -92,12 +108,12 @@ export default function FacultyDashboardScreen() {
     },
     {
       id: 'live-interview',
-      title: 'Live Video Interview Room',
-      desc: 'Real-time WebRTC-ready video interview call with timer & rubric',
+      title: 'SkillExa Live Interview',
+      desc: 'Real human-to-human WebRTC video interviews with screen share, chat & rubric',
       icon: 'video',
       color: Palette.danger,
-      route: '/faculty/live-interview',
-      count: 'Live Room Ready',
+      route: '/live-interview',
+      count: 'Human Video Call',
     },
     {
       id: 'performance',
@@ -144,6 +160,15 @@ export default function FacultyDashboardScreen() {
                   <Feather name="check" size={10} color={Palette.success} />
                   <Text style={styles.statusText}>VERIFIED</Text>
                 </View>
+                <View style={{ flex: 1 }} />
+                <TouchableOpacity
+                  style={styles.heroSignOutBtn}
+                  onPress={() => setShowLogoutModal(true)}
+                  activeOpacity={0.7}
+                >
+                  <Feather name="log-out" size={13} color={Palette.danger} />
+                  <Text style={styles.heroSignOutText}>Sign Out</Text>
+                </TouchableOpacity>
               </View>
 
               <Text style={styles.heroTitle}>{profile.name || 'Dr. Kusumadhara S'}</Text>
@@ -226,7 +251,57 @@ export default function FacultyDashboardScreen() {
             </TouchableOpacity>
           ))}
         </View>
+
+        {/* Bottom Sign Out Card */}
+        <TouchableOpacity
+          style={styles.bottomSignOutBtn}
+          onPress={() => setShowLogoutModal(true)}
+          activeOpacity={0.7}
+        >
+          <Feather name="log-out" size={18} color={Palette.danger} />
+          <Text style={styles.bottomSignOutText}>Sign Out of Faculty Portal</Text>
+        </TouchableOpacity>
       </ScrollView>
+
+      {/* Sign Out Confirmation Modal */}
+      <Modal
+        animationType="fade"
+        transparent
+        visible={showLogoutModal}
+        onRequestClose={() => setShowLogoutModal(false)}
+      >
+        <View style={styles.modalOverlay}>
+          <View style={styles.modalCard}>
+            <View style={styles.modalIconBox}>
+              <Feather name="log-out" size={26} color={Palette.danger} />
+            </View>
+
+            <Text style={styles.modalTitle}>Sign Out</Text>
+            <Text style={styles.modalMessage}>
+              Are you sure you want to sign out of the Faculty Portal? You will need your credentials to log back in.
+            </Text>
+
+            <View style={styles.modalBtnRow}>
+              <TouchableOpacity
+                style={styles.modalCancelBtn}
+                onPress={() => setShowLogoutModal(false)}
+                activeOpacity={0.7}
+              >
+                <Text style={styles.modalCancelText}>Cancel</Text>
+              </TouchableOpacity>
+
+              <TouchableOpacity
+                style={styles.modalSignOutBtn}
+                onPress={performLogout}
+                activeOpacity={0.8}
+              >
+                <Feather name="log-out" size={16} color="#FFFFFF" />
+                <Text style={styles.modalSignOutText}>Sign Out</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </View>
+      </Modal>
     </SafeAreaView>
   );
 }
@@ -289,4 +364,115 @@ const styles = StyleSheet.create({
   modDesc: { fontSize: 12.5, color: Palette.textSecondary, lineHeight: 18, marginBottom: 12 },
   modFooter: { flexDirection: 'row', alignItems: 'center', gap: 6, paddingTop: 8, borderTopWidth: 1, borderTopColor: Palette.borderSubtle },
   openLinkText: { fontSize: 12.5, fontWeight: '700' },
+  heroSignOutBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+    backgroundColor: '#FEF2F2',
+    borderWidth: 1,
+    borderColor: '#FCA5A5',
+    paddingHorizontal: 8,
+    paddingVertical: 3,
+    borderRadius: 6,
+  },
+  heroSignOutText: {
+    fontSize: 10,
+    fontWeight: '700',
+    color: Palette.danger,
+  },
+  bottomSignOutBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 8,
+    backgroundColor: '#FFFFFF',
+    borderWidth: 1.5,
+    borderColor: '#FCA5A5',
+    borderRadius: Radii.card,
+    paddingVertical: 14,
+    marginTop: 16,
+    marginBottom: 20,
+    ...Shadows.card,
+  },
+  bottomSignOutText: {
+    fontSize: 14,
+    fontWeight: '700',
+    color: Palette.danger,
+  },
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(15, 23, 42, 0.6)',
+    alignItems: 'center',
+    justifyContent: 'center',
+    padding: 20,
+  },
+  modalCard: {
+    width: '100%',
+    maxWidth: 380,
+    backgroundColor: '#FFFFFF',
+    borderRadius: Radii.cardLarge,
+    padding: 24,
+    alignItems: 'center',
+    ...Shadows.floating,
+  },
+  modalIconBox: {
+    width: 56,
+    height: 56,
+    borderRadius: 28,
+    backgroundColor: '#FEE2E2',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: 16,
+  },
+  modalTitle: {
+    fontSize: 18,
+    fontWeight: '800',
+    color: Palette.textTitle,
+    marginBottom: 8,
+    textAlign: 'center',
+  },
+  modalMessage: {
+    fontSize: 13.5,
+    color: Palette.textSecondary,
+    textAlign: 'center',
+    lineHeight: 20,
+    marginBottom: 24,
+  },
+  modalBtnRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+    width: '100%',
+  },
+  modalCancelBtn: {
+    flex: 1,
+    paddingVertical: 12,
+    borderRadius: Radii.button,
+    backgroundColor: Palette.backgroundSecondary,
+    borderWidth: 1,
+    borderColor: Palette.border,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  modalCancelText: {
+    fontSize: 14,
+    fontWeight: '700',
+    color: Palette.textTitle,
+  },
+  modalSignOutBtn: {
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 6,
+    paddingVertical: 12,
+    borderRadius: Radii.button,
+    backgroundColor: Palette.danger,
+    ...Shadows.button,
+  },
+  modalSignOutText: {
+    fontSize: 14,
+    fontWeight: '700',
+    color: '#FFFFFF',
+  },
 });

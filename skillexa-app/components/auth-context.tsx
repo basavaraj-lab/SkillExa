@@ -1,5 +1,6 @@
 import { onAuthStateChanged, signOut } from 'firebase/auth';
 import { auth } from '../services/firebase';
+import { setAuthToken } from '../services/api';
 import { Feather } from "@expo/vector-icons";
 import { LinearGradient } from "expo-linear-gradient";
 import { router, usePathname } from "expo-router";
@@ -57,16 +58,16 @@ export const defaultStudentProfile: UserProfile = {
 };
 
 export const defaultFacultyProfile: UserProfile = {
-  id: 'fac-101',
-  name: 'Dr. Kusumadhara S',
-  email: 'kusumadhara.s@kvgce.edu.in',
-  password: 'prof123',
+  id: '99988a52-058f-430a-9d49-5df85584ee26',
+  name: 'Dr. Ramesh Kumar',
+  email: 'dr.ramesh@kvgce.edu.in',
+  password: 'faculty123',
   role: 'FACULTY',
-  collegeId: 'clg-kvg',
+  collegeId: '0f669a91-5c8d-4304-a815-818bde05e996',
   collegeName: 'KVG College of Engineering',
   department: 'ECE',
-  facultyDesignation: 'Associate Professor & HOD in-charge',
-  subjectsTaught: ['Embedded Systems', 'Microcontrollers', 'VLSI Design'],
+  facultyDesignation: 'Professor & HOD',
+  subjectsTaught: ['System Architecture', 'Database Systems', 'Embedded Systems'],
   verificationStatus: 'APPROVED',
 };
 
@@ -83,7 +84,15 @@ const AuthContext = createContext<AuthContextType>({
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [isAuthenticated, setIsAuthenticated] = useState(true);
-  const [profile, setProfile] = useState<UserProfile>(defaultStudentProfile);
+  const [profile, setProfile] = useState<UserProfile>(() => {
+    if (typeof window !== 'undefined' && window.localStorage) {
+      try {
+        const saved = window.localStorage.getItem('skillexa_user_profile');
+        if (saved) return JSON.parse(saved);
+      } catch (e) {}
+    }
+    return defaultStudentProfile;
+  });
 
   React.useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, (firebaseUser) => {
@@ -105,12 +114,27 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const login = React.useCallback((nextProfile: UserProfile) => {
     setProfile(nextProfile);
     setIsAuthenticated(true);
+    if (typeof window !== 'undefined' && window.localStorage) {
+      try {
+        window.localStorage.setItem('skillexa_user_profile', JSON.stringify(nextProfile));
+        window.localStorage.setItem('skillexa_user_role', nextProfile.role);
+      } catch (e) {}
+    }
   }, []);
 
   const logout = React.useCallback(() => {
-    signOut(auth).catch(() => {});
+    try {
+      signOut(auth).catch(() => {});
+    } catch (e) {}
+    setAuthToken(null);
     setProfile(defaultStudentProfile);
     setIsAuthenticated(false);
+    if (typeof window !== 'undefined' && window.localStorage) {
+      try {
+        window.localStorage.removeItem('skillexa_jwt_token');
+        window.localStorage.removeItem('skillexa_user_profile');
+      } catch (e) {}
+    }
   }, []);
 
   const updateProfile = React.useCallback((updates: Partial<UserProfile>) => {

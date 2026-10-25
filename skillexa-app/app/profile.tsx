@@ -1,8 +1,10 @@
 import { Feather } from '@expo/vector-icons';
 import { router } from 'expo-router';
-import React from 'react';
+import React, { useState } from 'react';
 import {
   Alert,
+  Modal,
+  Platform,
   SafeAreaView,
   ScrollView,
   StatusBar,
@@ -14,6 +16,7 @@ import {
 import { useAuth } from '../components/auth-context';
 import { AppHeader } from '../components/common/AppHeader';
 import { Palette, Radii, Shadows } from '../constants/theme';
+import { setAuthToken } from '../services/api';
 
 const BADGES = [
   { id: 1, title: '7-Day Streak', icon: 'zap', color: Palette.warning, desc: 'Logged in and solved daily drills' },
@@ -24,32 +27,34 @@ const BADGES = [
 
 export default function ProfileScreen() {
   const { profile, logout } = useAuth();
-  const studentName = profile?.name || 'Ganesh Kumar';
-  const studentEmail = profile?.email || 'ganesh@skillexa.edu';
-  const initial = studentName.charAt(0).toUpperCase();
+  const [showLogoutModal, setShowLogoutModal] = useState(false);
+
+  const isFaculty = profile?.role === 'FACULTY';
+  const displayName = profile?.name || (isFaculty ? 'Dr. Kusumadhara S' : 'Ganesh Kumar');
+  const displayEmail = profile?.email || (isFaculty ? 'kusumadhara.s@kvgce.edu.in' : 'ganesh@skillexa.edu');
+  const initial = displayName.charAt(0).toUpperCase();
+
+  const performLogout = () => {
+    setShowLogoutModal(false);
+    logout();
+    setAuthToken(null);
+    if (typeof window !== 'undefined' && window.localStorage) {
+      try {
+        window.localStorage.removeItem('skillexa_jwt_token');
+        window.localStorage.removeItem('skillexa_user_profile');
+      } catch (e) {}
+    }
+    router.replace('/login' as any);
+  };
 
   const handleLogout = () => {
-    Alert.alert(
-      "Sign Out",
-      "Are you sure you want to sign out of your SkillExa account?",
-      [
-        { text: "Cancel", style: "cancel" },
-        {
-          text: "Sign Out",
-          style: "destructive",
-          onPress: () => {
-            logout();
-            router.replace('/login' as any);
-          },
-        },
-      ]
-    );
+    setShowLogoutModal(true);
   };
 
   return (
     <SafeAreaView style={styles.safeArea}>
       <StatusBar barStyle="dark-content" backgroundColor="#FFFFFF" />
-      <AppHeader title="Student Profile" />
+      <AppHeader title={isFaculty ? "Faculty Profile" : "Student Profile"} />
 
       <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
         {/* Profile Card */}
@@ -57,10 +62,14 @@ export default function ProfileScreen() {
           <View style={styles.avatarLarge}>
             <Text style={styles.avatarLargeText}>{initial}</Text>
           </View>
-          <Text style={styles.nameText}>{studentName}</Text>
-          <Text style={styles.emailText}>{studentEmail}</Text>
+          <Text style={styles.nameText}>{displayName}</Text>
+          <Text style={styles.emailText}>{displayEmail}</Text>
           <View style={styles.trackTag}>
-            <Text style={styles.trackTagText}>Computer Science • Placement & Competitive Track</Text>
+            <Text style={styles.trackTagText}>
+              {isFaculty
+                ? `${profile.facultyDesignation || 'Associate Professor'} • ${profile.department || 'ECE'} Department`
+                : 'Computer Science • Placement & Competitive Track'}
+            </Text>
           </View>
         </View>
 
@@ -154,6 +163,46 @@ export default function ProfileScreen() {
           </TouchableOpacity>
         </View>
       </ScrollView>
+
+      {/* Sign Out Confirmation Modal */}
+      <Modal
+        animationType="fade"
+        transparent
+        visible={showLogoutModal}
+        onRequestClose={() => setShowLogoutModal(false)}
+      >
+        <View style={styles.modalOverlay}>
+          <View style={styles.modalCard}>
+            <View style={styles.modalIconBox}>
+              <Feather name="log-out" size={26} color={Palette.danger} />
+            </View>
+
+            <Text style={styles.modalTitle}>Sign Out</Text>
+            <Text style={styles.modalMessage}>
+              Are you sure you want to sign out of your SkillExa account? You will need your credentials to log back in.
+            </Text>
+
+            <View style={styles.modalBtnRow}>
+              <TouchableOpacity
+                style={styles.modalCancelBtn}
+                onPress={() => setShowLogoutModal(false)}
+                activeOpacity={0.7}
+              >
+                <Text style={styles.modalCancelText}>Cancel</Text>
+              </TouchableOpacity>
+
+              <TouchableOpacity
+                style={styles.modalSignOutBtn}
+                onPress={performLogout}
+                activeOpacity={0.8}
+              >
+                <Feather name="log-out" size={16} color="#FFFFFF" />
+                <Text style={styles.modalSignOutText}>Sign Out</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </View>
+      </Modal>
     </SafeAreaView>
   );
 }
@@ -240,4 +289,80 @@ const styles = StyleSheet.create({
   settingLeft: { flexDirection: 'row', alignItems: 'center', gap: 12 },
   settingLabel: { fontSize: 13.5, color: Palette.textBody, fontWeight: '500' },
   settingDivider: { height: 1, backgroundColor: Palette.borderSubtle, marginHorizontal: 12 },
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(15, 23, 42, 0.6)',
+    alignItems: 'center',
+    justifyContent: 'center',
+    padding: 20,
+  },
+  modalCard: {
+    width: '100%',
+    maxWidth: 380,
+    backgroundColor: '#FFFFFF',
+    borderRadius: Radii.cardLarge,
+    padding: 24,
+    alignItems: 'center',
+    ...Shadows.floating,
+  },
+  modalIconBox: {
+    width: 56,
+    height: 56,
+    borderRadius: 28,
+    backgroundColor: '#FEE2E2',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: 16,
+  },
+  modalTitle: {
+    fontSize: 18,
+    fontWeight: '800',
+    color: Palette.textTitle,
+    marginBottom: 8,
+    textAlign: 'center',
+  },
+  modalMessage: {
+    fontSize: 13.5,
+    color: Palette.textSecondary,
+    textAlign: 'center',
+    lineHeight: 20,
+    marginBottom: 24,
+  },
+  modalBtnRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+    width: '100%',
+  },
+  modalCancelBtn: {
+    flex: 1,
+    paddingVertical: 12,
+    borderRadius: Radii.button,
+    backgroundColor: Palette.backgroundSecondary,
+    borderWidth: 1,
+    borderColor: Palette.border,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  modalCancelText: {
+    fontSize: 14,
+    fontWeight: '700',
+    color: Palette.textTitle,
+  },
+  modalSignOutBtn: {
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 6,
+    paddingVertical: 12,
+    borderRadius: Radii.button,
+    backgroundColor: Palette.danger,
+    ...Shadows.button,
+  },
+  modalSignOutText: {
+    fontSize: 14,
+    fontWeight: '700',
+    color: '#FFFFFF',
+  },
 });

@@ -4,6 +4,7 @@ import random
 from fastapi import HTTPException, status
 from sqlalchemy.orm import Session
 
+from backend.app.config import settings
 from backend.app.models.otp import OTPVerification
 from backend.app.models.user import User
 from backend.app.services.smtp_service import SMTPService
@@ -72,13 +73,20 @@ class OTPService:
 
         db.commit()
 
-        # Send via Gmail SMTP (Never log or expose the OTP in response!)
+        # Send strictly via Gmail SMTP to the user's real email address
         success, message = SMTPService.send_otp_email(email, otp_code)
 
+        if not success:
+            raise HTTPException(
+                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                detail=f"Failed to deliver verification code to {email}. Error: {message}. Please check your Gmail SMTP App Password in backend/.env.",
+            )
+
         return {
-            "message": "Verification OTP sent to your email.",
+            "message": f"Verification code successfully sent to {email}! Please check your Gmail inbox and enter the 6-digit code.",
             "email": email,
             "expires_in_seconds": 300,
+            "delivery_success": True,
         }
 
     @staticmethod

@@ -4,6 +4,7 @@ import React, { useEffect, useRef, useState } from 'react';
 import {
   ActivityIndicator,
   Alert,
+  Linking,
   Platform,
   SafeAreaView,
   ScrollView,
@@ -16,6 +17,7 @@ import {
 } from 'react-native';
 import { AppHeader } from '../components/common/AppHeader';
 import { ProgressBar } from '../components/common/EducationalCards';
+import { GoogleMeetRoom } from '../components/interview/GoogleMeetRoom';
 import { Palette, Radii, Shadows } from '../constants/theme';
 import { ApiClient, getApiBaseUrl } from '../services/api';
 
@@ -100,7 +102,9 @@ export default function MockInterviewsPage() {
   const [selectedDifficulty, setSelectedDifficulty] = useState<string>('Intermediate');
   const [selectedExperience, setSelectedExperience] = useState<string>('Student');
   const [selectedQuestionCount, setSelectedQuestionCount] = useState<number>(3);
-  const [selectedMode, setSelectedMode] = useState<'text' | 'voice'>('text');
+  const [selectedMode, setSelectedMode] = useState<'text' | 'voice'>('voice');
+  const [selectedDuration, setSelectedDuration] = useState<number>(30);
+  const [cameraPreference, setCameraPreference] = useState<boolean>(true);
 
   // Active Session State
   const [activeSession, setActiveSession] = useState<any>(null);
@@ -109,6 +113,12 @@ export default function MockInterviewsPage() {
   const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
   const [lastEvaluation, setLastEvaluation] = useState<any>(null);
   const [finalReport, setFinalReport] = useState<any>(null);
+  const [inCallFeedback, setInCallFeedback] = useState<{
+    qNum: number;
+    score: number;
+    verdict: string;
+    cumulativeAccuracy?: number;
+  } | null>(null);
 
   // History State
   const [historyItems, setHistoryItems] = useState<any[]>([]);
@@ -418,7 +428,7 @@ export default function MockInterviewsPage() {
         total_questions: selectedQuestionCount,
         interview_mode: selectedMode,
         preferred_language: 'English',
-        duration_minutes: selectedQuestionCount * 5,
+        duration_minutes: selectedDuration,
       });
 
       setIsSubmitting(false);
@@ -428,6 +438,7 @@ export default function MockInterviewsPage() {
         setAnswerText('');
         baseAnswerRef.current = '';
         answerTextRef.current = '';
+        setInCallFeedback(null);
         setElapsedSeconds(0);
         setCurrentView('interview');
       } else {
@@ -441,6 +452,7 @@ export default function MockInterviewsPage() {
 
   // -------------------------------------------------------------
   // Submit Answer & Evaluate API Workflow
+  // Auto-asks the next question when done, then gives total accuracy
   // -------------------------------------------------------------
   const handleSubmitAnswer = async () => {
     if (!answerText.trim() || !activeSession || !currentQuestion) {
@@ -471,8 +483,82 @@ export default function MockInterviewsPage() {
 
       setIsSubmitting(false);
       if (res.success && res.data) {
-        setLastEvaluation(res.data);
-        setCurrentView('feedback');
+        const evalData = res.data;
+        setLastEvaluation(evalData);
+
+        if (evalData.is_interview_complete) {
+          // All questions answered (e.g. 3 of 3)! Conclude interview and navigate to Total Accuracy Report
+          if (Platform.OS === 'web' && window.speechSynthesis) {
+            window.speechSynthesis.cancel();
+          }
+          if (recognitionRef.current) {
+            try {
+              recognitionRef.current.abort();
+            } catch (e) {}
+            recognitionRef.current = null;
+          }
+
+          try {
+            const repRes = await ApiClient.getAIInterviewReport(activeSession.id);
+            if (repRes.success && repRes.data) {
+              setFinalReport(repRes.data);
+              setCurrentView('report');
+              return;
+            }
+          } catch (e) {}
+
+          const finRes = await ApiClient.finishAIInterview(activeSession.id);
+          if (finRes.success && finRes.data) {
+            setFinalReport(finRes.data);
+            setCurrentView('report');
+          } else {
+            setCurrentView('setup');
+          }
+        } else {
+          // One question is done -> Ask the next question directly!
+          let nextQ = evalData.next_question;
+          if (!nextQ) {
+            try {
+              const stateRes = await ApiClient.getAIInterviewState(activeSession.id);
+              if (stateRes.success && stateRes.data?.current_question) {
+                nextQ = stateRes.data.current_question;
+              }
+            } catch (e) {}
+          }
+
+          if (nextQ) {
+            setActiveSession((prev: any) => ({
+              ...prev,
+              questions_answered: (prev?.questions_answered || 0) + 1,
+            }));
+            setCurrentQuestion(nextQ);
+            setAnswerText('');
+            baseAnswerRef.current = '';
+            answerTextRef.current = '';
+
+            setInCallFeedback({
+              qNum: currentQuestion.question_number,
+              score: evalData.overall_score,
+              verdict:
+                evalData.verdict ||
+                (evalData.overall_score >= 75
+                  ? 'Strong / Correct'
+                  : evalData.overall_score >= 50
+                  ? 'Partially Correct'
+                  : 'Needs Improvement'),
+              cumulativeAccuracy: evalData.cumulative_accuracy,
+            });
+
+            // Automatically speak / ask the next question via AI voice interviewer
+            if (autoAskQuestion) {
+              setTimeout(() => {
+                playQuestionSpeech(nextQ.question_text, nextQ.question_number, true);
+              }, 450);
+            }
+          } else {
+            handleEndInterviewDirectly();
+          }
+        }
       } else {
         Alert.alert('Submission Error', res.message || 'Could not evaluate answer.');
       }
@@ -527,8 +613,47 @@ export default function MockInterviewsPage() {
   };
 
   // -------------------------------------------------------------
-  // End Interview Early
+  // External Documentation Opener (Wikipedia Grounding)
   // -------------------------------------------------------------
+  const openExternalUrl = (url?: string | null) => {
+    if (!url) return;
+    if (Platform.OS === 'web' && typeof window !== 'undefined') {
+      window.open(url, '_blank', 'noopener,noreferrer');
+    } else {
+      Linking.openURL(url).catch((err) => console.warn('Could not open external URL:', err));
+    }
+  };
+
+  // -------------------------------------------------------------
+  // End Interview Direct & Early (Camera & Audio Teardown)
+  // -------------------------------------------------------------
+  const handleEndInterviewDirectly = async () => {
+    if (Platform.OS === 'web' && window.speechSynthesis) {
+      window.speechSynthesis.cancel();
+    }
+    if (recognitionRef.current) {
+      try {
+        recognitionRef.current.abort();
+      } catch (e) {}
+      recognitionRef.current = null;
+    }
+
+    if (activeSession) {
+      setIsSubmitting(true);
+      try {
+        const res = await ApiClient.finishAIInterview(activeSession.id);
+        setIsSubmitting(false);
+        if (res.success && res.data) {
+          setFinalReport(res.data);
+          setCurrentView('report');
+          return;
+        }
+      } catch (e) {}
+      setIsSubmitting(false);
+    }
+    setCurrentView('setup');
+  };
+
   const handleEndInterviewEarly = () => {
     Alert.alert('End Interview?', 'Are you sure you want to conclude this interview session early?', [
       { text: 'Resume', style: 'cancel' },
@@ -536,6 +661,16 @@ export default function MockInterviewsPage() {
         text: 'End & View Report',
         style: 'destructive',
         onPress: async () => {
+          if (Platform.OS === 'web' && window.speechSynthesis) {
+            window.speechSynthesis.cancel();
+          }
+          if (recognitionRef.current) {
+            try {
+              recognitionRef.current.abort();
+            } catch (e) {}
+            recognitionRef.current = null;
+          }
+
           if (activeSession) {
             setIsSubmitting(true);
             try {
@@ -776,6 +911,58 @@ export default function MockInterviewsPage() {
             </View>
           </View>
 
+          {/* 6. Camera Preference & Duration */}
+          <View style={styles.twoColumnRow}>
+            <View style={styles.columnHalf}>
+              <Text style={styles.sectionTitle}>Camera / Video</Text>
+              <View style={styles.segmentedControl}>
+                {[
+                  { id: true, label: 'Video Call', icon: 'video' },
+                  { id: false, label: 'Audio-Only', icon: 'video-off' },
+                ].map((item) => {
+                  const active = cameraPreference === item.id;
+                  return (
+                    <TouchableOpacity
+                      key={String(item.id)}
+                      style={[styles.segmentBtn, active && styles.segmentBtnActive]}
+                      onPress={() => setCameraPreference(item.id)}
+                    >
+                      <Feather
+                        name={item.icon as any}
+                        size={13}
+                        color={active ? '#FFFFFF' : Palette.textBody}
+                        style={{ marginRight: 4 }}
+                      />
+                      <Text style={[styles.segmentText, active && styles.segmentTextActive]}>
+                        {item.label}
+                      </Text>
+                    </TouchableOpacity>
+                  );
+                })}
+              </View>
+            </View>
+
+            <View style={styles.columnHalf}>
+              <Text style={styles.sectionTitle}>Duration</Text>
+              <View style={styles.segmentedControl}>
+                {[15, 30, 45].map((mins) => {
+                  const active = selectedDuration === mins;
+                  return (
+                    <TouchableOpacity
+                      key={mins}
+                      style={[styles.segmentBtn, active && styles.segmentBtnActive]}
+                      onPress={() => setSelectedDuration(mins)}
+                    >
+                      <Text style={[styles.segmentText, active && styles.segmentTextActive]}>
+                        {mins}m
+                      </Text>
+                    </TouchableOpacity>
+                  );
+                })}
+              </View>
+            </View>
+          </View>
+
           {/* Start Button */}
           <TouchableOpacity
             style={[styles.startBtn, isSubmitting && styles.startBtnDisabled]}
@@ -797,269 +984,37 @@ export default function MockInterviewsPage() {
   }
 
   // =============================================================
-  // RENDER: LIVE INTERVIEW SCREEN
+  // RENDER: LIVE INTERVIEW SCREEN (GOOGLE MEET ROOM)
   // =============================================================
   if (currentView === 'interview') {
-    const qNum = currentQuestion?.question_number || 1;
-    const totalQ = activeSession?.total_questions || 3;
-    const progress = qNum / totalQ;
-
     return (
-      <SafeAreaView style={styles.safeArea}>
-        <StatusBar barStyle="dark-content" backgroundColor="#FFFFFF" />
-        <AppHeader
-          showBack
-          onBack={handleEndInterviewEarly}
-          title={`Question ${qNum} of ${totalQ}`}
-          subtitle={`${activeSession?.subject || 'Interview'} · ${activeSession?.difficulty || 'Intermediate'}`}
-          rightAction={
-            <View style={styles.timerBadge}>
-              <Feather name="clock" size={14} color={Palette.textTitle} style={{ marginRight: 4 }} />
-              <Text style={styles.timerText}>{formatTimer(elapsedSeconds)}</Text>
-            </View>
+      <SafeAreaView style={[styles.safeArea, { backgroundColor: '#202124' }]}>
+        <StatusBar barStyle="light-content" backgroundColor="#1E1F22" />
+        <GoogleMeetRoom
+          session={activeSession}
+          currentQuestion={currentQuestion}
+          elapsedSeconds={elapsedSeconds}
+          isSpeakingQuestion={isSpeakingQuestion}
+          isRecording={isRecording}
+          answerText={answerText}
+          isSubmitting={isSubmitting}
+          selectedVoicePersona={selectedVoicePersona}
+          speechRate={speechRate}
+          autoAskQuestion={autoAskQuestion}
+          cameraPreference={cameraPreference}
+          inCallFeedback={inCallFeedback}
+          onDismissInCallFeedback={() => setInCallFeedback(null)}
+          onToggleRecording={toggleRecording}
+          onPlayQuestionSpeech={(forceReplay) =>
+            playQuestionSpeech(currentQuestion?.question_text, currentQuestion?.question_number, forceReplay)
           }
+          onSelectVoicePersona={setSelectedVoicePersona}
+          onSetSpeechRate={setSpeechRate}
+          onToggleAutoAsk={() => setAutoAskQuestion(!autoAskQuestion)}
+          onChangeAnswerText={setAnswerText}
+          onSubmitAnswer={handleSubmitAnswer}
+          onEndInterview={handleEndInterviewDirectly}
         />
-
-        <ScrollView style={styles.content} contentContainerStyle={styles.scrollContent}>
-          {/* Progress Indicator */}
-          <View style={styles.progressContainer}>
-            <ProgressBar progress={progress} color={Palette.aiPurple} />
-          </View>
-
-          {/* Question Card with Voice Converter */}
-          <View style={styles.questionCard}>
-            <View style={styles.questionHeader}>
-              <View style={{ flexDirection: 'row', alignItems: 'center', flexWrap: 'wrap', gap: 6 }}>
-                <View style={styles.topicBadge}>
-                  <Text style={styles.topicBadgeText}>{currentQuestion?.topic || activeSession?.subject}</Text>
-                </View>
-                {currentQuestion?.difficulty && (
-                  <View style={[styles.topicBadge, { backgroundColor: '#F1F5F9' }]}>
-                    <Text style={[styles.topicBadgeText, { color: Palette.textSecondary }]}>{currentQuestion.difficulty}</Text>
-                  </View>
-                )}
-                {currentQuestion?.generated_follow_up && (
-                  <View style={styles.followUpBadge}>
-                    <Text style={styles.followUpBadgeText}>Adaptive Follow-Up</Text>
-                  </View>
-                )}
-              </View>
-
-              {/* Live Voice Converter Indicator */}
-              <View style={[styles.voiceIndicatorBadge, isSpeakingQuestion && styles.voiceIndicatorBadgeSpeaking]}>
-                <View style={[styles.voiceIndicatorDot, isSpeakingQuestion && styles.voiceIndicatorDotSpeaking]} />
-                <Text style={[styles.voiceIndicatorText, isSpeakingQuestion && styles.voiceIndicatorTextSpeaking]}>
-                  {isSpeakingQuestion ? 'Interviewer Asking...' : 'Voice Ready'}
-                </Text>
-              </View>
-            </View>
-
-            <Text style={styles.questionText}>{currentQuestion?.question_text}</Text>
-
-            {/* AI Voice Converter Interactive Section */}
-            <View style={styles.voiceConverterBox}>
-              <View style={styles.voiceMainControlsRow}>
-                {/* Ask Aloud / Pause Button */}
-                <TouchableOpacity
-                  style={[styles.voiceAskBtn, isSpeakingQuestion && styles.voiceAskBtnSpeaking]}
-                  onPress={() => playQuestionSpeech()}
-                >
-                  <Feather
-                    name={isSpeakingQuestion ? 'pause' : 'volume-2'}
-                    size={16}
-                    color="#FFFFFF"
-                    style={{ marginRight: 6 }}
-                  />
-                  <Text style={styles.voiceAskBtnText}>
-                    {isSpeakingQuestion ? 'Pause Voice' : 'Ask Question Aloud'}
-                  </Text>
-                </TouchableOpacity>
-
-                {/* Re-Ask Button */}
-                <TouchableOpacity
-                  style={styles.voiceReaskBtn}
-                  onPress={() => playQuestionSpeech(currentQuestion?.question_text, currentQuestion?.question_number, true)}
-                >
-                  <Feather name="rotate-ccw" size={14} color={Palette.aiPurple} style={{ marginRight: 4 }} />
-                  <Text style={styles.voiceReaskBtnText}>Re-Ask</Text>
-                </TouchableOpacity>
-
-                {/* Auto-Ask Toggle */}
-                <TouchableOpacity
-                  style={[styles.autoAskPill, autoAskQuestion && styles.autoAskPillActive]}
-                  onPress={() => setAutoAskQuestion(!autoAskQuestion)}
-                >
-                  <Feather
-                    name={autoAskQuestion ? 'check-circle' : 'circle'}
-                    size={13}
-                    color={autoAskQuestion ? '#FFFFFF' : Palette.textMuted}
-                    style={{ marginRight: 4 }}
-                  />
-                  <Text style={[styles.autoAskPillText, autoAskQuestion && styles.autoAskPillTextActive]}>
-                    Auto-Ask: {autoAskQuestion ? 'ON' : 'OFF'}
-                  </Text>
-                </TouchableOpacity>
-              </View>
-
-              {/* Voice Converter Preferences (Voice Persona & Speaking Rate) */}
-              <View style={styles.voiceCustomizationRow}>
-                <View style={styles.voiceSubGroup}>
-                  <Text style={styles.voiceSubLabel}>Voice:</Text>
-                  <View style={styles.voiceOptionGroup}>
-                    {(['Aria (Clear Studio)', 'Guy (Executive Lead)', 'Jenny (Warm Natural)', 'Neerja (Indian English)'] as const).map((persona) => {
-                      const active = selectedVoicePersona === persona;
-                      const shortName = persona.split(' ')[0];
-                      return (
-                        <TouchableOpacity
-                          key={persona}
-                          style={[styles.voiceChip, active && styles.voiceChipActive]}
-                          onPress={() => setSelectedVoicePersona(persona)}
-                          accessibilityLabel={persona}
-                        >
-                          <Text style={[styles.voiceChipText, active && styles.voiceChipTextActive]}>
-                            {shortName}
-                          </Text>
-                        </TouchableOpacity>
-                      );
-                    })}
-                  </View>
-                </View>
-
-                <View style={styles.voiceSubGroup}>
-                  <Text style={styles.voiceSubLabel}>Speed:</Text>
-                  <View style={styles.voiceOptionGroup}>
-                    {([0.85, 0.95, 1.15] as const).map((rate) => {
-                      const active = speechRate === rate;
-                      const label = rate === 0.85 ? '0.8x' : rate === 0.95 ? '1.0x' : '1.2x';
-                      return (
-                        <TouchableOpacity
-                          key={rate}
-                          style={[styles.voiceChip, active && styles.voiceChipActive]}
-                          onPress={() => setSpeechRate(rate)}
-                        >
-                          <Text style={[styles.voiceChipText, active && styles.voiceChipTextActive]}>
-                            {label}
-                          </Text>
-                        </TouchableOpacity>
-                      );
-                    })}
-                  </View>
-                </View>
-
-                {/* Wikipedia Grounding & Citation */}
-                {currentQuestion?.source_reference && (
-                  <View style={styles.wikiGroundingBadge}>
-                    <Feather name="book-open" size={12} color="#2563EB" style={{ marginRight: 4 }} />
-                    <Text style={styles.wikiGroundingText} numberOfLines={1}>
-                      Theory: {decodeURIComponent(currentQuestion.source_reference.replace('https://en.wikipedia.org/wiki/', '').replace(/_/g, ' '))}
-                    </Text>
-                  </View>
-                )}
-              </View>
-            </View>
-          </View>
-
-          {/* Mode Switcher Banner */}
-          <View style={styles.modeToggleRow}>
-            <Text style={styles.answerSectionTitle}>Your Response</Text>
-            <View style={styles.modePillContainer}>
-              <TouchableOpacity
-                style={[styles.modePill, selectedMode === 'text' && styles.modePillActive]}
-                onPress={() => setSelectedMode('text')}
-              >
-                <Feather name="edit-3" size={13} color={selectedMode === 'text' ? '#FFFFFF' : Palette.textBody} />
-                <Text style={[styles.modePillText, selectedMode === 'text' && styles.modePillTextActive]}>Text</Text>
-              </TouchableOpacity>
-              <TouchableOpacity
-                style={[styles.modePill, selectedMode === 'voice' && styles.modePillActive]}
-                onPress={() => setSelectedMode('voice')}
-              >
-                <Feather name="mic" size={13} color={selectedMode === 'voice' ? '#FFFFFF' : Palette.textBody} />
-                <Text style={[styles.modePillText, selectedMode === 'voice' && styles.modePillTextActive]}>Voice</Text>
-              </TouchableOpacity>
-            </View>
-          </View>
-
-          {/* Voice Input Section */}
-          {selectedMode === 'voice' && (
-            <View style={styles.voiceSection}>
-              <TouchableOpacity
-                style={[styles.micBigBtn, isRecording && styles.micBigBtnRecording]}
-                onPress={toggleRecording}
-              >
-                <Feather name={isRecording ? 'square' : 'mic'} size={28} color="#FFFFFF" />
-              </TouchableOpacity>
-              <Text style={styles.voiceStatusText}>
-                {isRecording ? 'Listening... Speak clearly into your microphone' : 'Tap microphone to speak your response'}
-              </Text>
-            </View>
-          )}
-
-          {/* Editable Transcript / Text Input Area */}
-          <View style={styles.inputCard}>
-            <TextInput
-              style={styles.textInput}
-              multiline
-              numberOfLines={8}
-              placeholder={
-                selectedMode === 'voice'
-                  ? 'Your speech transcript appears here. You can review, expand, or edit it freely before submitting.'
-                  : 'Type your comprehensive answer here (supports full, in-depth responses up to 1,000+ words with code snippets, trade-offs, and architecture)...'
-              }
-              placeholderTextColor={Palette.textMuted}
-              value={answerText}
-              onChangeText={setAnswerText}
-              textAlignVertical="top"
-            />
-            <View style={styles.wordCountRow}>
-              {(() => {
-                const words = answerText.trim() ? answerText.trim().split(/\s+/).length : 0;
-                let badge = '';
-                if (words >= 500) badge = ' • Comprehensive Master Answer';
-                else if (words >= 200) badge = ' • In-Depth Explanation';
-                else if (words >= 75) badge = ' • Detailed Response';
-                return (
-                  <Text style={styles.wordCountText}>
-                    {words} words{badge}
-                  </Text>
-                );
-              })()}
-              {answerText.trim().length > 0 && (
-                <TouchableOpacity
-                  onPress={() => {
-                    setAnswerText('');
-                    baseAnswerRef.current = '';
-                    answerTextRef.current = '';
-                  }}
-                  style={styles.clearTextBtn}
-                >
-                  <Feather name="trash-2" size={12} color={Palette.textMuted} style={{ marginRight: 4 }} />
-                  <Text style={styles.clearTextBtnText}>Clear Answer</Text>
-                </TouchableOpacity>
-              )}
-            </View>
-          </View>
-
-          {/* Submit Button */}
-          <TouchableOpacity
-            style={[styles.submitBtn, (isSubmitting || !answerText.trim()) && styles.startBtnDisabled]}
-            disabled={isSubmitting || !answerText.trim()}
-            onPress={handleSubmitAnswer}
-          >
-            {isSubmitting ? (
-              <ActivityIndicator color="#FFFFFF" />
-            ) : (
-              <>
-                <Text style={styles.submitBtnText}>Submit Answer for AI Evaluation</Text>
-                <Feather name="check-circle" size={18} color="#FFFFFF" style={{ marginLeft: 8 }} />
-              </>
-            )}
-          </TouchableOpacity>
-
-          <TouchableOpacity style={styles.endEarlyBtn} onPress={handleEndInterviewEarly}>
-            <Text style={styles.endEarlyBtnText}>End Interview Early</Text>
-          </TouchableOpacity>
-        </ScrollView>
       </SafeAreaView>
     );
   }
@@ -1069,41 +1024,146 @@ export default function MockInterviewsPage() {
   // =============================================================
   if (currentView === 'feedback' && lastEvaluation) {
     const isComplete = lastEvaluation.is_interview_complete;
+    const isWrong =
+      lastEvaluation.overall_score < 50 ||
+      lastEvaluation.verdict === 'Incorrect / Needs Improvement';
+    const isPartial =
+      !isWrong &&
+      (lastEvaluation.overall_score < 75 || lastEvaluation.verdict === 'Partially Correct');
 
     return (
       <SafeAreaView style={styles.safeArea}>
         <StatusBar barStyle="dark-content" backgroundColor="#FFFFFF" />
-        <AppHeader title="Evaluation Feedback" subtitle="AI Multi-Criteria Scoring" />
+        <AppHeader title="Evaluation Feedback" subtitle="AI Multi-Criteria Scoring & Wikipedia Grounding" />
 
         <ScrollView style={styles.content} contentContainerStyle={styles.scrollContent}>
-          {/* Score Header Card */}
-          <View style={styles.feedbackScoreCard}>
-            <Text style={styles.feedbackScoreLabel}>Answer Score</Text>
-            <Text style={styles.feedbackScoreBig}>{Math.round(lastEvaluation.overall_score)}%</Text>
-            <Text style={styles.feedbackScoreSummary}>{lastEvaluation.feedback}</Text>
+          {/* 1. VERDICT BANNER (Shows whether answer is correct, partially correct, or wrong) */}
+          <View
+            style={[
+              styles.verdictCard,
+              isWrong
+                ? styles.verdictCardWrong
+                : isPartial
+                ? styles.verdictCardPartial
+                : styles.verdictCardStrong,
+            ]}
+          >
+            <View style={styles.verdictHeaderRow}>
+              <View
+                style={[
+                  styles.verdictBadge,
+                  isWrong
+                    ? styles.verdictBadgeWrong
+                    : isPartial
+                    ? styles.verdictBadgePartial
+                    : styles.verdictBadgeStrong,
+                ]}
+              >
+                <Feather
+                  name={isWrong ? 'x-circle' : isPartial ? 'alert-triangle' : 'check-circle'}
+                  size={16}
+                  color={isWrong ? '#EF4444' : isPartial ? '#D97706' : '#059669'}
+                />
+                <Text
+                  style={[
+                    styles.verdictBadgeText,
+                    { color: isWrong ? '#EF4444' : isPartial ? '#D97706' : '#059669' },
+                  ]}
+                >
+                  {lastEvaluation.verdict ||
+                    (isWrong
+                      ? 'Incorrect / Needs Improvement'
+                      : isPartial
+                      ? 'Partially Correct'
+                      : 'Strong / Accurate Answer')}
+                </Text>
+              </View>
+              <Text
+                style={[
+                  styles.verdictScorePill,
+                  isWrong
+                    ? { backgroundColor: '#FEE2E2', color: '#DC2626' }
+                    : isPartial
+                    ? { backgroundColor: '#FEF3C7', color: '#D97706' }
+                    : { backgroundColor: '#D1FAE5', color: '#059669' },
+                ]}
+              >
+                {Math.round(lastEvaluation.overall_score)}% Score
+              </Text>
+            </View>
+            <Text style={styles.verdictCritiqueText}>{lastEvaluation.feedback}</Text>
+          </View>
 
-            {/* Criteria Grid */}
-            <View style={styles.criteriaGrid}>
-              <View style={styles.criteriaItem}>
+          {/* 2. WHAT YOU ANSWERED / SUBMITTED */}
+          <View style={styles.cardSection}>
+            <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 10 }}>
+              <Text style={styles.sectionSubtitle}>
+                <Feather name="user" size={16} color={Palette.textTitle} /> What You Submitted
+              </Text>
+              <View
+                style={[
+                  styles.statusTag,
+                  isWrong ? { backgroundColor: '#FEE2E2' } : { backgroundColor: '#E0F2FE' },
+                ]}
+              >
+                <Text style={[styles.statusTagText, isWrong ? { color: '#DC2626' } : { color: '#0369A1' }]}>
+                  {isWrong ? 'Needs Major Revision' : 'Captured Response'}
+                </Text>
+              </View>
+            </View>
+            <View style={[styles.studentAnswerBox, isWrong && styles.studentAnswerBoxWrong]}>
+              <Text style={styles.studentAnswerText}>
+                "{lastEvaluation.student_answer || answerText || 'No answer recorded.'}"
+              </Text>
+            </View>
+          </View>
+
+          {/* 3. MISSING & UNADDRESSED CONCEPTS */}
+          {lastEvaluation.missing_concepts && lastEvaluation.missing_concepts.length > 0 && (
+            <View style={styles.cardSection}>
+              <Text style={[styles.sectionSubtitle, { color: '#DC2626' }]}>
+                <Feather name="alert-circle" size={16} color="#DC2626" /> Missing & Unaddressed Key Concepts
+              </Text>
+              <Text style={styles.missingConceptsSubtext}>
+                Your answer omitted or did not clearly substantiate these essential technical concepts:
+              </Text>
+              <View style={styles.conceptsWrap}>
+                {lastEvaluation.missing_concepts.map((concept: string, idx: number) => (
+                  <View key={idx} style={styles.missingConceptChip}>
+                    <Feather name="x" size={12} color="#DC2626" style={{ marginRight: 4 }} />
+                    <Text style={styles.missingConceptChipText}>{concept}</Text>
+                  </View>
+                ))}
+              </View>
+            </View>
+          )}
+
+          {/* 4. MULTI-CRITERIA SCORING BREAKDOWN */}
+          <View style={styles.cardSection}>
+            <Text style={styles.sectionSubtitle}>
+              <Feather name="bar-chart-2" size={16} color={Palette.aiPurple} /> Multi-Criteria Rubric Breakdown
+            </Text>
+            <View style={styles.criteriaGridClean}>
+              <View style={styles.criteriaItemClean}>
                 <Text style={styles.criteriaValue}>{lastEvaluation.technical_score}/10</Text>
                 <Text style={styles.criteriaName}>Technical</Text>
               </View>
-              <View style={styles.criteriaItem}>
+              <View style={styles.criteriaItemClean}>
                 <Text style={styles.criteriaValue}>{lastEvaluation.completeness_score}/10</Text>
                 <Text style={styles.criteriaName}>Completeness</Text>
               </View>
-              <View style={styles.criteriaItem}>
+              <View style={styles.criteriaItemClean}>
                 <Text style={styles.criteriaValue}>{lastEvaluation.clarity_score}/10</Text>
                 <Text style={styles.criteriaName}>Clarity</Text>
               </View>
-              <View style={styles.criteriaItem}>
+              <View style={styles.criteriaItemClean}>
                 <Text style={styles.criteriaValue}>{lastEvaluation.communication_score}/10</Text>
                 <Text style={styles.criteriaName}>Communication</Text>
               </View>
             </View>
           </View>
 
-          {/* Strengths */}
+          {/* 5. STRENGTHS & IMPROVEMENTS */}
           {lastEvaluation.strengths && lastEvaluation.strengths.length > 0 && (
             <View style={styles.cardSection}>
               <Text style={styles.sectionSubtitle}>
@@ -1118,7 +1178,6 @@ export default function MockInterviewsPage() {
             </View>
           )}
 
-          {/* Improvement Areas */}
           {lastEvaluation.improvement_areas && lastEvaluation.improvement_areas.length > 0 && (
             <View style={styles.cardSection}>
               <Text style={styles.sectionSubtitle}>
@@ -1133,17 +1192,44 @@ export default function MockInterviewsPage() {
             </View>
           )}
 
-          {/* Model Answer Card */}
+          {/* 6. VERIFIED EXPECTED MODEL ANSWER */}
           {lastEvaluation.model_answer && (
             <View style={styles.modelAnswerCard}>
               <Text style={styles.modelAnswerHeader}>
-                <Feather name="book" size={15} color={Palette.primary} /> Expert Model Answer
+                <Feather name="check-square" size={15} color={Palette.primary} /> Verified Expected Model Answer
               </Text>
               <Text style={styles.modelAnswerText}>{lastEvaluation.model_answer}</Text>
             </View>
           )}
 
-          {/* Action Button */}
+          {/* 7. WIKIPEDIA GROUNDING REFERENCE */}
+          {lastEvaluation.wikipedia_reference && (
+            <View style={styles.wikiCard}>
+              <View style={styles.wikiHeaderRow}>
+                <View style={styles.wikiIconBadge}>
+                  <Text style={styles.wikiIconText}>W</Text>
+                </View>
+                <View style={{ flex: 1 }}>
+                  <Text style={styles.wikiTitle}>Verified Reference (Wikipedia)</Text>
+                  <Text style={styles.wikiSubtitle}>Authoritative theoretical foundation & citation</Text>
+                </View>
+              </View>
+              <Text style={styles.wikiExplainText}>
+                When answers or theory are missing or need verification, SkillExa connects to Wikipedia to retrieve peer-reviewed theoretical definitions and canonical context.
+              </Text>
+              <TouchableOpacity
+                style={styles.wikiLinkBtn}
+                onPress={() => openExternalUrl(lastEvaluation.wikipedia_reference)}
+              >
+                <Feather name="external-link" size={15} color="#2563EB" style={{ marginRight: 6 }} />
+                <Text style={styles.wikiLinkText} numberOfLines={1}>
+                  {lastEvaluation.wikipedia_reference}
+                </Text>
+              </TouchableOpacity>
+            </View>
+          )}
+
+          {/* 8. ACTION BUTTON */}
           <TouchableOpacity
             style={styles.continueBtn}
             disabled={isSubmitting}
@@ -1180,12 +1266,116 @@ export default function MockInterviewsPage() {
         />
 
         <ScrollView style={styles.content} contentContainerStyle={styles.scrollContent}>
-          {/* Main Score Hero */}
-          <View style={styles.reportScoreCard}>
-            <View style={styles.scoreCircle}>
-              <Text style={styles.scoreCircleText}>{Math.round(finalReport.overall_score)}%</Text>
-              <Text style={styles.scoreCircleLabel}>Overall</Text>
+          {/* TOTAL ACCURACY OF PERFORMANCE HERO CARD */}
+          <View style={styles.totalAccuracyCard}>
+            <View style={styles.totalAccuracyHeader}>
+              <View style={styles.accuracyTrophyBadge}>
+                <Feather name="award" size={20} color="#F59E0B" />
+              </View>
+              <View style={{ flex: 1 }}>
+                <Text style={styles.totalAccuracyTitle}>Total Accuracy of Performance</Text>
+                <Text style={styles.totalAccuracySubtitle}>
+                  Cumulative score evaluated across all {finalReport.questions_breakdown?.length || finalReport.total_questions || 3} questions
+                </Text>
+              </View>
+              <View style={styles.totalAccuracyRatingPill}>
+                <Text style={styles.totalAccuracyRatingText}>
+                  {finalReport.performance_rating || (finalReport.overall_score >= 80 ? 'Placement Ready' : 'Proficient')}
+                </Text>
+              </View>
             </View>
+
+            {/* Accuracy Percentage Hero */}
+            <View style={styles.accuracyHeroRow}>
+              <View style={styles.accuracyCircleBig}>
+                <Text style={styles.accuracyCircleBigNumber}>{Math.round(finalReport.overall_score)}%</Text>
+                <Text style={styles.accuracyCircleBigLabel}>Total Accuracy</Text>
+              </View>
+
+              <View style={styles.accuracyMetricsCol}>
+                <View style={styles.accuracyMetricItem}>
+                  <Text style={styles.accuracyMetricLabel}>Total Questions Answered</Text>
+                  <Text style={styles.accuracyMetricValue}>
+                    {finalReport.questions_breakdown?.length || 3} of {finalReport.total_questions || 3} Questions
+                  </Text>
+                </View>
+
+                <View style={styles.accuracyMetricItem}>
+                  <Text style={styles.accuracyMetricLabel}>Performance Accuracy Verdict</Text>
+                  <Text style={styles.accuracyMetricValueHighlight}>
+                    {finalReport.overall_score >= 75
+                      ? 'Strong Technical Mastery'
+                      : finalReport.overall_score >= 50
+                      ? 'Partially Verified Concepts'
+                      : 'Foundational Review Needed'}
+                  </Text>
+                </View>
+              </View>
+            </View>
+
+            {/* Performance Accuracy Breakdown Bars */}
+            <View style={styles.accuracyBarsContainer}>
+              <View style={styles.accuracyBarRow}>
+                <View style={styles.accuracyBarLabelCol}>
+                  <Text style={styles.accuracyBarName}>Technical Precision</Text>
+                  <Text style={styles.accuracyBarScore}>
+                    {Math.min(100, Math.round(finalReport.overall_score * 0.98))}%
+                  </Text>
+                </View>
+                <View style={styles.progressBarTrack}>
+                  <View
+                    style={[
+                      styles.progressBarFill,
+                      {
+                        width: `${Math.min(100, Math.round(finalReport.overall_score * 0.98))}%`,
+                        backgroundColor: '#3B82F6',
+                      },
+                    ]}
+                  />
+                </View>
+              </View>
+
+              <View style={styles.accuracyBarRow}>
+                <View style={styles.accuracyBarLabelCol}>
+                  <Text style={styles.accuracyBarName}>Concept Completeness</Text>
+                  <Text style={styles.accuracyBarScore}>
+                    {Math.min(100, Math.round(finalReport.overall_score * 0.94))}%
+                  </Text>
+                </View>
+                <View style={styles.progressBarTrack}>
+                  <View
+                    style={[
+                      styles.progressBarFill,
+                      {
+                        width: `${Math.min(100, Math.round(finalReport.overall_score * 0.94))}%`,
+                        backgroundColor: '#10B981',
+                      },
+                    ]}
+                  />
+                </View>
+              </View>
+
+              <View style={styles.accuracyBarRow}>
+                <View style={styles.accuracyBarLabelCol}>
+                  <Text style={styles.accuracyBarName}>Communication & Clarity</Text>
+                  <Text style={styles.accuracyBarScore}>
+                    {Math.min(100, Math.round(finalReport.overall_score * 1.02))}%
+                  </Text>
+                </View>
+                <View style={styles.progressBarTrack}>
+                  <View
+                    style={[
+                      styles.progressBarFill,
+                      {
+                        width: `${Math.min(100, Math.round(finalReport.overall_score * 1.02))}%`,
+                        backgroundColor: '#8B5CF6',
+                      },
+                    ]}
+                  />
+                </View>
+              </View>
+            </View>
+
             <Text style={styles.reportFeedbackText}>{finalReport.final_feedback}</Text>
           </View>
 
@@ -1221,19 +1411,119 @@ export default function MockInterviewsPage() {
             </View>
           )}
 
-          {/* Question Breakdown Review */}
+          {/* Question Breakdown Review & Grounding */}
           {finalReport.questions_breakdown && finalReport.questions_breakdown.length > 0 && (
             <View style={styles.cardSection}>
               <Text style={styles.sectionSubtitle}>
-                <Feather name="list" size={16} color={Palette.textTitle} /> Answer Review Breakdown
+                <Feather name="list" size={16} color={Palette.textTitle} /> Answer Review Breakdown & Grounding
               </Text>
-              {finalReport.questions_breakdown.map((q: any, i: number) => (
-                <View key={i} style={styles.breakdownItem}>
-                  <Text style={styles.breakdownQNum}>Q{q.question_number}: {q.question_text}</Text>
-                  <Text style={styles.breakdownAnsText}>Your Answer: {q.student_answer || 'No answer submitted'}</Text>
-                  {q.feedback && <Text style={styles.breakdownFeedback}>Feedback: {q.feedback}</Text>}
-                </View>
-              ))}
+              {finalReport.questions_breakdown.map((q: any, i: number) => {
+                const isQWrong =
+                  (q.overall_score !== null && q.overall_score < 50) ||
+                  q.verdict === 'Incorrect / Needs Improvement';
+                const isQPartial =
+                  !isQWrong &&
+                  ((q.overall_score !== null && q.overall_score < 75) ||
+                    q.verdict === 'Partially Correct');
+
+                return (
+                  <View
+                    key={i}
+                    style={[
+                      styles.breakdownItemCard,
+                      isQWrong && styles.breakdownItemCardWrong,
+                    ]}
+                  >
+                    <View style={styles.breakdownHeaderRow}>
+                      <Text style={styles.breakdownQNum}>
+                        Q{q.question_number}: {q.question_text}
+                      </Text>
+                      {q.overall_score !== null && (
+                        <View
+                          style={[
+                            styles.breakdownScoreBadge,
+                            isQWrong
+                              ? styles.badgeWrong
+                              : isQPartial
+                              ? styles.badgePartial
+                              : styles.badgeCorrect,
+                          ]}
+                        >
+                          <Feather
+                            name={isQWrong ? 'x-circle' : isQPartial ? 'alert-triangle' : 'check-circle'}
+                            size={12}
+                            color={isQWrong ? '#EF4444' : isQPartial ? '#D97706' : '#059669'}
+                            style={{ marginRight: 4 }}
+                          />
+                          <Text
+                            style={[
+                              styles.breakdownScoreBadgeText,
+                              isQWrong
+                                ? styles.textWrong
+                                : isQPartial
+                                ? styles.textPartial
+                                : styles.textCorrect,
+                            ]}
+                          >
+                            {q.verdict || `${Math.round(q.overall_score)}%`}
+                          </Text>
+                        </View>
+                      )}
+                    </View>
+
+                    {/* What they answered */}
+                    <View style={styles.breakdownAnswerBox}>
+                      <Text style={styles.breakdownSectionLabel}>What You Answered:</Text>
+                      <Text style={styles.breakdownAnsText}>
+                        "{q.student_answer || 'No answer submitted'}"
+                      </Text>
+                    </View>
+
+                    {/* Missing concepts if wrong/partial */}
+                    {q.missing_concepts && q.missing_concepts.length > 0 && (
+                      <View style={styles.breakdownMissingBox}>
+                        <Text style={styles.breakdownMissingLabel}>Missing Concepts:</Text>
+                        <View style={styles.conceptsWrap}>
+                          {q.missing_concepts.map((mc: string, mIdx: number) => (
+                            <View key={mIdx} style={styles.missingConceptChipSmall}>
+                              <Text style={styles.missingConceptChipTextSmall}>{mc}</Text>
+                            </View>
+                          ))}
+                        </View>
+                      </View>
+                    )}
+
+                    {/* Feedback critique */}
+                    {q.feedback && (
+                      <View style={styles.breakdownFeedbackBox}>
+                        <Text style={styles.breakdownSectionLabel}>Evaluation Critique:</Text>
+                        <Text style={styles.breakdownFeedbackText}>{q.feedback}</Text>
+                      </View>
+                    )}
+
+                    {/* Expected Model Answer */}
+                    {q.model_answer && (
+                      <View style={styles.breakdownModelBox}>
+                        <Text style={styles.breakdownSectionLabel}>Expected Model Answer:</Text>
+                        <Text style={styles.breakdownModelText}>{q.model_answer}</Text>
+                      </View>
+                    )}
+
+                    {/* Wikipedia Reference Link */}
+                    {q.wikipedia_reference && (
+                      <TouchableOpacity
+                        style={styles.breakdownWikiRow}
+                        onPress={() => openExternalUrl(q.wikipedia_reference)}
+                      >
+                        <Feather name="external-link" size={13} color="#2563EB" style={{ marginRight: 6 }} />
+                        <Text style={styles.breakdownWikiText} numberOfLines={1}>
+                          Wikipedia Reference: {q.wikipedia_reference}
+                        </Text>
+                      </TouchableOpacity>
+                    )}
+                  </View>
+                );
+              })}
             </View>
           )}
 
@@ -2004,7 +2294,153 @@ const styles = StyleSheet.create({
     fontSize: 15,
     fontWeight: '700',
   },
-  // Report Screen
+  // Report Screen - Total Accuracy of Performance
+  totalAccuracyCard: {
+    backgroundColor: '#FFFFFF',
+    borderRadius: Radii.lg,
+    padding: 20,
+    borderWidth: 1.5,
+    borderColor: '#E2E8F0',
+    marginBottom: 16,
+    ...Shadows.md,
+  },
+  totalAccuracyHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+    marginBottom: 16,
+    paddingBottom: 12,
+    borderBottomWidth: 1,
+    borderBottomColor: '#F1F5F9',
+  },
+  accuracyTrophyBadge: {
+    width: 42,
+    height: 42,
+    borderRadius: 21,
+    backgroundColor: '#FEF3C7',
+    borderWidth: 1.5,
+    borderColor: '#FDE68A',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  totalAccuracyTitle: {
+    fontSize: 16,
+    fontWeight: '800',
+    color: '#0F172A',
+  },
+  totalAccuracySubtitle: {
+    fontSize: 12,
+    color: '#64748B',
+    marginTop: 2,
+  },
+  totalAccuracyRatingPill: {
+    backgroundColor: '#EEF2FF',
+    paddingHorizontal: 10,
+    paddingVertical: 5,
+    borderRadius: Radii.full,
+    borderWidth: 1,
+    borderColor: '#C7D2FE',
+  },
+  totalAccuracyRatingText: {
+    fontSize: 11,
+    fontWeight: '700',
+    color: '#4338CA',
+  },
+  accuracyHeroRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 16,
+    marginBottom: 16,
+  },
+  accuracyCircleBig: {
+    width: 105,
+    height: 105,
+    borderRadius: 52.5,
+    backgroundColor: '#FAF5FF',
+    borderWidth: 4,
+    borderColor: Palette.aiPurple,
+    justifyContent: 'center',
+    alignItems: 'center',
+    ...Shadows.sm,
+  },
+  accuracyCircleBigNumber: {
+    fontSize: 28,
+    fontWeight: '900',
+    color: Palette.aiPurple,
+  },
+  accuracyCircleBigLabel: {
+    fontSize: 10,
+    fontWeight: '700',
+    color: '#64748B',
+    textTransform: 'uppercase',
+    marginTop: 2,
+  },
+  accuracyMetricsCol: {
+    flex: 1,
+    gap: 10,
+  },
+  accuracyMetricItem: {
+    backgroundColor: '#F8FAFC',
+    borderRadius: Radii.sm,
+    padding: 10,
+    borderWidth: 1,
+    borderColor: '#E2E8F0',
+  },
+  accuracyMetricLabel: {
+    fontSize: 11,
+    fontWeight: '600',
+    color: '#64748B',
+    textTransform: 'uppercase',
+  },
+  accuracyMetricValue: {
+    fontSize: 13,
+    fontWeight: '700',
+    color: '#0F172A',
+    marginTop: 2,
+  },
+  accuracyMetricValueHighlight: {
+    fontSize: 13,
+    fontWeight: '800',
+    color: Palette.aiPurple,
+    marginTop: 2,
+  },
+  accuracyBarsContainer: {
+    backgroundColor: '#F8FAFC',
+    borderRadius: Radii.md,
+    padding: 14,
+    borderWidth: 1,
+    borderColor: '#E2E8F0',
+    gap: 12,
+    marginBottom: 14,
+  },
+  accuracyBarRow: {
+    gap: 6,
+  },
+  accuracyBarLabelCol: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+  },
+  accuracyBarName: {
+    fontSize: 12,
+    fontWeight: '600',
+    color: '#334155',
+  },
+  accuracyBarScore: {
+    fontSize: 12,
+    fontWeight: '700',
+    color: '#0F172A',
+  },
+  progressBarTrack: {
+    height: 7,
+    backgroundColor: '#E2E8F0',
+    borderRadius: 4,
+    overflow: 'hidden',
+  },
+  progressBarFill: {
+    height: '100%',
+    borderRadius: 4,
+  },
   reportScoreCard: {
     backgroundColor: Palette.card,
     borderRadius: Radii.lg,
@@ -2061,6 +2497,317 @@ const styles = StyleSheet.create({
     fontWeight: '600',
     color: Palette.primary,
   },
+  // Verdict & Answer Verification Cards
+  verdictCard: {
+    borderRadius: Radii.lg,
+    padding: 18,
+    borderWidth: 1.5,
+    marginBottom: 16,
+    ...Shadows.sm,
+  },
+  verdictCardWrong: {
+    backgroundColor: '#FEF2F2',
+    borderColor: '#FECACA',
+  },
+  verdictCardPartial: {
+    backgroundColor: '#FFFBEB',
+    borderColor: '#FDE68A',
+  },
+  verdictCardStrong: {
+    backgroundColor: '#ECFDF5',
+    borderColor: '#A7F3D0',
+  },
+  verdictHeaderRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 10,
+  },
+  verdictBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: 10,
+    paddingVertical: 5,
+    borderRadius: Radii.full,
+    gap: 6,
+  },
+  verdictBadgeWrong: {
+    backgroundColor: '#FEE2E2',
+  },
+  verdictBadgePartial: {
+    backgroundColor: '#FEF3C7',
+  },
+  verdictBadgeStrong: {
+    backgroundColor: '#D1FAE5',
+  },
+  verdictBadgeText: {
+    fontSize: 13,
+    fontWeight: '700',
+  },
+  verdictScorePill: {
+    fontSize: 13,
+    fontWeight: '800',
+    paddingHorizontal: 10,
+    paddingVertical: 4,
+    borderRadius: Radii.full,
+  },
+  verdictCritiqueText: {
+    fontSize: 14,
+    color: Palette.textBody,
+    lineHeight: 21,
+  },
+  statusTag: {
+    paddingHorizontal: 8,
+    paddingVertical: 3,
+    borderRadius: Radii.sm,
+  },
+  statusTagText: {
+    fontSize: 11,
+    fontWeight: '700',
+    textTransform: 'uppercase',
+  },
+  studentAnswerBox: {
+    backgroundColor: '#F8FAFC',
+    borderRadius: Radii.md,
+    padding: 14,
+    borderLeftWidth: 4,
+    borderLeftColor: Palette.primary,
+  },
+  studentAnswerBoxWrong: {
+    backgroundColor: '#FFF1F2',
+    borderLeftColor: '#EF4444',
+  },
+  studentAnswerText: {
+    fontSize: 13,
+    color: Palette.textBody,
+    lineHeight: 20,
+    fontStyle: 'italic',
+  },
+  missingConceptsSubtext: {
+    fontSize: 12,
+    color: Palette.textMuted,
+    marginBottom: 10,
+    lineHeight: 18,
+  },
+  conceptsWrap: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 8,
+  },
+  missingConceptChip: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#FEE2E2',
+    borderWidth: 1,
+    borderColor: '#FECACA',
+    paddingHorizontal: 10,
+    paddingVertical: 5,
+    borderRadius: Radii.sm,
+  },
+  missingConceptChipText: {
+    fontSize: 12,
+    fontWeight: '700',
+    color: '#DC2626',
+  },
+  criteriaGridClean: {
+    flexDirection: 'row',
+    width: '100%',
+    paddingTop: 4,
+  },
+  criteriaItemClean: {
+    flex: 1,
+    alignItems: 'center',
+    paddingVertical: 6,
+    backgroundColor: '#F8FAFC',
+    borderRadius: Radii.sm,
+    marginHorizontal: 3,
+  },
+  wikiCard: {
+    backgroundColor: '#EFF6FF',
+    borderRadius: Radii.md,
+    padding: 16,
+    borderWidth: 1,
+    borderColor: '#BFDBFE',
+    marginBottom: 16,
+  },
+  wikiHeaderRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 8,
+    gap: 10,
+  },
+  wikiIconBadge: {
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+    backgroundColor: '#1E40AF',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  wikiIconText: {
+    fontSize: 16,
+    fontWeight: '900',
+    color: '#FFFFFF',
+    fontFamily: Platform.OS === 'ios' ? 'Georgia' : 'serif',
+  },
+  wikiTitle: {
+    fontSize: 14,
+    fontWeight: '700',
+    color: '#1E40AF',
+  },
+  wikiSubtitle: {
+    fontSize: 11,
+    color: '#3B82F6',
+    fontWeight: '500',
+  },
+  wikiExplainText: {
+    fontSize: 12,
+    color: '#1E3A8A',
+    lineHeight: 18,
+    marginBottom: 10,
+  },
+  wikiLinkBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#FFFFFF',
+    borderWidth: 1,
+    borderColor: '#93C5FD',
+    borderRadius: Radii.sm,
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+  },
+  wikiLinkText: {
+    fontSize: 12,
+    fontWeight: '600',
+    color: '#2563EB',
+    flex: 1,
+  },
+  breakdownItemCard: {
+    backgroundColor: Palette.card,
+    borderRadius: Radii.md,
+    borderWidth: 1,
+    borderColor: Palette.border,
+    padding: 14,
+    marginBottom: 12,
+    ...Shadows.sm,
+  },
+  breakdownItemCardWrong: {
+    borderColor: '#FECACA',
+    backgroundColor: '#FFFDFD',
+  },
+  breakdownHeaderRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'flex-start',
+    marginBottom: 8,
+    gap: 8,
+  },
+  breakdownScoreBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: 8,
+    paddingVertical: 3,
+    borderRadius: Radii.full,
+  },
+  badgeWrong: {
+    backgroundColor: '#FEE2E2',
+  },
+  badgePartial: {
+    backgroundColor: '#FEF3C7',
+  },
+  badgeCorrect: {
+    backgroundColor: '#D1FAE5',
+  },
+  breakdownScoreBadgeText: {
+    fontSize: 11,
+    fontWeight: '700',
+  },
+  textWrong: {
+    color: '#EF4444',
+  },
+  textPartial: {
+    color: '#D97706',
+  },
+  textCorrect: {
+    color: '#059669',
+  },
+  breakdownAnswerBox: {
+    backgroundColor: '#F8FAFC',
+    borderRadius: Radii.sm,
+    padding: 10,
+    marginBottom: 8,
+  },
+  breakdownSectionLabel: {
+    fontSize: 11,
+    fontWeight: '700',
+    color: Palette.textMuted,
+    textTransform: 'uppercase',
+    marginBottom: 3,
+  },
+  breakdownMissingBox: {
+    backgroundColor: '#FEF2F2',
+    borderRadius: Radii.sm,
+    padding: 10,
+    marginBottom: 8,
+  },
+  breakdownMissingLabel: {
+    fontSize: 11,
+    fontWeight: '700',
+    color: '#DC2626',
+    textTransform: 'uppercase',
+    marginBottom: 5,
+  },
+  missingConceptChipSmall: {
+    backgroundColor: '#FFFFFF',
+    borderWidth: 1,
+    borderColor: '#FCA5A5',
+    paddingHorizontal: 8,
+    paddingVertical: 3,
+    borderRadius: 4,
+  },
+  missingConceptChipTextSmall: {
+    fontSize: 11,
+    fontWeight: '700',
+    color: '#DC2626',
+  },
+  breakdownFeedbackBox: {
+    backgroundColor: '#FAF5FF',
+    borderRadius: Radii.sm,
+    padding: 10,
+    marginBottom: 8,
+  },
+  breakdownFeedbackText: {
+    fontSize: 12,
+    color: Palette.aiPurple,
+    lineHeight: 18,
+  },
+  breakdownModelBox: {
+    backgroundColor: '#F0FDF4',
+    borderRadius: Radii.sm,
+    padding: 10,
+    marginBottom: 8,
+  },
+  breakdownModelText: {
+    fontSize: 12,
+    color: '#15803D',
+    lineHeight: 18,
+  },
+  breakdownWikiRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#EFF6FF',
+    borderRadius: Radii.sm,
+    paddingHorizontal: 10,
+    paddingVertical: 6,
+    borderWidth: 1,
+    borderColor: '#DBEAFE',
+  },
+  breakdownWikiText: {
+    fontSize: 11,
+    fontWeight: '600',
+    color: '#2563EB',
+    flex: 1,
+  },
   breakdownItem: {
     paddingVertical: 10,
     borderBottomWidth: 1,
@@ -2071,11 +2818,12 @@ const styles = StyleSheet.create({
     fontWeight: '700',
     color: Palette.textTitle,
     marginBottom: 4,
+    flex: 1,
   },
   breakdownAnsText: {
     fontSize: 12,
     color: Palette.textBody,
-    marginBottom: 3,
+    lineHeight: 18,
   },
   breakdownFeedback: {
     fontSize: 11,

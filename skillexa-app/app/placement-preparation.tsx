@@ -109,6 +109,29 @@ export default function PlacementPreparationPage() {
           })}
         </View>
 
+        {/* Live Interview Portal Banner */}
+        <TouchableOpacity
+          style={styles.liveInterviewBanner}
+          onPress={() => router.push('/live-interview' as any)}
+          activeOpacity={0.88}
+        >
+          <View style={styles.liveInterviewBannerIcon}>
+            <Feather name="video" size={24} color="#FFFFFF" />
+          </View>
+          <View style={{ flex: 1 }}>
+            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6, marginBottom: 2 }}>
+              <Text style={styles.liveInterviewBannerTitle}>SkillExa Live Interview</Text>
+              <View style={styles.liveBadge}>
+                <Text style={styles.liveBadgeText}>LIVE PANEL</Text>
+              </View>
+            </View>
+            <Text style={styles.liveInterviewBannerDesc}>
+              Face-to-face video mock & panel rounds with college faculty and placement interviewers.
+            </Text>
+          </View>
+          <Feather name="arrow-right" size={20} color={Palette.primary} />
+        </TouchableOpacity>
+
         {/* Targeted Weak Areas */}
         <View style={styles.sectionHeaderRow}>
           <Text style={styles.sectionTitle}>Targeted Weak Areas</Text>
@@ -251,4 +274,50 @@ const styles = StyleSheet.create({
   companyPattern: { fontSize: 12.5, color: Palette.textSecondary, marginBottom: 10 },
   companyBtn: { alignSelf: 'flex-start' },
   companyBtnText: { fontSize: 13, fontWeight: '700', color: Palette.primary },
+  liveInterviewBanner: {
+    backgroundColor: '#FFFFFF',
+    borderRadius: Radii.card,
+    padding: 16,
+    borderWidth: 1.5,
+    borderColor: '#E0E7FF',
+    marginBottom: 24,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 14,
+    ...Shadows.card,
+  },
+  liveInterviewBannerIcon: {
+    width: 48,
+    height: 48,
+    borderRadius: 14,
+    backgroundColor: Palette.primary,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  liveInterviewBannerTitle: {
+    fontSize: 16,
+    fontWeight: '800',
+    color: Palette.textTitle,
+  },
+  liveBadge: {
+    backgroundColor: '#EEF2FF',
+    paddingHorizontal: 7,
+    paddingVertical: 2,
+    borderRadius: 6,
+    borderWidth: 1,
+    borderColor: '#C7D2FE',
+  },
+  liveBadgeText: {
+    fontSize: 10,
+    fontWeight: '800',
+    color: Palette.primary,
+    letterSpacing: 0.5,
+  },
+  liveInterviewBannerDesc: {
+    fontSize: 12.5,
+    color: Palette.textSecondary,
+    lineHeight: 18,
+    marginTop: 2,
+  },
 });
+

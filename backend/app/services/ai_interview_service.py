@@ -153,15 +153,16 @@ class AIInterviewService:
                 detail="An answer for this question has already been submitted and evaluated.",
             )
 
-        # Retrieve sample answer from Question Bank if available
+        # 1. Retrieve sample answer from Question Bank if available
         sample_answer = None
         if question.question_bank_id:
             bank_item = db.query(AIQuestionBank).filter(AIQuestionBank.id == question.question_bank_id).first()
-            if bank_item:
+            if bank_item and bank_item.sample_answer:
                 sample_answer = bank_item.sample_answer
 
-        # Retrieve verified educational knowledge source if cached or grounded
+        # 2. Retrieve verified educational knowledge source if cached or grounded
         knowledge_summary = None
+        wiki_reference = question.source_reference
         if question.source_reference or question.topic:
             k_item = (
                 db.query(EducationalKnowledgeSource)
@@ -174,6 +175,26 @@ class AIInterviewService:
             )
             if k_item:
                 knowledge_summary = k_item.content_summary
+                wiki_reference = k_item.source_url
+
+        # 3. IF NO BACKEND SAMPLE ANSWER OR KNOWLEDGE SUMMARY: USE WIKIPEDIA!
+        if not sample_answer or not knowledge_summary:
+            from backend.app.services.knowledge_retrieval_service import KnowledgeRetrievalService
+            wiki_data = KnowledgeRetrievalService.get_or_fetch_topic_knowledge(
+                db, question.topic or session.subject
+            )
+            if wiki_data:
+                knowledge_summary = wiki_data.get("content_summary")
+                wiki_reference = wiki_data.get("source_url")
+                if not question.source_reference:
+                    question.source_reference = wiki_reference
+                if not sample_answer:
+                    # Synthesize verified model answer grounded in Wikipedia
+                    summary_clean = (wiki_data.get("content_summary") or "").strip()
+                    sample_answer = f"According to verified documentation on {wiki_data.get('article_title')}: {summary_clean[:420]}..."
+                if not question.expected_concepts:
+                    wiki_words = [w.strip(".,;:()") for w in (wiki_data.get("content_summary") or "").split() if len(w) > 5]
+                    question.expected_concepts = list(dict.fromkeys(wiki_words))[:6]
 
         # Run Multi-Criteria Answer Evaluation (supporting up to 1,000+ words)
         eval_result = AnswerEvaluationService.evaluate_answer(
@@ -186,7 +207,7 @@ class AIInterviewService:
             sample_answer=sample_answer,
             interview_category=session.interview_category.value if hasattr(session.interview_category, "value") else str(session.interview_category),
             speech_metrics=req.speech_metrics,
-            theory_reference=question.source_reference,
+            theory_reference=wiki_reference,
             knowledge_summary=knowledge_summary,
         )
 
@@ -227,13 +248,20 @@ class AIInterviewService:
                 "clarity_score": answer_record.clarity_score,
                 "communication_score": answer_record.communication_score,
                 "overall_score": eval_result["overall_score"],
+                "verdict": eval_result.get("verdict", "Evaluated"),
+                "student_answer": req.answer_text,
                 "feedback": answer_record.feedback,
                 "strengths": answer_record.strengths,
                 "improvement_areas": answer_record.improvement_areas,
                 "missing_concepts": answer_record.missing_concepts,
                 "model_answer": answer_record.model_answer,
+                "wikipedia_reference": wiki_reference,
                 "is_interview_complete": True,
                 "next_question_number": None,
+                "next_question": None,
+                "cumulative_accuracy": session.total_score,
+                "questions_answered": session.questions_answered,
+                "total_questions": session.total_questions,
             }
 
         # Otherwise, prepare the next question automatically
@@ -298,6 +326,34 @@ class AIInterviewService:
         db.add(next_q)
         db.commit()
         db.refresh(answer_record)
+        db.refresh(next_q)
+
+        # Calculate running cumulative accuracy across answered questions
+        running_scores = [
+            q.answer.technical_score
+            for q in session.questions
+            if q.answer and q.answer.technical_score is not None
+        ]
+        cumulative_acc = (
+            round((sum(running_scores) / len(running_scores)) * 10.0, 1)
+            if running_scores
+            else eval_result["overall_score"]
+        )
+
+        next_q_data = {
+            "id": next_q.id,
+            "interview_id": session.id,
+            "question_number": next_q.question_number,
+            "total_questions": session.total_questions,
+            "question_text": next_q.question_text,
+            "topic": next_q.topic,
+            "difficulty": next_q.difficulty,
+            "hints": [],
+            "generated_follow_up": next_q.generated_follow_up,
+            "question_source": next_q.question_source,
+            "source_reference": next_q.source_reference,
+            "asked_at": next_q.asked_at,
+        }
 
         return {
             "answer_id": answer_record.id,
@@ -307,13 +363,20 @@ class AIInterviewService:
             "clarity_score": answer_record.clarity_score,
             "communication_score": answer_record.communication_score,
             "overall_score": eval_result["overall_score"],
+            "verdict": eval_result.get("verdict", "Evaluated"),
+            "student_answer": req.answer_text,
             "feedback": answer_record.feedback,
             "strengths": answer_record.strengths,
             "improvement_areas": answer_record.improvement_areas,
             "missing_concepts": answer_record.missing_concepts,
             "model_answer": answer_record.model_answer,
+            "wikipedia_reference": wiki_reference,
             "is_interview_complete": False,
             "next_question_number": next_q_number,
+            "next_question": next_q_data,
+            "cumulative_accuracy": cumulative_acc,
+            "questions_answered": session.questions_answered,
+            "total_questions": session.total_questions,
         }
 
     @classmethod

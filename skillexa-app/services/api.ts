@@ -60,15 +60,60 @@ export const setAuthToken = (token: string | null) => {
 
 export const getAuthToken = () => authToken;
 
-export const ensureAuthToken = async (forceRefresh = false): Promise<string | null> => {
-  if (!forceRefresh && authToken) return authToken;
+export function parseJwtRole(token: string | null): string | null {
+  if (!token) return null;
+  try {
+    const parts = token.split('.');
+    if (parts.length === 3) {
+      const base64 = parts[1].replace(/-/g, '+').replace(/_/g, '/');
+      const g = globalThis as any;
+      let json = '';
+      if (typeof g.atob === 'function') {
+        json = g.atob(base64);
+      } else if (g.Buffer) {
+        json = g.Buffer.from(base64, 'base64').toString('utf8');
+      }
+      if (json) {
+        return JSON.parse(json).role?.toLowerCase() || null;
+      }
+    }
+  } catch (e) {}
+  return null;
+}
+
+export const ensureAuthToken = async (
+  forceRefresh = false,
+  targetRole?: 'STUDENT' | 'FACULTY'
+): Promise<string | null> => {
+  if (!forceRefresh && authToken) {
+    if (targetRole) {
+      const currentRole = parseJwtRole(authToken);
+      const isMatch = targetRole === 'FACULTY'
+        ? (currentRole === 'faculty' || currentRole === 'admin')
+        : (currentRole === 'student');
+      if (isMatch) return authToken;
+    } else {
+      return authToken;
+    }
+  }
 
   if (!forceRefresh && typeof window !== 'undefined' && window.localStorage) {
     try {
       const saved = window.localStorage.getItem('skillexa_jwt_token');
       if (saved && saved !== 'null' && saved !== 'undefined') {
-        authToken = saved;
-        return saved;
+        if (targetRole) {
+          const savedRole = parseJwtRole(saved);
+          const isMatch = targetRole === 'FACULTY'
+            ? (savedRole === 'faculty' || savedRole === 'admin')
+            : (savedRole === 'student');
+          if (isMatch) {
+            authToken = saved;
+            return saved;
+          }
+        } else {
+          authToken = saved;
+          return saved;
+        }
       }
     } catch (e) {}
   }
@@ -76,13 +121,30 @@ export const ensureAuthToken = async (forceRefresh = false): Promise<string | nu
   // Clear invalid or stale token before requesting a fresh one
   setAuthToken(null);
 
-  // Acquire active student session from backend
+  // Determine which user to auto-authenticate with
+  let effectiveRole = targetRole;
+  if (!effectiveRole && typeof window !== 'undefined' && window.localStorage) {
+    try {
+      const savedProfile = window.localStorage.getItem('skillexa_user_profile');
+      if (savedProfile) {
+        const p = JSON.parse(savedProfile);
+        if (p.role === 'FACULTY' || p.role === 'ADMIN') {
+          effectiveRole = 'FACULTY';
+        }
+      }
+    } catch (e) {}
+  }
+
+  const email = effectiveRole === 'FACULTY' ? 'dr.ramesh@kvgce.edu.in' : 'ganesh@kvgce.edu.in';
+  const password = effectiveRole === 'FACULTY' ? 'faculty123' : 'student123';
+
+  // Acquire active session from backend
   try {
     const url = `${getApiBaseUrl()}/auth/login`;
     const res = await fetch(url, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ email: 'ganesh@kvgce.edu.in', password: 'student123' }),
+      body: JSON.stringify({ email, password }),
     });
     if (res.ok) {
       const data = await res.json();
@@ -224,7 +286,10 @@ export const ApiClient = {
   },
 
   // 1. Authentication
-  ensureAuthToken: (forceRefresh = false) => ensureAuthToken(forceRefresh),
+  ensureAuthToken: (forceRefresh = false, targetRole?: 'STUDENT' | 'FACULTY') =>
+    ensureAuthToken(forceRefresh, targetRole),
+  ensureFacultyToken: (forceRefresh = false) => ensureAuthToken(forceRefresh, 'FACULTY'),
+  ensureStudentToken: (forceRefresh = false) => ensureAuthToken(forceRefresh, 'STUDENT'),
 
   login: async (email: string, password: string) => {
     const res = await request<any>('/auth/login', {
@@ -467,6 +532,117 @@ export const ApiClient = {
     if (params?.subject) query.append('subject', params.subject);
     if (params?.difficulty) query.append('difficulty', params.difficulty);
     return request<any[]>(`/ai-interview/questions?${query.toString()}`);
+  },
+
+  // =========================================================
+  // SkillExa Live Interview (Human-to-Human Video Conferencing)
+  // =========================================================
+  createLiveInterviewBooking: async (payload: {
+    student_id: string;
+    interview_category: string;
+    subject: string;
+    scheduled_at: string;
+    duration_minutes?: number;
+    instructions?: string;
+    preparation_materials?: string;
+  }) => {
+    await ensureAuthToken(false, 'FACULTY');
+    return request<any>('/live-interview/bookings', {
+      method: 'POST',
+      body: JSON.stringify(payload),
+    });
+  },
+
+  getLiveInterviewBookings: (statusFilter?: string) => {
+    const q = statusFilter ? `?status=${encodeURIComponent(statusFilter)}` : '';
+    return request<any[]>(`/live-interview/bookings${q}`);
+  },
+
+  getLiveInterviewBookingDetails: (bookingId: string) =>
+    request<any>(`/live-interview/bookings/${bookingId}`),
+
+  confirmLiveInterviewBooking: (bookingId: string) =>
+    request<any>(`/live-interview/bookings/${bookingId}/confirm`, {
+      method: 'POST',
+    }),
+
+  cancelLiveInterviewBooking: (bookingId: string) =>
+    request<any>(`/live-interview/bookings/${bookingId}/cancel`, {
+      method: 'POST',
+    }),
+
+  rescheduleLiveInterviewBooking: (
+    bookingId: string,
+    payload: { scheduled_at: string; duration_minutes?: number }
+  ) =>
+    request<any>(`/live-interview/bookings/${bookingId}/reschedule`, {
+      method: 'POST',
+      body: JSON.stringify(payload),
+    }),
+
+  validateLiveInterviewRoom: (roomCode: string) =>
+    request<any>(`/live-interview/validate-room/${encodeURIComponent(roomCode.trim())}`),
+
+  prepareLiveInterviewRoom: (bookingId: string) =>
+    request<any>(`/live-interview/bookings/${bookingId}/room`, {
+      method: 'POST',
+    }),
+
+  joinLiveInterviewRoom: (roomId: string) =>
+    request<any>(`/live-interview/rooms/${roomId}/join`, {
+      method: 'POST',
+    }),
+
+  admitStudentToLiveInterview: (roomId: string) =>
+    request<any>(`/live-interview/rooms/${roomId}/admit`, {
+      method: 'POST',
+    }),
+
+  endLiveInterviewRoomForAll: (roomId: string) =>
+    request<any>(`/live-interview/rooms/${roomId}/end`, {
+      method: 'POST',
+    }),
+
+  leaveLiveInterviewRoom: (roomId: string) =>
+    request<any>(`/live-interview/rooms/${roomId}/leave`, {
+      method: 'POST',
+    }),
+
+  getLiveInterviewRoom: (roomId: string) =>
+    request<any>(`/live-interview/rooms/${roomId}`),
+
+  getLiveMeetingMessages: (roomId: string) =>
+    request<any[]>(`/live-interview/rooms/${roomId}/messages`),
+
+  sendLiveMeetingMessage: (roomId: string, message: string) =>
+    request<any>(`/live-interview/rooms/${roomId}/messages`, {
+      method: 'POST',
+      body: JSON.stringify({ message }),
+    }),
+
+  submitLiveInterviewFeedback: (
+    bookingId: string,
+    payload: {
+      technical_score: number;
+      communication_feedback: string;
+      problem_solving_feedback: string;
+      strengths?: string[];
+      areas_for_improvement?: string[];
+      teacher_comments?: string;
+      recommended_topics?: string[];
+    }
+  ) =>
+    request<any>(`/live-interview/bookings/${bookingId}/feedback`, {
+      method: 'POST',
+      body: JSON.stringify(payload),
+    }),
+
+  getLiveInterviewFeedback: (bookingId: string) =>
+    request<any>(`/live-interview/bookings/${bookingId}/feedback`),
+
+  getDepartmentStudents: async () => {
+    await ensureAuthToken(false, 'FACULTY');
+    return request<any[]>('/faculty/students');
   },
 };
 

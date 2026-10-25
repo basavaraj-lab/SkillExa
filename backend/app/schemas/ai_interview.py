@@ -51,13 +51,20 @@ class AnswerEvaluationResponse(BaseModel):
     clarity_score: float
     communication_score: float
     overall_score: float
+    verdict: Optional[str] = None
+    student_answer: Optional[str] = None
     feedback: str
     strengths: List[str] = []
     improvement_areas: List[str] = []
     missing_concepts: List[str] = []
     model_answer: Optional[str] = None
+    wikipedia_reference: Optional[str] = None
     is_interview_complete: bool = False
     next_question_number: Optional[int] = None
+    next_question: Optional[AIInterviewQuestionResponse] = None
+    cumulative_accuracy: Optional[float] = None
+    questions_answered: Optional[int] = None
+    total_questions: Optional[int] = None
 
 
 class QuestionAnswerDetail(BaseModel):
@@ -66,8 +73,12 @@ class QuestionAnswerDetail(BaseModel):
     student_answer: Optional[str] = None
     technical_score: Optional[float] = None
     clarity_score: Optional[float] = None
+    overall_score: Optional[float] = None
+    verdict: Optional[str] = None
     feedback: Optional[str] = None
     model_answer: Optional[str] = None
+    missing_concepts: List[str] = []
+    wikipedia_reference: Optional[str] = None
 
 
 class AIInterviewReportResponse(BaseModel):
@@ -76,6 +87,10 @@ class AIInterviewReportResponse(BaseModel):
     id: str
     interview_id: str
     overall_score: float
+    total_accuracy: Optional[float] = None
+    performance_rating: Optional[str] = None
+    total_questions: Optional[int] = None
+    questions_answered: Optional[int] = None
     technical_summary: str
     communication_summary: str
     strengths: List[str] = []

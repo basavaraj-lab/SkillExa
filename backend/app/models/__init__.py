@@ -38,6 +38,17 @@ from backend.app.models.ai_interview import (
     QuestionValidationStatusEnum,
 )
 from backend.app.models.notification import Notification, StudentProgress, NotificationTypeEnum
+from backend.app.models.live_interview import (
+    LiveInterviewBooking,
+    LiveMeetingRoom,
+    LiveMeetingParticipant,
+    LiveMeetingChatMessage,
+    LiveInterviewFeedback,
+    LiveInterviewCategoryEnum,
+    LiveInterviewStatusEnum,
+    LiveRoomStatusEnum,
+    ParticipantRoleEnum,
+)
 
 __all__ = [
     "User",
@@ -89,4 +100,13 @@ __all__ = [
     "Notification",
     "StudentProgress",
     "NotificationTypeEnum",
+    "LiveInterviewBooking",
+    "LiveMeetingRoom",
+    "LiveMeetingParticipant",
+    "LiveMeetingChatMessage",
+    "LiveInterviewFeedback",
+    "LiveInterviewCategoryEnum",
+    "LiveInterviewStatusEnum",
+    "LiveRoomStatusEnum",
+    "ParticipantRoleEnum",
 ]

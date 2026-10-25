@@ -46,6 +46,7 @@ class AnswerEvaluationService:
                 "clarity_score": 2.0,
                 "communication_score": 2.0,
                 "overall_score": 14.0,  # Scaled to 100
+                "verdict": "Incorrect / Needs Improvement",
                 "feedback": "Answer was minimal or omitted. In real interviews, it is always beneficial to explain your thought process, even if unsure.",
                 "strengths": ["Acknowledged the question directly"],
                 "improvement_areas": ["Attempt an explanation using foundational principles", "Outline partial understanding"],
@@ -143,6 +144,13 @@ Return a JSON object with EXACTLY these fields:
 
             # Overall score calculation: weighted average out of 100
             overall = round(((tech * 0.40) + (comp * 0.25) + (clar * 0.20) + (comm * 0.15)) * 10.0, 1)
+            verdict = (
+                "Strong / Correct"
+                if overall >= 75.0
+                else "Partially Correct"
+                if overall >= 50.0
+                else "Incorrect / Needs Improvement"
+            )
 
             return {
                 "technical_score": tech,
@@ -150,7 +158,8 @@ Return a JSON object with EXACTLY these fields:
                 "clarity_score": clar,
                 "communication_score": comm,
                 "overall_score": overall,
-                "feedback": str(res.get("feedback", "Comprehensive explanation demonstrating technical depth.")),
+                "verdict": verdict,
+                "feedback": str(res.get("feedback", "Explanation evaluated.")),
                 "strengths": res.get("strengths", ["Solid foundational grasp", "Detailed technical reasoning"]),
                 "improvement_areas": res.get("improvement_areas", ["Consider edge cases and system bounds"]),
                 "missing_concepts": res.get("missing_concepts", []),
@@ -327,8 +336,23 @@ Return a JSON object with EXACTLY these fields:
         if not improvement_areas:
             improvement_areas.append("Discuss production monitoring, telemetry, or fault-recovery protocols")
 
-        # Dynamic feedback
-        if word_count >= 500:
+        # Dynamic feedback with explicit breakdown of what they got vs what is expected
+        verdict = (
+            "Strong / Correct"
+            if overall >= 75.0
+            else "Partially Correct"
+            if overall >= 50.0
+            else "Incorrect / Needs Improvement"
+        )
+
+        if overall < 50.0:
+            preview = student_answer[:100] + "..." if len(student_answer) > 100 else student_answer
+            feedback = (
+                f"Needs Improvement (Score: {overall}%). You explained: '{preview}', which missed key technical definitions. "
+                f"Critical missing concepts: {', '.join(missing_concepts[:3]) if missing_concepts else 'core definitions'}. "
+                f"Review the verified model answer and Wikipedia theory reference below to master this topic."
+            )
+        elif word_count >= 500:
             feedback = (
                 f"Outstanding thoroughness! Your {word_count}-word response provides an exhaustive, multi-dimensional "
                 f"breakdown of {topic}. You addressed {len(matched_concepts)} of {len(expected_concepts)} expected key concepts "
@@ -341,7 +365,7 @@ Return a JSON object with EXACTLY these fields:
             )
         else:
             feedback = (
-                f"Demonstrated good awareness of {topic}. Your response covered {len(matched_concepts)} of "
+                f"Demonstrated awareness of {topic}. Your response covered {len(matched_concepts)} of "
                 f"{len(expected_concepts)} expected concepts. Elaborating with code or architectural trade-offs would further boost your score."
             )
 
@@ -351,6 +375,7 @@ Return a JSON object with EXACTLY these fields:
             "clarity_score": clarity_score,
             "communication_score": comm_score,
             "overall_score": overall,
+            "verdict": verdict,
             "feedback": feedback,
             "strengths": strengths[:4],
             "improvement_areas": improvement_areas[:3],

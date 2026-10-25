@@ -30,6 +30,7 @@ from backend.app.routers import (
     community_router,
     faculty_router,
     interviews_router,
+    live_interview_router,
     notes_router,
     notifications_router,
     pdf_notes_router,
@@ -87,6 +88,7 @@ app.include_router(assignments_router, prefix=settings.API_V1_STR)
 app.include_router(coding_router, prefix=settings.API_V1_STR)
 app.include_router(interviews_router, prefix=settings.API_V1_STR)
 app.include_router(ai_interview_router, prefix=settings.API_V1_STR)
+app.include_router(live_interview_router, prefix=settings.API_V1_STR)
 app.include_router(notifications_router, prefix=settings.API_V1_STR)
 app.include_router(progress_router, prefix=settings.API_V1_STR)
 app.include_router(topics_router, prefix=settings.API_V1_STR)

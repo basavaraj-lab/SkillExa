@@ -516,22 +516,57 @@ def finish_interview(
 
     breakdown = []
     for q in session.questions:
+        ans = q.answer
+        overall_q = None
+        verdict_q = None
+        if ans and ans.technical_score is not None:
+            t = ans.technical_score
+            comp = ans.completeness_score if ans.completeness_score is not None else 5.0
+            clar = ans.clarity_score if ans.clarity_score is not None else 5.0
+            comm = ans.communication_score if ans.communication_score is not None else 5.0
+            overall_q = round(((t * 0.40) + (comp * 0.25) + (clar * 0.20) + (comm * 0.15)) * 10.0, 1)
+            verdict_q = (
+                "Incorrect / Needs Improvement"
+                if (overall_q < 50.0 or (ans.feedback and "Needs Improvement" in ans.feedback))
+                else "Strong / Correct"
+                if overall_q >= 75.0
+                else "Partially Correct"
+            )
+
         breakdown.append(
             QuestionAnswerDetail(
                 question_number=q.question_number,
                 question_text=q.question_text,
-                student_answer=q.answer.answer_text if q.answer else None,
-                technical_score=q.answer.technical_score if q.answer else None,
-                clarity_score=q.answer.clarity_score if q.answer else None,
-                feedback=q.answer.feedback if q.answer else None,
-                model_answer=q.answer.model_answer if q.answer else None,
+                student_answer=ans.answer_text if ans else None,
+                technical_score=ans.technical_score if ans else None,
+                clarity_score=ans.clarity_score if ans else None,
+                overall_score=overall_q,
+                verdict=verdict_q,
+                feedback=ans.feedback if ans else None,
+                model_answer=ans.model_answer if ans else None,
+                missing_concepts=ans.missing_concepts or [] if ans else [],
+                wikipedia_reference=q.source_reference,
             )
         )
+
+    perf_rating = (
+        "Placement Ready · Exceptional"
+        if report.overall_score >= 85.0
+        else "Strong Technical Competency"
+        if report.overall_score >= 70.0
+        else "Developing · Needs Revision"
+        if report.overall_score >= 50.0
+        else "Foundational Practice Required"
+    )
 
     report_resp = AIInterviewReportResponse(
         id=report.id,
         interview_id=session.id,
         overall_score=report.overall_score,
+        total_accuracy=report.overall_score,
+        performance_rating=perf_rating,
+        total_questions=session.total_questions,
+        questions_answered=session.questions_answered,
         technical_summary=report.technical_summary,
         communication_summary=report.communication_summary,
         strengths=report.strengths or [],
@@ -558,22 +593,57 @@ def get_interview_report(
 
     breakdown = []
     for q in session.questions:
+        ans = q.answer
+        overall_q = None
+        verdict_q = None
+        if ans and ans.technical_score is not None:
+            t = ans.technical_score
+            comp = ans.completeness_score if ans.completeness_score is not None else 5.0
+            clar = ans.clarity_score if ans.clarity_score is not None else 5.0
+            comm = ans.communication_score if ans.communication_score is not None else 5.0
+            overall_q = round(((t * 0.40) + (comp * 0.25) + (clar * 0.20) + (comm * 0.15)) * 10.0, 1)
+            verdict_q = (
+                "Incorrect / Needs Improvement"
+                if (overall_q < 50.0 or (ans.feedback and "Needs Improvement" in ans.feedback))
+                else "Strong / Correct"
+                if overall_q >= 75.0
+                else "Partially Correct"
+            )
+
         breakdown.append(
             QuestionAnswerDetail(
                 question_number=q.question_number,
                 question_text=q.question_text,
-                student_answer=q.answer.answer_text if q.answer else None,
-                technical_score=q.answer.technical_score if q.answer else None,
-                clarity_score=q.answer.clarity_score if q.answer else None,
-                feedback=q.answer.feedback if q.answer else None,
-                model_answer=q.answer.model_answer if q.answer else None,
+                student_answer=ans.answer_text if ans else None,
+                technical_score=ans.technical_score if ans else None,
+                clarity_score=ans.clarity_score if ans else None,
+                overall_score=overall_q,
+                verdict=verdict_q,
+                feedback=ans.feedback if ans else None,
+                model_answer=ans.model_answer if ans else None,
+                missing_concepts=ans.missing_concepts or [] if ans else [],
+                wikipedia_reference=q.source_reference,
             )
         )
+
+    perf_rating = (
+        "Placement Ready · Exceptional"
+        if report.overall_score >= 85.0
+        else "Strong Technical Competency"
+        if report.overall_score >= 70.0
+        else "Developing · Needs Revision"
+        if report.overall_score >= 50.0
+        else "Foundational Practice Required"
+    )
 
     report_resp = AIInterviewReportResponse(
         id=report.id,
         interview_id=session.id,
         overall_score=report.overall_score,
+        total_accuracy=report.overall_score,
+        performance_rating=perf_rating,
+        total_questions=session.total_questions,
+        questions_answered=session.questions_answered,
         technical_summary=report.technical_summary,
         communication_summary=report.communication_summary,
         strengths=report.strengths or [],

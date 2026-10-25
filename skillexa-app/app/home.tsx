@@ -285,6 +285,30 @@ export default function HomeScreen() {
           </TouchableOpacity>
         </View>
 
+        {/* SkillExa Live Interview Banner (Human-to-Human Video Call) */}
+        <TouchableOpacity
+          style={styles.liveInterviewBanner}
+          onPress={() => router.push('/live-interview' as any)}
+          activeOpacity={0.85}
+        >
+          <View style={styles.liveInterviewBadge}>
+            <Feather name="video" size={20} color="#FFFFFF" />
+          </View>
+          <View style={{ flex: 1 }}>
+            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
+              <Text style={styles.liveInterviewTitle}>SkillExa Live Interview</Text>
+              <View style={styles.liveDotPill}>
+                <View style={styles.liveDot} />
+                <Text style={styles.liveDotText}>LIVE MEET</Text>
+              </View>
+            </View>
+            <Text style={styles.liveInterviewDesc}>
+              1-on-1 human video panels with teachers, trainers & placement evaluators.
+            </Text>
+          </View>
+          <Feather name="chevron-right" size={20} color={Palette.primary} />
+        </TouchableOpacity>
+
         {/* 5. Weekly Activity Chart */}
         <View style={styles.sectionHeaderRow}>
           <Text style={styles.sectionTitle}>Weekly Progress</Text>
@@ -787,5 +811,57 @@ const styles = StyleSheet.create({
     fontSize: 12,
     fontWeight: '700',
     color: Palette.textTitle,
+  },
+  liveInterviewBanner: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+    backgroundColor: '#FFFFFF',
+    marginHorizontal: 16,
+    marginBottom: 20,
+    padding: 14,
+    borderRadius: Radii.lg,
+    borderWidth: 1.5,
+    borderColor: '#E2E8F0',
+    ...Shadows.md,
+  },
+  liveInterviewBadge: {
+    width: 44,
+    height: 44,
+    borderRadius: 22,
+    backgroundColor: '#DC2626',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  liveInterviewTitle: {
+    fontSize: 15,
+    fontWeight: '800',
+    color: '#0F172A',
+  },
+  liveDotPill: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+    backgroundColor: '#FEE2E2',
+    paddingHorizontal: 6,
+    paddingVertical: 2,
+    borderRadius: 4,
+  },
+  liveDot: {
+    width: 6,
+    height: 6,
+    borderRadius: 3,
+    backgroundColor: '#DC2626',
+  },
+  liveDotText: {
+    fontSize: 9.5,
+    fontWeight: '800',
+    color: '#DC2626',
+  },
+  liveInterviewDesc: {
+    fontSize: 12,
+    color: '#64748B',
+    marginTop: 2,
+    lineHeight: 16,
   },
 });

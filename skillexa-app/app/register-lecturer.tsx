@@ -19,6 +19,7 @@ import { GradientButton } from "../components/ui/GradientButton";
 import { Gradients, Palette } from "../constants/theme";
 import { createUserWithEmailAndPassword, signInWithPopup } from 'firebase/auth';
 import { auth, googleProvider } from '../services/firebase';
+import { ApiClient, getApiBaseUrl } from '../services/api';
 
 export default function RegisterLecturer() {
   const [name, setName] = useState("");
@@ -157,7 +158,7 @@ export default function RegisterLecturer() {
     setOtpNotification(null);
 
     try {
-      const res = await fetch("http://localhost:8000/api/auth/send-otp", {
+      const res = await fetch(`${getApiBaseUrl()}/auth/send-otp`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ email: email.trim() }),
@@ -168,14 +169,15 @@ export default function RegisterLecturer() {
         setOtpSent(true);
         setExpirySeconds(300);
         setCooldownSeconds(60);
+        setUserEnteredOtp(""); // User must enter code from their Gmail inbox
         setOtpNotification({
           type: "success",
-          message: "Verification OTP sent to your email.",
+          message: data.message || `Verification code sent to ${email.trim()}! Please check your Gmail inbox and enter the 6-digit code.`,
         });
       } else {
         setOtpNotification({
           type: "error",
-          message: data.detail || data.message || "Failed to send OTP. Please try again.",
+          message: data.detail || data.message || "Failed to send verification code. Please check your email address.",
         });
       }
     } catch (e: any) {
@@ -192,7 +194,7 @@ export default function RegisterLecturer() {
     if (cooldownSeconds > 0) return;
     setIsLoading(true);
     try {
-      const res = await fetch("http://localhost:8000/api/auth/resend-otp", {
+      const res = await fetch(`${getApiBaseUrl()}/auth/resend-otp`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ email: email.trim() }),
@@ -202,15 +204,15 @@ export default function RegisterLecturer() {
       if (res.ok && data.success) {
         setExpirySeconds(300);
         setCooldownSeconds(60);
-        setUserEnteredOtp("");
+        setUserEnteredOtp(""); // User must enter code from their Gmail inbox
         setOtpNotification({
           type: "success",
-          message: "Verification OTP sent to your email.",
+          message: data.message || `New verification code sent to ${email.trim()}! Please check your Gmail inbox.`,
         });
       } else {
         setOtpNotification({
           type: "error",
-          message: data.detail || data.message || "Failed to resend OTP.",
+          message: data.detail || data.message || "Failed to resend verification code.",
         });
       }
     } catch (e) {
@@ -227,7 +229,7 @@ export default function RegisterLecturer() {
     if (!userEnteredOtp || userEnteredOtp.trim().length !== 6) {
       setOtpNotification({
         type: "error",
-        message: "Invalid OTP. Please enter the 6-digit code.",
+        message: "Please enter the 6-digit verification code from your Gmail.",
       });
       return;
     }
@@ -235,7 +237,7 @@ export default function RegisterLecturer() {
     if (expirySeconds <= 0) {
       setOtpNotification({
         type: "error",
-        message: "OTP expired. Please request a new OTP.",
+        message: "Verification code expired. Please request a new code.",
       });
       return;
     }
@@ -245,7 +247,7 @@ export default function RegisterLecturer() {
 
     try {
       // Step 1: Verify OTP with FastAPI
-      const res = await fetch("http://localhost:8000/api/auth/verify-otp", {
+      const res = await fetch(`${getApiBaseUrl()}/auth/verify-otp`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ email: email.trim(), otp: userEnteredOtp.trim() }),
@@ -255,7 +257,7 @@ export default function RegisterLecturer() {
       if (!res.ok || !data.success) {
         setOtpNotification({
           type: "error",
-          message: data.detail || data.message || "Invalid OTP. Please try again.",
+          message: data.detail || data.message || "Invalid verification code. Please check your Gmail inbox and try again.",
         });
         setIsLoading(false);
         return;
@@ -264,10 +266,36 @@ export default function RegisterLecturer() {
       setOtpVerified(true);
       setOtpNotification({
         type: "success",
-        message: "Email verified successfully.",
+        message: "Email verified successfully! Creating account & logging in...",
       });
 
-      // Step 2: Create user in Firebase Authentication
+      // Step 2: Register faculty in FastAPI backend database
+      try {
+        await fetch(`${getApiBaseUrl()}/auth/register/faculty`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            name: name.trim(),
+            email: email.trim(),
+            password: password,
+            college_id: "clg-kvg",
+            department: department.trim() || "ECE",
+            designation: qualification ? `Faculty (${qualification})` : "Associate Professor",
+            subjects_taught: skills ? skills.split(",").map((s) => s.trim()) : ["Embedded Systems", "Microcontrollers"],
+          }),
+        });
+      } catch (e) {
+        console.log("Backend faculty registration note:", e);
+      }
+
+      // Step 3: Login with FastAPI backend to store authenticated JWT token
+      try {
+        await ApiClient.login(email.trim(), password);
+      } catch (e) {
+        console.log("Backend login note:", e);
+      }
+
+      // Step 4: Create user in Firebase Authentication
       let firebaseUid = null;
       try {
         const userCred = await createUserWithEmailAndPassword(auth, email.trim(), password);
@@ -276,7 +304,7 @@ export default function RegisterLecturer() {
         console.log("Firebase Auth creation note:", e.message);
       }
 
-      // Step 3: Complete faculty registration & store profile in SkillExa DB
+      // Step 5: Store authenticated profile in AuthContext
       login({
         id: firebaseUid || `fac-${Date.now()}`,
         name: name.trim() || "Prof. " + (name || "Educator"),
@@ -294,12 +322,12 @@ export default function RegisterLecturer() {
       setTimeout(() => {
         setIsLoading(false);
         router.replace("/faculty-dashboard" as any);
-      }, 800);
+      }, 700);
     } catch (e: any) {
       setIsLoading(false);
       setOtpNotification({
         type: "error",
-        message: "Verification failed. Please try again.",
+        message: "Registration failed. Please try again.",
       });
     }
   };

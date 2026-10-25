@@ -454,3 +454,122 @@ def test_submit_1000_word_comprehensive_answer(client: TestClient, student_token
     assert "comprehensive" in strengths_text or "exhaustive" in strengths_text or "detailed" in strengths_text
     assert "outstanding" in ans_data["feedback"].lower() or "thorough" in ans_data["feedback"].lower() or "strong" in ans_data["feedback"].lower()
 
+
+def test_multi_subject_interview_creation_and_meet_flow(client: TestClient, student_token: str):
+    """
+    Test creating Google Meet-style interview sessions across multiple technical subjects:
+    C++, Data Structures and Algorithms, Machine Learning, Operating Systems.
+    Verifies that questions are dynamically selected/generated and sessions complete properly.
+    """
+    headers = {"Authorization": f"Bearer {student_token}"}
+    subjects = [
+        ("Technical", "C++", "Intermediate"),
+        ("Technical", "Data Structures and Algorithms", "Beginner"),
+        ("Technical", "Machine Learning", "Advanced"),
+        ("Technical", "Operating Systems", "Intermediate"),
+    ]
+
+    for cat, subj, diff in subjects:
+        res = client.post(
+            "/api/ai-interview/start",
+            json={
+                "interview_category": cat,
+                "job_role": "Software Developer",
+                "subject": subj,
+                "difficulty": diff,
+                "total_questions": 3,
+                "duration_minutes": 30,
+                "interview_mode": "voice",
+            },
+            headers=headers,
+        )
+        assert res.status_code == 201, f"Failed for {subj}: {res.text}"
+        data = res.json()["data"]
+        assert data["subject"] == subj
+        assert data["difficulty"] == diff
+        assert data["interview_mode"] == "voice"
+        assert data["total_questions"] == 3
+        assert data["current_question"] is not None
+        assert len(data["current_question"]["question_text"]) > 10
+
+        # Conclude and verify report generation
+        finish_res = client.post(f"/api/ai-interview/{data['id']}/finish", headers=headers)
+        assert finish_res.status_code == 200
+        rep_data = finish_res.json()["data"]
+        assert "overall_score" in rep_data
+        assert "final_feedback" in rep_data
+
+
+def test_wrong_answer_verification_and_wikipedia_grounding(client: TestClient, student_token: str):
+    """
+    Test answer verification when the student submits an incorrect or incomplete answer.
+    Verifies that:
+    1. The answer verdict is 'Incorrect / Needs Improvement' and score < 50%.
+    2. The exact student submission ('What they answered') is returned.
+    3. Missing technical concepts and an expert model answer are provided.
+    4. Wikipedia reference and theoretical grounding are retrieved and included in the evaluation and final report.
+    """
+    headers = {"Authorization": f"Bearer {student_token}"}
+
+    # 1. Start an interview session
+    start_res = client.post(
+        "/api/ai-interview/start",
+        json={
+            "interview_category": "Technical",
+            "job_role": "Backend Engineer",
+            "subject": "Operating Systems",
+            "difficulty": "Intermediate",
+            "total_questions": 2,
+            "duration_minutes": 15,
+            "interview_mode": "voice",
+        },
+        headers=headers,
+    )
+    assert start_res.status_code == 201
+    session_data = start_res.json()["data"]
+    session_id = session_data["id"]
+    q1 = session_data["current_question"]
+    q1_id = q1["id"]
+
+    # 2. Submit an incorrect / inaccurate answer
+    wrong_submission = "I am not really sure, maybe it just turns off everything randomly or uses magic files."
+    ans_res = client.post(
+        f"/api/ai-interview/{session_id}/answer",
+        json={
+            "question_id": q1_id,
+            "answer_text": wrong_submission,
+            "answer_mode": "voice",
+        },
+        headers=headers,
+    )
+    assert ans_res.status_code == 200
+    ans_data = ans_res.json()["data"]
+
+    # 3. Verify evaluation results for the wrong answer
+    assert ans_data["overall_score"] < 50.0, f"Expected < 50%, got {ans_data['overall_score']}"
+    assert ans_data["verdict"] == "Incorrect / Needs Improvement"
+    assert ans_data["student_answer"] == wrong_submission
+    assert len(ans_data["missing_concepts"]) > 0
+    assert ans_data["model_answer"] is not None and len(ans_data["model_answer"]) > 10
+    assert "Needs Improvement" in ans_data["feedback"]
+    assert "magic" in ans_data["feedback"]
+
+    # 4. Verify Wikipedia Reference Grounding
+    assert ans_data["wikipedia_reference"] is not None
+    assert "wikipedia.org" in ans_data["wikipedia_reference"]
+
+    # 5. Finish interview and verify report contains full breakdown
+    finish_res = client.post(f"/api/ai-interview/{session_id}/finish", headers=headers)
+    assert finish_res.status_code == 200
+    rep_data = finish_res.json()["data"]
+    assert len(rep_data["questions_breakdown"]) >= 1
+
+    first_q_breakdown = rep_data["questions_breakdown"][0]
+    assert first_q_breakdown["verdict"] == "Incorrect / Needs Improvement"
+    assert first_q_breakdown["student_answer"] == wrong_submission
+    assert len(first_q_breakdown["missing_concepts"]) > 0
+    assert first_q_breakdown["model_answer"] is not None
+    assert "wikipedia.org" in first_q_breakdown["wikipedia_reference"]
+
+
+
