@@ -17,7 +17,13 @@ import { Palette, Radii, Shadows } from '../constants/theme';
 
 export default function HomeScreen() {
   const { profile } = useAuth();
-  const userName = profile?.name || 'Scholar';
+  const userName = profile?.name && profile.name.toLowerCase() !== 'faculty' ? profile.name : 'Scholar';
+
+  React.useEffect(() => {
+    if (profile?.role === 'FACULTY' || profile?.role === 'ADMIN') {
+      router.replace('/faculty-dashboard' as any);
+    }
+  }, [profile?.role]);
 
   const weeklyDays = [
     { day: 'Mon', count: 18, isToday: false },

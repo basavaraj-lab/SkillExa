@@ -121,20 +121,47 @@ export const ensureAuthToken = async (
   // Clear invalid or stale token before requesting a fresh one
   setAuthToken(null);
 
-  // Determine which user to auto-authenticate with
-  let effectiveRole = targetRole;
-  if (!effectiveRole && typeof window !== 'undefined' && window.localStorage) {
+  // Determine active profile from storage
+  let activeEmail: string | null = null;
+  let activeRole: 'STUDENT' | 'FACULTY' | null = null;
+
+  if (typeof window !== 'undefined' && window.localStorage) {
     try {
       const savedProfile = window.localStorage.getItem('skillexa_user_profile');
       if (savedProfile) {
         const p = JSON.parse(savedProfile);
-        if (p.role === 'FACULTY' || p.role === 'ADMIN') {
-          effectiveRole = 'FACULTY';
-        }
+        activeEmail = p.email || null;
+        activeRole = p.role === 'FACULTY' || p.role === 'ADMIN' ? 'FACULTY' : 'STUDENT';
       }
     } catch (e) {}
   }
 
+  // If targetRole is specified and matches the logged-in user, or no targetRole specified
+  const shouldAuthenticateActiveUser =
+    activeEmail && (!targetRole || targetRole === activeRole);
+
+  if (shouldAuthenticateActiveUser && activeEmail) {
+    try {
+      const url = `${getApiBaseUrl()}/auth/google-login`;
+      const res = await fetch(url, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email: activeEmail, role: activeRole?.toLowerCase() }),
+      });
+      if (res.ok) {
+        const data = await res.json();
+        if (data?.data?.access_token) {
+          setAuthToken(data.data.access_token);
+          return data.data.access_token;
+        }
+      }
+    } catch (e) {
+      console.warn('Session sync with user email failed, falling back:', e);
+    }
+  }
+
+  // Fallback demo credentials if no authenticated session exists
+  const effectiveRole = targetRole || activeRole || 'STUDENT';
   const email = effectiveRole === 'FACULTY' ? 'dr.ramesh@kvgce.edu.in' : 'ganesh@kvgce.edu.in';
   const password = effectiveRole === 'FACULTY' ? 'faculty123' : 'student123';
 
@@ -295,6 +322,23 @@ export const ApiClient = {
     const res = await request<any>('/auth/login', {
       method: 'POST',
       body: JSON.stringify({ email, password }),
+    });
+    if (res.success && res.data?.access_token) {
+      setAuthToken(res.data.access_token);
+    }
+    return res;
+  },
+
+  googleLogin: async (payload: {
+    email: string;
+    name?: string;
+    role?: string;
+    avatar?: string;
+    google_uid?: string;
+  }) => {
+    const res = await request<any>('/auth/google-login', {
+      method: 'POST',
+      body: JSON.stringify(payload),
     });
     if (res.success && res.data?.access_token) {
       setAuthToken(res.data.access_token);
@@ -643,6 +687,91 @@ export const ApiClient = {
   getDepartmentStudents: async () => {
     await ensureAuthToken(false, 'FACULTY');
     return request<any[]>('/faculty/students');
+  },
+
+  // Aptitude Test APIs
+  getAptitudeCategories: async () => {
+    return request<{
+      categories: Record<string, string[]>;
+      difficulties: string[];
+      test_presets: Record<string, any>;
+    }>('/aptitude/categories');
+  },
+
+  createAptitudeTestAttempt: async (payload: {
+    category: string;
+    topic?: string;
+    difficulty?: string;
+    question_count?: number;
+    test_mode?: string;
+    duration_minutes?: number;
+  }) => {
+    await ensureAuthToken(false, 'STUDENT');
+    return request<{
+      attempt_id: string;
+      category: string;
+      topic: string;
+      difficulty: string;
+      test_mode: string;
+      question_count: number;
+      duration_minutes: number;
+      started_at: string;
+      status: string;
+      saved_responses: Record<string, string>;
+      questions: Array<{
+        id: string;
+        order_index: number;
+        question_text: string;
+        options: Array<{ id: string; text: string }>;
+        category: string;
+        topic: string;
+        difficulty: string;
+        marks: number;
+        negative_marks: number;
+      }>;
+    }>('/aptitude/attempts', {
+      method: 'POST',
+      body: JSON.stringify(payload),
+    });
+  },
+
+  getAptitudeTestAttempt: async (attemptId: string) => {
+    await ensureAuthToken(false, 'STUDENT');
+    return request<any>(`/aptitude/attempts/${attemptId}`);
+  },
+
+  saveAptitudeResponse: async (
+    attemptId: string,
+    payload: {
+      question_id: string;
+      selected_option: string;
+      time_spent_seconds?: number;
+    }
+  ) => {
+    await ensureAuthToken(false, 'STUDENT');
+    return request<any>(`/aptitude/attempts/${attemptId}/save-response`, {
+      method: 'PUT',
+      body: JSON.stringify(payload),
+    });
+  },
+
+  submitAptitudeTest: async (
+    attemptId: string,
+    payload: {
+      responses: Record<string, string>;
+      time_spent_seconds: number;
+    }
+  ) => {
+    await ensureAuthToken(false, 'STUDENT');
+    return request<any>(`/aptitude/attempts/${attemptId}/submit`, {
+      method: 'POST',
+      body: JSON.stringify(payload),
+    });
+  },
+
+  getAptitudeHistory: async () => {
+    await ensureAuthToken(false, 'STUDENT');
+    return request<any[]>('/aptitude/history');
   },
 };
 

@@ -49,6 +49,13 @@ from backend.app.models.live_interview import (
     LiveRoomStatusEnum,
     ParticipantRoleEnum,
 )
+from backend.app.models.aptitude_test import (
+    AptitudeTestAttempt,
+    AptitudeTestQuestion,
+    AptitudeTestResponse,
+    AptitudeDifficultyEnum,
+    AptitudeAttemptStatusEnum,
+)
 
 __all__ = [
     "User",
@@ -109,4 +116,9 @@ __all__ = [
     "LiveInterviewStatusEnum",
     "LiveRoomStatusEnum",
     "ParticipantRoleEnum",
+    "AptitudeTestAttempt",
+    "AptitudeTestQuestion",
+    "AptitudeTestResponse",
+    "AptitudeDifficultyEnum",
+    "AptitudeAttemptStatusEnum",
 ]

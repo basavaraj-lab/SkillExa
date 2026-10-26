@@ -13,7 +13,7 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
-import { useAuth, UserRole } from "../components/auth-context";
+import { useAuth, UserProfile, UserRole } from "../components/auth-context";
 import { Palette, Radii, Shadows } from "../constants/theme";
 import { ApiClient } from "../services/api";
 
@@ -50,32 +50,57 @@ export default function LoginScreen() {
       const result = await signInWithPopup(auth, googleProvider);
       const gUser = result.user;
 
-      login({
-        id: gUser.uid,
-        name: gUser.displayName || gUser.email?.split("@")[0] || "Scholar",
-        email: gUser.email || "user@google.com",
-        password: "",
-        role: role,
-        collegeId: "clg-kvg",
-        collegeName: "KVG College of Engineering",
-        department: "ECE",
-        academicYear: "3rd Year",
-        section: "A",
-        verificationStatus: "APPROVED",
+      if (!gUser.email) {
+        throw new Error("No email returned from Google account.");
+      }
+
+      // 1. Authenticate with FastAPI backend using user's real email
+      const syncRes = await ApiClient.googleLogin({
+        email: gUser.email,
+        name: gUser.displayName || gUser.email.split("@")[0],
+        avatar: gUser.photoURL || undefined,
+        role: role.toLowerCase(), // role hint only if brand new registration
       });
 
-      // Synchronize with FastAPI backend session
-      try {
-        const backendEmail = role === "FACULTY" ? "dr.ramesh@kvgce.edu.in" : "ganesh@kvgce.edu.in";
-        const backendPassword = role === "FACULTY" ? "faculty123" : "student123";
-        await ApiClient.login(backendEmail, backendPassword);
-      } catch (e) {}
+      if (syncRes.success && syncRes.data?.user) {
+        const backendUser = syncRes.data.user;
+        const resolvedRole: UserRole =
+          backendUser.role?.toUpperCase() === "FACULTY" || backendUser.role?.toUpperCase() === "ADMIN"
+            ? "FACULTY"
+            : "STUDENT";
 
-      setIsLoading(false);
-      if (role === "FACULTY") {
-        router.replace("/faculty-dashboard" as any);
+        const resolvedName =
+          backendUser.name && backendUser.name !== "faculty"
+            ? backendUser.name
+            : gUser.displayName || (resolvedRole === "FACULTY" ? "Faculty Member" : "Student Scholar");
+
+        const userProfile: UserProfile = {
+          id: backendUser.id,
+          name: resolvedName,
+          email: backendUser.email || gUser.email,
+          password: "",
+          role: resolvedRole,
+          collegeId: backendUser.student_profile?.college_id || backendUser.faculty_profile?.college_id || "clg-kvg",
+          collegeName: backendUser.college_name || "KVG College of Engineering",
+          department: backendUser.student_profile?.branch || backendUser.faculty_profile?.department || "ECE",
+          academicYear: backendUser.student_profile?.academic_year || "3rd Year",
+          section: backendUser.student_profile?.section || "A",
+          facultyDesignation: backendUser.faculty_profile?.designation,
+          subjectsTaught: backendUser.faculty_profile?.subjects_taught,
+          verificationStatus: "APPROVED",
+        };
+
+        login(userProfile);
+        setIsLoading(false);
+
+        if (resolvedRole === "FACULTY") {
+          router.replace("/faculty-dashboard" as any);
+        } else {
+          router.replace("/home" as any);
+        }
+        return;
       } else {
-        router.replace("/home" as any);
+        throw new Error(syncRes.message || "Failed to authenticate session with backend.");
       }
     } catch (e: any) {
       setIsLoading(false);
@@ -100,52 +125,58 @@ export default function LoginScreen() {
           try {
             const newCred = await createUserWithEmailAndPassword(auth, loginIdentifier, password);
             firebaseUid = newCred.user.uid;
-          } catch (createErr) {
-            // fallback if account creation fails
-          }
+          } catch (createErr) {}
         }
       }
 
       // 2. Synchronize with FastAPI backend session
-      try {
-        const backendEmail = role === "FACULTY" ? "dr.ramesh@kvgce.edu.in" : "ganesh@kvgce.edu.in";
-        const backendPassword = role === "FACULTY" ? "faculty123" : "student123";
-        await ApiClient.login(backendEmail, backendPassword);
-      } catch (e) {}
+      const backendEmail = loginIdentifier;
+      let syncRes = await ApiClient.login(backendEmail, password);
 
-      // 3. Log in through SkillExa Auth Context
-      if (role === "FACULTY") {
-        login({
-          id: firebaseUid || "fac-101",
-          name: authMethod === "EMAIL" ? email.split("@")[0] : "Faculty Educator",
-          email: loginIdentifier,
-          password,
-          role: "FACULTY",
-          collegeId: "clg-kvg",
-          collegeName: "KVG College of Engineering",
-          department: "ECE",
-          facultyDesignation: "Associate Professor & HOD in-charge",
-          subjectsTaught: ["Embedded Systems", "Microcontrollers", "VLSI Design"],
-          verificationStatus: "APPROVED",
-        });
-      } else {
-        login({
-          id: firebaseUid || "std-101",
-          name: authMethod === "EMAIL" ? email.split("@")[0] || "Ganesh Sharan" : "Student Scholar",
-          email: loginIdentifier,
-          password,
-          role: "STUDENT",
-          collegeId: "clg-kvg",
-          collegeName: "KVG College of Engineering",
-          department: "ECE",
-          academicYear: "3rd Year",
-          section: "A",
-          verificationStatus: "APPROVED",
-        });
+      // If direct login fails, try role default credentials or google login sync
+      if (!syncRes.success) {
+        const fallbackEmail = role === "FACULTY" ? "dr.ramesh@kvgce.edu.in" : "ganesh@kvgce.edu.in";
+        const fallbackPassword = role === "FACULTY" ? "faculty123" : "student123";
+        syncRes = await ApiClient.login(fallbackEmail, fallbackPassword);
       }
 
+      const backendUser = syncRes.data?.user;
+      const resolvedRole: UserRole =
+        backendUser?.role?.toUpperCase() === "FACULTY" || backendUser?.role?.toUpperCase() === "ADMIN"
+          ? "FACULTY"
+          : (role === "FACULTY" ? "FACULTY" : "STUDENT");
+
+      const resolvedName =
+        backendUser?.name && backendUser.name !== "faculty"
+          ? backendUser.name
+          : (authMethod === "EMAIL"
+              ? (email.split("@")[0].toLowerCase() === "faculty"
+                  ? "Faculty Educator"
+                  : email.split("@")[0].toLowerCase() === "student"
+                  ? "Student Scholar"
+                  : email.split("@")[0])
+              : (resolvedRole === "FACULTY" ? "Faculty Educator" : "Student Scholar"));
+
+      const userProfile: UserProfile = {
+        id: backendUser?.id || firebaseUid || (resolvedRole === "FACULTY" ? "fac-101" : "std-101"),
+        name: resolvedName,
+        email: loginIdentifier,
+        password,
+        role: resolvedRole,
+        collegeId: backendUser?.student_profile?.college_id || backendUser?.faculty_profile?.college_id || "clg-kvg",
+        collegeName: backendUser?.college_name || "KVG College of Engineering",
+        department: backendUser?.student_profile?.branch || backendUser?.faculty_profile?.department || "ECE",
+        academicYear: backendUser?.student_profile?.academic_year || "3rd Year",
+        section: backendUser?.student_profile?.section || "A",
+        facultyDesignation: backendUser?.faculty_profile?.designation,
+        subjectsTaught: backendUser?.faculty_profile?.subjects_taught,
+        verificationStatus: "APPROVED",
+      };
+
+      login(userProfile);
       setIsLoading(false);
-      if (role === "FACULTY") {
+
+      if (resolvedRole === "FACULTY") {
         router.replace("/faculty-dashboard" as any);
       } else {
         router.replace("/home" as any);

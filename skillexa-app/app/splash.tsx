@@ -81,9 +81,13 @@ export default function SplashScreen() {
 
   const handleNavigate = () => {
     if (profile && profile.name) {
-      router.replace("/home" as any);
+      if (profile.role === 'FACULTY' || profile.role === 'ADMIN') {
+        router.replace('/faculty-dashboard' as any);
+      } else {
+        router.replace('/home' as any);
+      }
     } else {
-      router.replace("/login" as any);
+      router.replace('/login' as any);
     }
   };
 

@@ -1,3 +1,4 @@
+import uuid
 from typing import Optional, Tuple
 from fastapi import HTTPException, status
 from sqlalchemy.orm import Session
@@ -10,6 +11,7 @@ from backend.app.models.user import (
     VerificationStatusEnum,
 )
 from backend.app.schemas.auth import (
+    GoogleLoginRequest,
     LoginRequest,
     RegisterFacultyRequest,
     RegisterStudentRequest,
@@ -155,6 +157,120 @@ class AuthService:
             user_info["faculty_profile"] = {
                 "id": user.faculty_profile.id,
                 "college_id": user.faculty_profile.college_id,
+                "department": user.faculty_profile.department,
+                "designation": user.faculty_profile.designation,
+                "verification_status": user.faculty_profile.verification_status.value,
+            }
+
+        return TokenResponse(
+            access_token=token,
+            token_type="bearer",
+            expires_in_minutes=1440,
+            user=user_info,
+        )
+
+    @staticmethod
+    def google_login(db: Session, req: GoogleLoginRequest) -> TokenResponse:
+        email_clean = req.email.lower().strip()
+        user = db.query(User).filter(User.email == email_clean).first()
+
+        if not user:
+            # New account: resolve role based on explicit role hint or default to student
+            assigned_role = RoleEnum.FACULTY if req.role and req.role.lower() == "faculty" else RoleEnum.STUDENT
+            user_name = req.name.strip() if req.name and req.name.strip() else email_clean.split("@")[0].capitalize()
+            user = User(
+                email=email_clean,
+                password_hash=hash_password(uuid.uuid4().hex),
+                name=user_name,
+                role=assigned_role,
+                is_active=True,
+                avatar=req.avatar,
+            )
+            db.add(user)
+            db.flush()
+
+            # Resolve default college
+            first_college = db.query(College).first()
+            college_id = first_college.id if first_college else "clg-kvg"
+
+            if assigned_role == RoleEnum.STUDENT:
+                student_profile = StudentProfile(
+                    user_id=user.id,
+                    college_id=college_id,
+                    branch="ECE",
+                    academic_year="3rd Year",
+                    section="A",
+                    target_exam="Placement",
+                )
+                db.add(student_profile)
+            else:
+                faculty_profile = FacultyProfile(
+                    user_id=user.id,
+                    college_id=college_id,
+                    department="ECE",
+                    designation="Assistant Professor",
+                    verification_status=VerificationStatusEnum.APPROVED,
+                )
+                db.add(faculty_profile)
+
+            db.commit()
+            db.refresh(user)
+        else:
+            # Existing user: CRITICAL - Preserve their actual authenticated role!
+            updated = False
+            if req.name and req.name.strip() and (not user.name or user.name in ["Scholar", "Student", "Learner", "faculty"]):
+                user.name = req.name.strip()
+                updated = True
+            if req.avatar and not user.avatar:
+                user.avatar = req.avatar
+                updated = True
+            if updated:
+                db.commit()
+                db.refresh(user)
+
+        if not user.is_active:
+            raise HTTPException(
+                status_code=status.HTTP_403_FORBIDDEN,
+                detail="Your account has been deactivated.",
+            )
+
+        # Generate JWT with verified user role from database
+        token = create_access_token(
+            subject=user.id,
+            claims={
+                "email": user.email,
+                "name": user.name,
+                "role": user.role.value,
+            },
+        )
+
+        college_name = "KVG College of Engineering"
+        user_info = {
+            "id": user.id,
+            "email": user.email,
+            "name": user.name,
+            "role": user.role.value,
+            "college_name": college_name,
+        }
+
+        if user.role == RoleEnum.STUDENT and user.student_profile:
+            if user.student_profile.college:
+                user_info["college_name"] = user.student_profile.college.name
+            user_info["student_profile"] = {
+                "id": user.student_profile.id,
+                "college_id": user.student_profile.college_id,
+                "college_name": user_info["college_name"],
+                "branch": user.student_profile.branch,
+                "academic_year": user.student_profile.academic_year,
+                "section": user.student_profile.section,
+            }
+        elif user.role in [RoleEnum.FACULTY, RoleEnum.COLLEGE_ADMIN] and user.faculty_profile:
+            if user.faculty_profile.college:
+                user_info["college_name"] = user.faculty_profile.college.name
+            user_info["faculty_profile"] = {
+                "id": user.faculty_profile.id,
+                "college_id": user.faculty_profile.college_id,
+                "college_name": user_info["college_name"],
                 "department": user.faculty_profile.department,
                 "designation": user.faculty_profile.designation,
                 "verification_status": user.faculty_profile.verification_status.value,

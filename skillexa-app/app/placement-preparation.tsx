@@ -109,6 +109,57 @@ export default function PlacementPreparationPage() {
           })}
         </View>
 
+        {/* Dynamic LLM Aptitude Test Banner */}
+        <View style={styles.aptitudeBanner}>
+          <View style={styles.aptitudeTopRow}>
+            <View style={styles.aptitudeIconWrap}>
+              <Feather name="zap" size={24} color="#FFFFFF" />
+            </View>
+            <View style={{ flex: 1 }}>
+              <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6, flexWrap: 'wrap' }}>
+                <Text style={styles.aptitudeTitle}>AI Aptitude Test</Text>
+                <View style={styles.aiBadge}>
+                  <Text style={styles.aiBadgeText}>LLM GENERATED</Text>
+                </View>
+              </View>
+              <Text style={styles.aptitudeSubtitle}>
+                Dynamic, unique placement questions generated per attempt.
+              </Text>
+            </View>
+          </View>
+
+          <View style={styles.aptitudePillsRow}>
+            <View style={styles.aptitudePill}>
+              <Text style={styles.aptitudePillText}>📊 Quant (15 topics)</Text>
+            </View>
+            <View style={styles.aptitudePill}>
+              <Text style={styles.aptitudePillText}>🧩 Logic (11 tracks)</Text>
+            </View>
+            <View style={styles.aptitudePill}>
+              <Text style={styles.aptitudePillText}>📝 Verbal Ability</Text>
+            </View>
+            <View style={styles.aptitudePill}>
+              <Text style={styles.aptitudePillText}>📈 Data Interpretation</Text>
+            </View>
+          </View>
+
+          <View style={styles.aptitudeFooterRow}>
+            <View style={styles.aptitudeMetaCol}>
+              <Text style={styles.aptitudeMetaText}>• Easy, Intermediate, Advanced</Text>
+              <Text style={styles.aptitudeMetaText}>• Secure answers & negative marking</Text>
+            </View>
+            <TouchableOpacity
+              id="start-aptitude-test-btn"
+              style={styles.aptitudeStartBtn}
+              onPress={() => router.push('/aptitude-test' as any)}
+              activeOpacity={0.85}
+            >
+              <Text style={styles.aptitudeStartBtnText}>Start Test</Text>
+              <Feather name="arrow-right" size={16} color="#FFFFFF" />
+            </TouchableOpacity>
+          </View>
+        </View>
+
         {/* Live Interview Portal Banner */}
         <TouchableOpacity
           style={styles.liveInterviewBanner}
@@ -318,6 +369,103 @@ const styles = StyleSheet.create({
     color: Palette.textSecondary,
     lineHeight: 18,
     marginTop: 2,
+  },
+  aptitudeBanner: {
+    backgroundColor: '#FFFFFF',
+    borderRadius: Radii.card,
+    padding: 18,
+    borderWidth: 1.5,
+    borderColor: '#C7D2FE',
+    marginBottom: 24,
+    ...Shadows.card,
+  },
+  aptitudeTopRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 14,
+    marginBottom: 12,
+  },
+  aptitudeIconWrap: {
+    width: 48,
+    height: 48,
+    borderRadius: 14,
+    backgroundColor: '#4F46E5',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  aptitudeTitle: {
+    fontSize: 17,
+    fontWeight: '800',
+    color: Palette.textTitle,
+  },
+  aiBadge: {
+    backgroundColor: '#EEF2FF',
+    paddingHorizontal: 8,
+    paddingVertical: 2,
+    borderRadius: 6,
+    borderWidth: 1,
+    borderColor: '#818CF8',
+  },
+  aiBadgeText: {
+    fontSize: 9.5,
+    fontWeight: '800',
+    color: '#4F46E5',
+    letterSpacing: 0.5,
+  },
+  aptitudeSubtitle: {
+    fontSize: 12.5,
+    color: Palette.textSecondary,
+    lineHeight: 17,
+    marginTop: 2,
+  },
+  aptitudePillsRow: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 6,
+    marginBottom: 14,
+  },
+  aptitudePill: {
+    backgroundColor: '#F3F4F6',
+    paddingHorizontal: 9,
+    paddingVertical: 4,
+    borderRadius: 8,
+  },
+  aptitudePillText: {
+    fontSize: 11.5,
+    fontWeight: '600',
+    color: '#374151',
+  },
+  aptitudeFooterRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingTop: 12,
+    borderTopWidth: 1,
+    borderTopColor: '#F3F4F6',
+    gap: 12,
+  },
+  aptitudeMetaCol: {
+    flex: 1,
+  },
+  aptitudeMetaText: {
+    fontSize: 11.5,
+    color: Palette.textSecondary,
+    lineHeight: 16,
+  },
+  aptitudeStartBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#4F46E5',
+    paddingHorizontal: 16,
+    paddingVertical: 10,
+    borderRadius: 10,
+    gap: 6,
+    ...Shadows.button,
+  },
+  aptitudeStartBtnText: {
+    color: '#FFFFFF',
+    fontSize: 13.5,
+    fontWeight: '700',
   },
 });
 

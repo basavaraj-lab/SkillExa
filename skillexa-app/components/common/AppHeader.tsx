@@ -35,8 +35,14 @@ export function AppHeader({
   const handleBack = () => {
     if (onBack) {
       onBack();
-    } else {
+    } else if (router.canGoBack()) {
       router.back();
+    } else {
+      if (profile?.role === 'FACULTY' || profile?.role === 'ADMIN') {
+        router.replace('/faculty-dashboard' as any);
+      } else {
+        router.replace('/home' as any);
+      }
     }
   };
 

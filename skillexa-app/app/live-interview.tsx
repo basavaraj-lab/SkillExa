@@ -508,7 +508,12 @@ export default function SkillExaLiveInterviewScreen() {
       setIsSubmitting(false);
       if (res.success) {
         setSubmitFeedbackModalVisible(false);
-        loadBookings();
+        setActiveRoomInfo(null);
+        if (isTeacher) {
+          router.replace('/faculty-dashboard' as any);
+        } else {
+          router.replace('/home' as any);
+        }
       } else {
         Alert.alert('Submission Error', res.message || 'Could not save feedback.');
       }
@@ -543,10 +548,14 @@ export default function SkillExaLiveInterviewScreen() {
           iceServers={activeRoomInfo.ice_servers}
           initialIsWaiting={activeRoomInfo.is_waiting}
           onLeaveMeeting={() => {
-            setCurrentView('list');
-            loadBookings();
+            if (isTeacher) {
+              router.replace('/faculty-dashboard' as any);
+            } else {
+              router.replace('/home' as any);
+            }
           }}
           onOpenFeedback={() => {
+            setCurrentView('list');
             handleOpenSubmitFeedback(activeRoomInfo.booking_id);
           }}
         />
@@ -568,6 +577,13 @@ export default function SkillExaLiveInterviewScreen() {
             ? 'Faculty & Placement Interviewer Dashboard'
             : 'Candidate Video Panel Dashboard'
         }
+        onBack={() => {
+          if (isTeacher) {
+            router.replace('/faculty-dashboard' as any);
+          } else {
+            router.replace('/home' as any);
+          }
+        }}
       />
 
       {/* Hero Welcome Banner */}
@@ -762,6 +778,7 @@ export default function SkillExaLiveInterviewScreen() {
                     <View
                       style={[
                         styles.statusBadge,
+                        b.booking_status === 'Scheduled' && { backgroundColor: '#FEF3C7', borderColor: '#FDE68A' },
                         b.booking_status === 'Confirmed' && styles.statusBadgeConfirmed,
                         b.booking_status === 'In Progress' && styles.statusBadgeActive,
                         b.booking_status === 'Completed' && styles.statusBadgeCompleted,
@@ -771,13 +788,14 @@ export default function SkillExaLiveInterviewScreen() {
                       <Text
                         style={[
                           styles.statusBadgeText,
+                          b.booking_status === 'Scheduled' && { color: '#B45309' },
                           b.booking_status === 'Confirmed' && styles.statusTextConfirmed,
                           b.booking_status === 'In Progress' && styles.statusTextActive,
                           b.booking_status === 'Completed' && styles.statusTextCompleted,
                           b.booking_status === 'Cancelled' && styles.statusTextCancelled,
                         ]}
                       >
-                        {b.booking_status}
+                        {b.booking_status === 'Scheduled' && !isTeacher ? 'Pending Confirmation' : b.booking_status}
                       </Text>
                     </View>
                   </View>
@@ -839,8 +857,11 @@ export default function SkillExaLiveInterviewScreen() {
                     <View style={styles.metaItem}>
                       <Feather name="user" size={13} color="#64748B" />
                       <Text style={styles.metaText}>
-                        {isTeacher ? 'Candidate: ' : 'Interviewer: '}
+                        {isTeacher ? 'Candidate: ' : 'Faculty Interviewer: '}
                         <Text style={{ fontWeight: '700', color: '#0F172A' }}>{otherPerson}</Text>
+                        {!isTeacher && b.teacher_email ? (
+                          <Text style={{ color: '#64748B', fontSize: 11 }}> ({b.teacher_email})</Text>
+                        ) : null}
                       </Text>
                     </View>
                   </View>
@@ -855,6 +876,17 @@ export default function SkillExaLiveInterviewScreen() {
                     </View>
                   ) : null}
 
+                  {/* Preparation materials if available */}
+                  {b.preparation_materials ? (
+                    <View style={[styles.instructionsBox, { backgroundColor: '#EEF2FF', borderColor: '#C7D2FE', marginTop: 6 }]}>
+                      <Feather name="book-open" size={12} color="#4F46E5" style={{ marginTop: 2 }} />
+                      <Text style={[styles.instructionsText, { color: '#3730A3' }]} numberOfLines={2}>
+                        <Text style={{ fontWeight: '700' }}>Preparation Topics: </Text>
+                        {b.preparation_materials}
+                      </Text>
+                    </View>
+                  ) : null}
+
                   {/* Card Actions */}
                   <View style={styles.cardActionsRow}>
                     {isScheduledOrConfirmed && (
@@ -864,7 +896,7 @@ export default function SkillExaLiveInterviewScreen() {
                       >
                         <Feather name="video" size={15} color="#FFFFFF" />
                         <Text style={styles.joinBtnText}>
-                          {isTeacher ? 'Start Live Room' : 'Join Live Room'}
+                          {isTeacher ? 'Start Live Room' : 'Join Interview'}
                         </Text>
                       </TouchableOpacity>
                     )}
@@ -875,7 +907,7 @@ export default function SkillExaLiveInterviewScreen() {
                         onPress={() => handleConfirmBooking(b.id)}
                       >
                         <Feather name="check" size={14} color="#16A34A" />
-                        <Text style={styles.confirmBtnText}>Confirm</Text>
+                        <Text style={styles.confirmBtnText}>Confirm Interview</Text>
                       </TouchableOpacity>
                     )}
 
@@ -1388,7 +1420,13 @@ export default function SkillExaLiveInterviewScreen() {
                 <Feather name="edit" size={20} color={Palette.primary} />
                 <Text style={styles.modalTitle}>Grade Interview Session</Text>
               </View>
-              <TouchableOpacity onPress={() => setSubmitFeedbackModalVisible(false)}>
+              <TouchableOpacity onPress={() => {
+                setSubmitFeedbackModalVisible(false);
+                if (isTeacher && activeRoomInfo) {
+                  setActiveRoomInfo(null);
+                  router.replace('/faculty-dashboard' as any);
+                }
+              }}>
                 <Feather name="x" size={20} color="#64748B" />
               </TouchableOpacity>
             </View>

@@ -99,6 +99,7 @@ export const SkillExaLiveMeetingRoom: React.FC<SkillExaLiveMeetingRoomProps> = (
   const peerConnectionRef = useRef<RTCPeerConnection | null>(null);
   const screenTrackRef = useRef<MediaStreamTrack | null>(null);
   const webSocketRef = useRef<WebSocket | null>(null);
+  const setupCallRef = useRef<(() => void) | null>(null);
 
   // Video element DOM container refs (web)
   const localVideoContainerRef = useRef<any>(null);
@@ -389,6 +390,7 @@ export const SkillExaLiveMeetingRoom: React.FC<SkillExaLiveMeetingRoomProps> = (
       }
     };
 
+    setupCallRef.current = setupCall;
     setupCall();
 
     return () => {
@@ -566,16 +568,17 @@ export const SkillExaLiveMeetingRoom: React.FC<SkillExaLiveMeetingRoomProps> = (
     stopAllMediaTracks();
     setShowEndModal(false);
     setIsEndingCall(false);
-    onLeaveMeeting();
     if (onOpenFeedback) {
       onOpenFeedback();
+    } else {
+      onLeaveMeeting();
     }
   };
 
   // -------------------------------------------------------------
-  // Student: Leave Call (Without ending host session)
+  // Participant: Leave Call (Faculty or Student)
   // -------------------------------------------------------------
-  const handleConfirmStudentLeave = async () => {
+  const handleConfirmLeave = async () => {
     try {
       await ApiClient.leaveLiveInterviewRoom(secureRoomId);
     } catch (e) {}
@@ -709,7 +712,7 @@ export const SkillExaLiveMeetingRoom: React.FC<SkillExaLiveMeetingRoomProps> = (
                 </TouchableOpacity>
                 <TouchableOpacity
                   style={styles.confirmModalDangerBtn}
-                  onPress={handleConfirmStudentLeave}
+                  onPress={handleConfirmLeave}
                 >
                   <Text style={styles.confirmModalDangerText}>Leave Room</Text>
                 </TouchableOpacity>
@@ -944,13 +947,23 @@ export const SkillExaLiveMeetingRoom: React.FC<SkillExaLiveMeetingRoomProps> = (
 
         {/* Leave / End Call */}
         {isTeacher ? (
-          <TouchableOpacity
-            style={styles.endCallPillBtn}
-            onPress={() => setShowEndModal(true)}
-          >
-            <Feather name="phone-off" size={18} color="#FFFFFF" />
-            <Text style={styles.endCallText}>End Interview for All</Text>
-          </TouchableOpacity>
+          <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
+            <TouchableOpacity
+              style={styles.leaveCallPillBtn}
+              onPress={() => setShowLeaveModal(true)}
+            >
+              <Feather name="log-out" size={16} color="#FFFFFF" />
+              <Text style={styles.endCallText}>Leave Call</Text>
+            </TouchableOpacity>
+
+            <TouchableOpacity
+              style={styles.endCallPillBtn}
+              onPress={() => setShowEndModal(true)}
+            >
+              <Feather name="phone-off" size={16} color="#FFFFFF" />
+              <Text style={styles.endCallText}>End for All</Text>
+            </TouchableOpacity>
+          </View>
         ) : (
           <TouchableOpacity
             style={styles.leaveCallPillBtn}
@@ -1132,7 +1145,7 @@ export const SkillExaLiveMeetingRoom: React.FC<SkillExaLiveMeetingRoomProps> = (
         </View>
       </Modal>
 
-      {/* MODAL: Student Leave Meeting Confirmation */}
+      {/* MODAL: Leave Meeting Confirmation */}
       <Modal visible={showLeaveModal} animationType="fade" transparent>
         <View style={styles.confirmModalOverlay}>
           <View style={styles.confirmModalCard}>
@@ -1141,7 +1154,9 @@ export const SkillExaLiveMeetingRoom: React.FC<SkillExaLiveMeetingRoomProps> = (
               <Text style={styles.confirmModalTitle}>Leave Interview Room?</Text>
             </View>
             <Text style={styles.confirmModalDesc}>
-              Are you sure you want to disconnect from this interview call? The faculty session will remain open so you can reconnect if needed.
+              {isTeacher
+                ? 'Are you sure you want to exit this interview call? The candidate session will remain active and you can rejoin at any time.'
+                : 'Are you sure you want to disconnect from this interview call? The faculty session will remain open so you can reconnect if needed.'}
             </Text>
             <View style={styles.confirmModalActionsRow}>
               <TouchableOpacity
@@ -1152,9 +1167,11 @@ export const SkillExaLiveMeetingRoom: React.FC<SkillExaLiveMeetingRoomProps> = (
               </TouchableOpacity>
               <TouchableOpacity
                 style={styles.confirmModalDangerBtn}
-                onPress={handleConfirmStudentLeave}
+                onPress={handleConfirmLeave}
               >
-                <Text style={styles.confirmModalDangerText}>Disconnect</Text>
+                <Text style={styles.confirmModalDangerText}>
+                  {isTeacher ? 'Leave Call' : 'Disconnect'}
+                </Text>
               </TouchableOpacity>
             </View>
           </View>
@@ -1184,6 +1201,45 @@ export const SkillExaLiveMeetingRoom: React.FC<SkillExaLiveMeetingRoomProps> = (
           </View>
         </View>
       </Modal>
+
+      {/* Disconnected / Reconnection Screen Overlay */}
+      {connectionStatus === 'disconnected' && (
+        <View style={styles.disconnectedOverlay}>
+          <View style={styles.disconnectedCard}>
+            <View style={styles.disconnectedIconBox}>
+              <Feather name="wifi-off" size={28} color="#EF4444" />
+            </View>
+            <Text style={styles.disconnectedTitle}>Call Disconnected</Text>
+            <Text style={styles.disconnectedDesc}>
+              The connection to the live interview signaling server was interrupted. You can attempt to reconnect or return directly to your dashboard.
+            </Text>
+            <View style={styles.disconnectedActionsRow}>
+              <TouchableOpacity
+                style={styles.reconnectBtn}
+                onPress={() => {
+                  setConnectionStatus('connecting');
+                  setupCallRef.current?.();
+                }}
+              >
+                <Feather name="refresh-cw" size={16} color="#FFFFFF" />
+                <Text style={styles.reconnectBtnText}>Reconnect</Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={styles.exitDashboardBtn}
+                onPress={() => {
+                  stopAllMediaTracks();
+                  onLeaveMeeting();
+                }}
+              >
+                <Feather name="home" size={16} color="#475569" />
+                <Text style={styles.exitDashboardBtnText}>
+                  {isTeacher ? 'Faculty Dashboard' : 'Student Dashboard'}
+                </Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </View>
+      )}
     </View>
   );
 };
@@ -1932,5 +1988,87 @@ const styles = StyleSheet.create({
     fontSize: 14,
     fontWeight: '800',
     color: '#FFFFFF',
+  },
+  disconnectedOverlay: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    backgroundColor: 'rgba(15, 23, 42, 0.92)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    zIndex: 999,
+    padding: 20,
+  },
+  disconnectedCard: {
+    backgroundColor: '#FFFFFF',
+    borderRadius: Radii.lg,
+    padding: 24,
+    maxWidth: 420,
+    width: '100%',
+    alignItems: 'center',
+    ...Shadows.floating,
+  },
+  disconnectedIconBox: {
+    width: 60,
+    height: 60,
+    borderRadius: 30,
+    backgroundColor: '#FEE2E2',
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginBottom: 16,
+  },
+  disconnectedTitle: {
+    fontSize: 18,
+    fontWeight: '800',
+    color: '#0F172A',
+    marginBottom: 8,
+  },
+  disconnectedDesc: {
+    fontSize: 13.5,
+    color: '#64748B',
+    lineHeight: 20,
+    textAlign: 'center',
+    marginBottom: 20,
+  },
+  disconnectedActionsRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 12,
+    width: '100%',
+  },
+  reconnectBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 8,
+    backgroundColor: Palette.primary,
+    paddingVertical: 12,
+    paddingHorizontal: 18,
+    borderRadius: Radii.sm,
+    flex: 1,
+  },
+  reconnectBtnText: {
+    fontSize: 13.5,
+    fontWeight: '800',
+    color: '#FFFFFF',
+  },
+  exitDashboardBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 6,
+    backgroundColor: '#F1F5F9',
+    paddingVertical: 12,
+    paddingHorizontal: 16,
+    borderRadius: Radii.sm,
+    flex: 1,
+  },
+  exitDashboardBtnText: {
+    fontSize: 13,
+    fontWeight: '700',
+    color: '#475569',
   },
 });

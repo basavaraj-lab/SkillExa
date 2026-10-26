@@ -74,7 +74,12 @@ export default function InterviewEvaluationScreen() {
   return (
     <SafeAreaView style={styles.safeArea}>
       <StatusBar barStyle="dark-content" backgroundColor="#FFFFFF" />
-      <AppHeader showBack title="Interview Evaluation & Rubric" subtitle={`Candidate: ${studentName}`} />
+      <AppHeader
+        showBack
+        title="Interview Evaluation & Rubric"
+        subtitle={`Candidate: ${studentName}`}
+        onBack={() => router.replace('/faculty-dashboard' as any)}
+      />
 
       <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
         {/* Candidate Info Card */}

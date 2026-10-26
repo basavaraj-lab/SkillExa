@@ -6,6 +6,7 @@ from backend.app.dependencies.auth import get_current_user
 from backend.app.dependencies.db import get_db
 from backend.app.models.user import User
 from backend.app.schemas.auth import (
+    GoogleLoginRequest,
     LoginRequest,
     RegisterFacultyRequest,
     RegisterStudentRequest,
@@ -111,6 +112,21 @@ def login(req: LoginRequest, db: Session = Depends(get_db)):
     return ApiResponse(
         success=True,
         message="Login successful!",
+        data=token_response,
+    )
+
+
+@router.post("/google-login", response_model=ApiResponse[TokenResponse])
+def google_login(req: GoogleLoginRequest, db: Session = Depends(get_db)):
+    """
+    Authenticate a user logging in via Google / OAuth.
+    Validates user in database, correctly identifies role (student vs faculty),
+    and issues JWT token with real database ID and role.
+    """
+    token_response = AuthService.google_login(db, req)
+    return ApiResponse(
+        success=True,
+        message="Google login successful!",
         data=token_response,
     )
 

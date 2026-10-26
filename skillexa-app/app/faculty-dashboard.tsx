@@ -22,6 +22,12 @@ export default function FacultyDashboardScreen() {
   const [showLogoutModal, setShowLogoutModal] = useState(false);
   const [stats, setStats] = useState(FacultySystemStore.getStats());
 
+  useEffect(() => {
+    if (profile?.role === 'STUDENT') {
+      router.replace('/home' as any);
+    }
+  }, [profile?.role]);
+
   const performLogout = () => {
     setShowLogoutModal(false);
     logout();
@@ -30,6 +36,7 @@ export default function FacultyDashboardScreen() {
       try {
         window.localStorage.removeItem('skillexa_jwt_token');
         window.localStorage.removeItem('skillexa_user_profile');
+        window.localStorage.removeItem('skillexa_user_role');
       } catch (e) {}
     }
     router.replace('/login' as any);

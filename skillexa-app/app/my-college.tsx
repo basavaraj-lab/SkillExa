@@ -380,14 +380,7 @@ export default function MyCollegeScreen() {
                       <TouchableOpacity
                         style={styles.joinCallBtn}
                         onPress={() =>
-                          router.push({
-                            pathname: '/faculty/live-interview',
-                            params: {
-                              studentName: profile.name,
-                              role: item.subjectOrRole,
-                              interviewType: item.interviewType,
-                            },
-                          })
+                          router.push('/live-interview' as any)
                         }
                       >
                         <Feather name="video" size={14} color="#FFFFFF" />

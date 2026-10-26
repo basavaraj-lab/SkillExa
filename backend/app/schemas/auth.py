@@ -44,3 +44,11 @@ class TokenData(BaseModel):
     user_id: Optional[str] = None
     email: Optional[str] = None
     role: Optional[RoleEnum] = None
+
+
+class GoogleLoginRequest(BaseModel):
+    email: EmailStr
+    name: Optional[str] = None
+    role: Optional[str] = None
+    avatar: Optional[str] = None
+    google_uid: Optional[str] = None

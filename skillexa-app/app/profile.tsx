@@ -30,8 +30,13 @@ export default function ProfileScreen() {
   const [showLogoutModal, setShowLogoutModal] = useState(false);
 
   const isFaculty = profile?.role === 'FACULTY';
-  const displayName = profile?.name || (isFaculty ? 'Dr. Kusumadhara S' : 'Ganesh Kumar');
-  const displayEmail = profile?.email || (isFaculty ? 'kusumadhara.s@kvgce.edu.in' : 'ganesh@skillexa.edu');
+  const displayName =
+    profile?.name && profile.name.toLowerCase() !== 'faculty'
+      ? profile.name
+      : isFaculty
+      ? 'Dr. Ramesh Kumar'
+      : 'Student Scholar';
+  const displayEmail = profile?.email || (isFaculty ? 'dr.ramesh@kvgce.edu.in' : 'student@skillexa.edu');
   const initial = displayName.charAt(0).toUpperCase();
 
   const performLogout = () => {
@@ -42,6 +47,7 @@ export default function ProfileScreen() {
       try {
         window.localStorage.removeItem('skillexa_jwt_token');
         window.localStorage.removeItem('skillexa_user_profile');
+        window.localStorage.removeItem('skillexa_user_role');
       } catch (e) {}
     }
     router.replace('/login' as any);

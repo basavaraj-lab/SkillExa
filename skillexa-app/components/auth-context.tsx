@@ -1,6 +1,6 @@
 import { onAuthStateChanged, signOut } from 'firebase/auth';
 import { auth } from '../services/firebase';
-import { setAuthToken } from '../services/api';
+import { ApiClient, setAuthToken } from '../services/api';
 import { Feather } from "@expo/vector-icons";
 import { LinearGradient } from "expo-linear-gradient";
 import { router, usePathname } from "expo-router";
@@ -95,17 +95,54 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   });
 
   React.useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, (firebaseUser) => {
-      if (firebaseUser) {
+    const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
+      if (firebaseUser && firebaseUser.email) {
         setIsAuthenticated(true);
-        if (firebaseUser.email) {
-          setProfile((prev) => ({
-            ...prev,
-            id: firebaseUser.uid,
-            email: firebaseUser.email || prev.email,
-            name: firebaseUser.displayName || (firebaseUser.email ? firebaseUser.email.split('@')[0] : '') || prev.name,
-          }));
+        try {
+          const syncRes = await ApiClient.googleLogin({
+            email: firebaseUser.email,
+            name: firebaseUser.displayName || undefined,
+            avatar: firebaseUser.photoURL || undefined,
+          });
+          if (syncRes.success && syncRes.data?.user) {
+            const bUser = syncRes.data.user;
+            const bRole: UserRole =
+              bUser.role?.toUpperCase() === 'FACULTY' || bUser.role?.toUpperCase() === 'ADMIN'
+                ? 'FACULTY'
+                : 'STUDENT';
+            const updatedProfile: UserProfile = {
+              id: bUser.id,
+              name: bUser.name || firebaseUser.displayName || firebaseUser.email.split('@')[0],
+              email: bUser.email || firebaseUser.email,
+              role: bRole,
+              collegeId: bUser.student_profile?.college_id || bUser.faculty_profile?.college_id || 'clg-kvg',
+              collegeName: bUser.college_name || 'KVG College of Engineering',
+              department: bUser.student_profile?.branch || bUser.faculty_profile?.department || 'ECE',
+              academicYear: bUser.student_profile?.academic_year || '3rd Year',
+              section: bUser.student_profile?.section || 'A',
+              facultyDesignation: bUser.faculty_profile?.designation,
+              subjectsTaught: bUser.faculty_profile?.subjects_taught,
+              verificationStatus: 'APPROVED',
+            };
+            setProfile(updatedProfile);
+            if (typeof window !== 'undefined' && window.localStorage) {
+              try {
+                window.localStorage.setItem('skillexa_user_profile', JSON.stringify(updatedProfile));
+                window.localStorage.setItem('skillexa_user_role', updatedProfile.role);
+              } catch (e) {}
+            }
+            return;
+          }
+        } catch (e) {
+          console.warn('Backend sync during onAuthStateChanged notice:', e);
         }
+
+        setProfile((prev) => ({
+          ...prev,
+          id: firebaseUser.uid,
+          email: firebaseUser.email || prev.email,
+          name: firebaseUser.displayName || (firebaseUser.email ? firebaseUser.email.split('@')[0] : '') || prev.name,
+        }));
       }
     });
     return () => unsubscribe();
@@ -133,6 +170,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       try {
         window.localStorage.removeItem('skillexa_jwt_token');
         window.localStorage.removeItem('skillexa_user_profile');
+        window.localStorage.removeItem('skillexa_user_role');
       } catch (e) {}
     }
   }, []);

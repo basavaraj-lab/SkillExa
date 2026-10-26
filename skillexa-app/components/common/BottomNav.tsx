@@ -42,6 +42,8 @@ export function BottomNav() {
     '/quizzpage',
     '/quiz-result',
     '/answer-review',
+    '/live-interview',
+    '/aptitude-test',
   ];
 
   if (hiddenRoutes.some(r => pathname === r || pathname.startsWith(r))) {

@@ -90,6 +90,36 @@ export default function RegisterLecturer() {
     try {
       const result = await signInWithPopup(auth, googleProvider);
       const user = result.user;
+
+      if (user.email) {
+        try {
+          const syncRes = await ApiClient.googleLogin({
+            email: user.email,
+            name: user.displayName || name || "Faculty Member",
+            avatar: user.photoURL || undefined,
+            role: "faculty",
+          });
+          if (syncRes.success && syncRes.data?.user) {
+            const bUser = syncRes.data.user;
+            login({
+              id: bUser.id,
+              name: bUser.name || user.displayName || name || "Faculty Educator",
+              email: bUser.email || user.email,
+              password: password || undefined,
+              role: "FACULTY",
+              collegeId: bUser.faculty_profile?.college_id || "clg-kvg",
+              collegeName: collegeName || "KVG College of Engineering",
+              department: department || "ECE",
+              facultyDesignation: qualification ? `Faculty (${qualification})` : "Associate Professor",
+              subjectsTaught: skills ? skills.split(",").map((s) => s.trim()) : ["Embedded Systems", "Microcontrollers"],
+              verificationStatus: "APPROVED",
+            });
+            router.replace("/faculty-dashboard" as any);
+            return;
+          }
+        } catch (e) {}
+      }
+
       login({
         id: user.uid,
         name: user.displayName || name || "Faculty Educator",

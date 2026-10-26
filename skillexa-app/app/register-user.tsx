@@ -89,6 +89,36 @@ export default function RegisterUser() {
     try {
       const result = await signInWithPopup(auth, googleProvider);
       const user = result.user;
+
+      if (user.email) {
+        try {
+          const syncRes = await ApiClient.googleLogin({
+            email: user.email,
+            name: user.displayName || name || "Scholar",
+            avatar: user.photoURL || undefined,
+            role: "student",
+          });
+          if (syncRes.success && syncRes.data?.user) {
+            const bUser = syncRes.data.user;
+            login({
+              id: bUser.id,
+              name: bUser.name || user.displayName || name || "Scholar",
+              email: bUser.email || user.email,
+              password: password || undefined,
+              role: "STUDENT",
+              collegeId: bUser.student_profile?.college_id || "clg-kvg",
+              collegeName: collegeName || "KVG College of Engineering",
+              department: branch || "ECE",
+              academicYear: year || "3rd Year",
+              section: section || "A",
+              verificationStatus: "APPROVED",
+            });
+            router.replace("/pathselection" as any);
+            return;
+          }
+        } catch (e) {}
+      }
+
       login({
         id: user.uid,
         name: user.displayName || name || "Scholar",

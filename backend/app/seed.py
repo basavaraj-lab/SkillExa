@@ -1,4 +1,5 @@
 import logging
+import uuid
 from datetime import datetime, timedelta
 from sqlalchemy.orm import Session
 from backend.app.database import Base, SessionLocal, engine
@@ -8,6 +9,14 @@ from backend.app.models.note import FacultyNote, PDFNote, VisibilityEnum
 from backend.app.models.notification import Notification, NotificationTypeEnum, StudentProgress
 from backend.app.models.quiz import DifficultyEnum, Question, Quiz
 from backend.app.models.coding import CodingProblem
+from backend.app.models.live_interview import (
+    LiveInterviewBooking,
+    LiveMeetingRoom,
+    LiveInterviewFeedback,
+    LiveInterviewCategoryEnum,
+    LiveInterviewStatusEnum,
+    LiveRoomStatusEnum,
+)
 from backend.app.models.user import (
     FacultyProfile,
     RoleEnum,
@@ -18,6 +27,111 @@ from backend.app.models.user import (
 from backend.app.utils.security import hash_password
 
 logger = logging.getLogger("skillexa.seed")
+
+
+def seed_live_interviews_if_empty(db: Session):
+    """Ensure sample live interview bookings exist for testing both student and faculty portals."""
+    try:
+        teacher = db.query(User).filter(User.email.in_(["dr.ramesh@kvgce.edu.in", "basavarajrk1718@gmail.com"])).first()
+        students = db.query(User).filter(User.email.in_(["basavarajurk49@gmail.com", "ganesh@kvgce.edu.in"])).all()
+
+        if not teacher or not students:
+            return
+
+        now = datetime.utcnow()
+        for student in students:
+            count = db.query(LiveInterviewBooking).filter(LiveInterviewBooking.student_id == student.id).count()
+            if count == 0:
+                # 1. Confirmed upcoming interview
+                b1 = LiveInterviewBooking(
+                    id=str(uuid.uuid4()),
+                    student_id=student.id,
+                    teacher_id=teacher.id,
+                    college_id=student.student_profile.college_id if student.student_profile else None,
+                    interview_category=LiveInterviewCategoryEnum.TECHNICAL,
+                    subject="Embedded Systems, RTOS & WebRTC Architecture",
+                    scheduled_at=now + timedelta(days=1, hours=2),
+                    duration_minutes=45,
+                    instructions="Be prepared to explain RTOS task scheduling, priority inversion, and WebRTC peer connection flow.",
+                    preparation_materials="Review FreeRTOS mutexes, timers, and WebRTC STUN/TURN signaling.",
+                    booking_status=LiveInterviewStatusEnum.CONFIRMED,
+                )
+                db.add(b1)
+                db.flush()
+                r1 = LiveMeetingRoom(
+                    booking_id=b1.id,
+                    secure_room_id=f"live-meet-tech-{uuid.uuid4().hex[:4]}-{uuid.uuid4().hex[:4]}",
+                    room_status=LiveRoomStatusEnum.WAITING,
+                    expires_at=now + timedelta(days=1, hours=6),
+                )
+                db.add(r1)
+
+                # 2. Pending (Scheduled) interview
+                b2 = LiveInterviewBooking(
+                    id=str(uuid.uuid4()),
+                    student_id=student.id,
+                    teacher_id=teacher.id,
+                    college_id=student.student_profile.college_id if student.student_profile else None,
+                    interview_category=LiveInterviewCategoryEnum.DSA,
+                    subject="Data Structures & Algorithm Design Viva",
+                    scheduled_at=now + timedelta(days=2, hours=4),
+                    duration_minutes=30,
+                    instructions="Focus on Trees, Graphs, and Hash Table collision resolution.",
+                    preparation_materials="LeetCode Top 50 questions & Python collections module.",
+                    booking_status=LiveInterviewStatusEnum.SCHEDULED,
+                )
+                db.add(b2)
+                db.flush()
+                r2 = LiveMeetingRoom(
+                    booking_id=b2.id,
+                    secure_room_id=f"live-meet-dsa-{uuid.uuid4().hex[:4]}-{uuid.uuid4().hex[:4]}",
+                    room_status=LiveRoomStatusEnum.WAITING,
+                    expires_at=now + timedelta(days=2, hours=8),
+                )
+                db.add(r2)
+
+                # 3. Completed interview with feedback
+                b3 = LiveInterviewBooking(
+                    id=str(uuid.uuid4()),
+                    student_id=student.id,
+                    teacher_id=teacher.id,
+                    college_id=student.student_profile.college_id if student.student_profile else None,
+                    interview_category=LiveInterviewCategoryEnum.PYTHON,
+                    subject="Core Python & Database Placement Interview",
+                    scheduled_at=now - timedelta(days=3),
+                    duration_minutes=45,
+                    instructions="OOP principles, generators, decorators, and SQL joins.",
+                    preparation_materials="Python 3 standard library docs & SQL indexing fundamentals.",
+                    booking_status=LiveInterviewStatusEnum.COMPLETED,
+                )
+                db.add(b3)
+                db.flush()
+                r3 = LiveMeetingRoom(
+                    booking_id=b3.id,
+                    secure_room_id=f"live-meet-py-{uuid.uuid4().hex[:4]}-{uuid.uuid4().hex[:4]}",
+                    room_status=LiveRoomStatusEnum.ENDED,
+                    started_at=now - timedelta(days=3),
+                    ended_at=now - timedelta(days=3) + timedelta(minutes=45),
+                    expires_at=now - timedelta(days=3) + timedelta(hours=3),
+                )
+                db.add(r3)
+
+                f3 = LiveInterviewFeedback(
+                    booking_id=b3.id,
+                    teacher_id=teacher.id,
+                    technical_score=88.5,
+                    communication_feedback="Clear articulation and confident explanation of Python memory management and generators.",
+                    problem_solving_feedback="Systematic problem decomposition with clear edge-case reasoning.",
+                    strengths=["Deep grasp of Python internals", "Clean OOP design", "Confident communication"],
+                    areas_for_improvement=["Review distributed SQL locking and transaction isolation levels", "Practice concurrency threading vs asyncio"],
+                    teacher_comments="Candidate is in top 10% of batch. Recommended for Tier-1 company placement drives.",
+                    recommended_topics=["AsyncIO", "Distributed Systems", "Database Indexing"],
+                )
+                db.add(f3)
+
+        db.commit()
+    except Exception as e:
+        logger.warning(f"Could not seed live interviews: {e}")
 
 
 def seed_database():
@@ -31,7 +145,8 @@ def seed_database():
 
         # Check if already seeded
         if db.query(College).first():
-            print("Database already contains data. Skipping seed.")
+            seed_live_interviews_if_empty(db)
+            print("Database already contains data. Skipped primary seed, ensured interview bookings.")
             return
 
         print("Seeding SkillExa database...")

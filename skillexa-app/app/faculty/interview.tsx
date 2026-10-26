@@ -95,7 +95,12 @@ export default function FacultyInterviewScreen() {
   return (
     <SafeAreaView style={styles.safeArea}>
       <StatusBar barStyle="dark-content" backgroundColor="#FFFFFF" />
-      <AppHeader showBack title="Take & Schedule Interviews" subtitle="Faculty Interview Portal" />
+      <AppHeader
+        showBack
+        title="Take & Schedule Interviews"
+        subtitle="Faculty Interview Portal"
+        onBack={() => router.replace('/faculty-dashboard' as any)}
+      />
 
       <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
         {/* Banner */}
@@ -175,16 +180,7 @@ export default function FacultyInterviewScreen() {
 
             <TouchableOpacity
               style={styles.startLiveBtn}
-              onPress={() =>
-                router.push({
-                  pathname: '/faculty/live-interview',
-                  params: {
-                    studentName,
-                    role,
-                    interviewType: selectedType,
-                  },
-                })
-              }
+              onPress={() => router.push('/live-interview' as any)}
             >
               <Feather name="video" size={16} color="#FFFFFF" />
               <Text style={styles.startLiveBtnText}>Launch Live Room</Text>
@@ -215,16 +211,7 @@ export default function FacultyInterviewScreen() {
               <View style={styles.intActions}>
                 <TouchableOpacity
                   style={styles.enterRoomBtn}
-                  onPress={() =>
-                    router.push({
-                      pathname: '/faculty/live-interview',
-                      params: {
-                        studentName: item.studentName,
-                        role: item.subjectOrRole,
-                        interviewType: item.interviewType,
-                      },
-                    })
-                  }
+                  onPress={() => router.push('/live-interview' as any)}
                 >
                   <Feather name="video" size={13} color="#FFFFFF" />
                   <Text style={styles.enterRoomText}>Enter Video Call</Text>
