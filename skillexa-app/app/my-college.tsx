@@ -957,7 +957,7 @@ const styles = StyleSheet.create({
   tabItemActive: { borderBottomWidth: 2, borderBottomColor: Palette.primary },
   tabItemText: { fontSize: 12.5, fontWeight: '600', color: Palette.textSecondary },
   tabItemTextActive: { color: Palette.primary, fontWeight: '700' },
-  scrollContent: { paddingHorizontal: 16, paddingTop: 16, paddingBottom: 40 },
+  scrollContent: { maxWidth: 1040, width: '100%', alignSelf: 'center', paddingHorizontal: 16, paddingTop: 16, paddingBottom: 60 },
   workspaceContainer: { gap: 14 },
   sectionHeaderRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 10 },
   sectionTitleRow: { flexDirection: 'row', alignItems: 'center', gap: 6 },

@@ -1,18 +1,19 @@
-import { Feather } from '@expo/vector-icons';
+import { Feather, Ionicons } from '@expo/vector-icons';
 import { router } from 'expo-router';
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import {
+  ImageBackground,
   SafeAreaView,
   ScrollView,
   StatusBar,
   StyleSheet,
   Text,
   TouchableOpacity,
+  useWindowDimensions,
   View,
 } from 'react-native';
 import { useAuth } from '../components/auth-context';
 import { AppHeader } from '../components/common/AppHeader';
-import { ProgressBar } from '../components/common/EducationalCards';
 import { Palette, Radii, Shadows } from '../constants/theme';
 import { ApiClient } from '../services/api';
 
@@ -24,31 +25,19 @@ interface WeeklyDayItem {
   isFuture: boolean;
 }
 
-interface RecommendationItem {
-  category: string;
-  topic: string;
-  difficulty: string;
-  accuracy_percentage: number;
-  reason: string;
-  practice_route: string;
-}
-
 interface StudentWeeklyStats {
   total_solved_this_week: number;
   today_solved: number;
   today_goal: number;
   today_progress_pct: number;
   daily_breakdown: WeeklyDayItem[];
-  recommendation?: RecommendationItem | null;
-  strong_topics?: string[];
-  weak_topics?: string[];
   streak_days?: number;
 }
 
 const getInitialWeeklyDays = (): WeeklyDayItem[] => {
   const dayNames = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
   const today = new Date();
-  const currentDayIdx = (today.getDay() + 6) % 7; // 0=Mon, 4=Fri, 5=Sat, 6=Sun
+  const currentDayIdx = (today.getDay() + 6) % 7;
   return dayNames.map((d, i) => ({
     day: d,
     date: '',
@@ -58,15 +47,24 @@ const getInitialWeeklyDays = (): WeeklyDayItem[] => {
   }));
 };
 
+const getGreeting = () => {
+  const hour = new Date().getHours();
+  if (hour >= 5 && hour < 12) return 'Good morning';
+  if (hour >= 12 && hour < 17) return 'Good afternoon';
+  return 'Good evening';
+};
+
 export default function HomeScreen() {
   const { profile } = useAuth();
-  const userName = profile?.name && profile.name.toLowerCase() !== 'faculty' ? profile.name : 'Scholar';
-  const [collegeUpdatesCount, setCollegeUpdatesCount] = React.useState(1);
-  const [weeklyStats, setWeeklyStats] = React.useState<StudentWeeklyStats | null>(null);
-  const [weeklyDays, setWeeklyDays] = React.useState<WeeklyDayItem[]>(getInitialWeeklyDays);
-  const [recommendation, setRecommendation] = React.useState<RecommendationItem | null>(null);
+  const userName = profile?.name && profile.name.toLowerCase() !== 'faculty' ? profile.name : 'Ganesh Sharan';
+  const greeting = getGreeting();
+  const { width } = useWindowDimensions();
+  const isDesktop = width >= 768;
 
-  React.useEffect(() => {
+  const [weeklyStats, setWeeklyStats] = useState<StudentWeeklyStats | null>(null);
+  const [weeklyDays, setWeeklyDays] = useState<WeeklyDayItem[]>(getInitialWeeklyDays);
+
+  useEffect(() => {
     if (
       profile?.role === 'FACULTY' ||
       profile?.role === 'ADMIN' ||
@@ -77,21 +75,6 @@ export default function HomeScreen() {
       return;
     }
 
-    ApiClient.getMyCollegeWorkspace()
-      .then((res) => {
-        if (res?.success && res.data) {
-          const anns = res.data.announcements?.length || 0;
-          const qzs = res.data.quizzes?.length || 0;
-          const nts = res.data.notes?.length || 0;
-          const total = anns + qzs + nts;
-          if (total > 0) {
-            setCollegeUpdatesCount(total);
-          }
-        }
-      })
-      .catch(() => {});
-
-    // Fetch real student stats and real weekly progress analysis
     ApiClient.getStudentStats()
       .then((res) => {
         if (res?.success && res.data?.weekly_progress) {
@@ -102,9 +85,6 @@ export default function HomeScreen() {
             today_goal: wp.today_goal ?? 20,
             today_progress_pct: wp.today_progress_pct ?? 0,
             daily_breakdown: wp.daily_breakdown ?? [],
-            recommendation: wp.recommendation,
-            strong_topics: wp.strong_topics,
-            weak_topics: wp.weak_topics,
             streak_days: wp.streak_days,
           });
 
@@ -119,15 +99,9 @@ export default function HomeScreen() {
               }))
             );
           }
-
-          if (wp.recommendation) {
-            setRecommendation(wp.recommendation);
-          }
         }
       })
-      .catch((err) => {
-        console.log('Error loading weekly student stats:', err);
-      });
+      .catch(() => {});
   }, [profile?.role, profile?.email]);
 
   return (
@@ -136,386 +110,243 @@ export default function HomeScreen() {
       <AppHeader />
 
       <ScrollView
-        contentContainerStyle={styles.scrollContent}
+        contentContainerStyle={[styles.scrollContent, isDesktop && styles.scrollContentDesktop]}
         showsVerticalScrollIndicator={false}
       >
-        {/* Welcome Greeting */}
-        <View style={styles.greetingHeader}>
-          <Text style={styles.greetingTitle}>Good morning, {userName} 👋</Text>
-          <Text style={styles.greetingSubtitle}>Let&apos;s build your skills today.</Text>
-        </View>
-
-        {/* 1. Today's Goal Card */}
-        <View style={styles.goalCard}>
-          <View style={styles.goalTopRow}>
-            <View style={styles.goalIconBox}>
-              <Feather name="target" size={18} color={Palette.primary} />
-            </View>
-            <View style={styles.goalTitleCol}>
-              <Text style={styles.goalLabel}>TODAY&apos;S GOAL</Text>
-              <Text style={styles.goalTitle}>Complete {weeklyStats?.today_goal || 20} practice questions</Text>
-            </View>
-            <Text style={styles.goalPercent}>
-              {weeklyStats ? Math.round(weeklyStats.today_progress_pct * 100) : 0}%
+        <View style={[styles.container, isDesktop && styles.containerDesktop]}>
+          {/* 1. Dynamic Greeting Card (Morning / Afternoon / Evening) */}
+          <View style={[styles.greetingCard, isDesktop && styles.greetingCardDesktop]}>
+            <Text style={[styles.greetingTitle, isDesktop && styles.greetingTitleDesktop]}>
+              {greeting}, {userName}
+            </Text>
+            <Text style={[styles.greetingSub, isDesktop && styles.greetingSubDesktop]}>
+              Small steps today, big dreams tomorrow 🚀
             </Text>
           </View>
 
-          <View style={styles.goalProgressWrapper}>
-            <ProgressBar progress={weeklyStats?.today_progress_pct || 0} color={Palette.primary} />
-            <Text style={styles.goalProgressDetail}>
-              {weeklyStats?.today_solved || 0} of {weeklyStats?.today_goal || 20} solved
+          {/* 2. Choose Your Path Section */}
+          <View style={styles.sectionHeader}>
+            <Text style={[styles.sectionTitle, isDesktop && styles.sectionTitleDesktop]}>
+              Choose Your Path
+            </Text>
+            <Text style={[styles.sectionSub, isDesktop && styles.sectionSubDesktop]}>
+              Pick your goal and start learning
             </Text>
           </View>
 
+          <View style={[styles.pathCardsRow, isDesktop && styles.pathCardsRowDesktop]}>
+            {/* Engineering Learning Card */}
+            <TouchableOpacity
+              style={[styles.engPathCard, isDesktop && styles.engPathCardDesktop]}
+              onPress={() => router.push('/engineering' as any)}
+              activeOpacity={0.85}
+            >
+              <View style={styles.pathCardTop}>
+                <View style={[styles.engIconBox, isDesktop && styles.engIconBoxDesktop]}>
+                  <Feather name="cpu" size={isDesktop ? 22 : 18} color="#0284C7" />
+                </View>
+                <Text style={[styles.pathCardTitle, isDesktop && styles.pathCardTitleDesktop]}>
+                  Engineering{'\n'}Learning
+                </Text>
+                <Feather name="chevron-right" size={isDesktop ? 18 : 14} color="#94A3B8" style={styles.pathChevron} />
+              </View>
+              <View style={[styles.pathSubWrapper, isDesktop && styles.pathSubWrapperDesktop]}>
+                <Text style={[styles.pathSubtext, isDesktop && styles.pathSubtextDesktop]}>Coding  •  DSA  •  Resume</Text>
+                <Text style={[styles.pathSubtext, isDesktop && styles.pathSubtextDesktop]}>AI Interview  •  Placement Prep</Text>
+              </View>
+            </TouchableOpacity>
+
+            {/* Competitive Exams Card */}
+            <TouchableOpacity
+              style={[styles.compPathCard, isDesktop && styles.compPathCardDesktop]}
+              onPress={() => router.push('/competitive' as any)}
+              activeOpacity={0.85}
+            >
+              <View style={styles.pathCardTop}>
+                <View style={[styles.compIconBox, isDesktop && styles.compIconBoxDesktop]}>
+                  <Feather name="target" size={isDesktop ? 22 : 18} color="#EA580C" />
+                </View>
+                <Text style={[styles.pathCardTitle, isDesktop && styles.pathCardTitleDesktop]}>
+                  Competitive{'\n'}Exams
+                </Text>
+                <Feather name="chevron-right" size={isDesktop ? 18 : 14} color="#94A3B8" style={styles.pathChevron} />
+              </View>
+              <View style={[styles.pathSubWrapper, isDesktop && styles.pathSubWrapperDesktop]}>
+                <Text style={[styles.pathSubtext, isDesktop && styles.pathSubtextDesktop]}>Aptitude  •  Reasoning  •</Text>
+                <Text style={[styles.pathSubtext, isDesktop && styles.pathSubtextDesktop]}>English  •  GK  •  Science</Text>
+                <Text style={[styles.pathSubtext, isDesktop && styles.pathSubtextDesktop]}>Fitness</Text>
+              </View>
+            </TouchableOpacity>
+          </View>
+
+          {/* 3. College Workspace Banner */}
           <TouchableOpacity
-            style={styles.primaryBtn}
-            onPress={() => {
-              if (recommendation?.practice_route) {
-                router.push(recommendation.practice_route as any);
-              } else {
-                router.push('/quizzpage' as any);
-              }
-            }}
+            style={[styles.collegeBanner, isDesktop && styles.collegeBannerDesktop]}
+            onPress={() => router.push('/my-college' as any)}
+            activeOpacity={0.88}
+          >
+            <View style={[styles.collegeBannerContent, isDesktop && styles.collegeBannerContentDesktop]}>
+              <View style={styles.collegeLeft}>
+                <View style={[styles.collegeCapBox, isDesktop && styles.collegeCapBoxDesktop]}>
+                  <Ionicons name="school" size={isDesktop ? 22 : 18} color="#0284C7" />
+                </View>
+                <View style={styles.collegeTextCol}>
+                  <Text style={[styles.collegeBannerTitle, isDesktop && styles.collegeBannerTitleDesktop]}>
+                    College Workspace
+                  </Text>
+                  <Text style={[styles.collegeBannerSub, isDesktop && styles.collegeBannerSubDesktop]} numberOfLines={1}>
+                    {profile?.collegeName || 'KVG College of Engineering, Sullia'}
+                  </Text>
+                </View>
+              </View>
+
+              <View style={[styles.openWorkspaceBtn, isDesktop && styles.openWorkspaceBtnDesktop]}>
+                <Text style={[styles.openWorkspaceText, isDesktop && styles.openWorkspaceTextDesktop]}>
+                  Open Workspace →
+                </Text>
+              </View>
+            </View>
+          </TouchableOpacity>
+
+          {/* 4. Quick Practice Section */}
+          <View style={styles.quickPracticeHeader}>
+            <View>
+              <Text style={[styles.sectionTitle, isDesktop && styles.sectionTitleDesktop]}>Quick Practice</Text>
+              <Text style={[styles.sectionSub, isDesktop && styles.sectionSubDesktop]}>Jump into your favourite topics</Text>
+            </View>
+            <TouchableOpacity
+              onPress={() => router.push('/coding-problems' as any)}
+              activeOpacity={0.7}
+            >
+              <Text style={[styles.exploreAllText, isDesktop && styles.exploreAllTextDesktop]}>Explore All →</Text>
+            </TouchableOpacity>
+          </View>
+
+          <View style={[styles.quickGrid, isDesktop && styles.quickGridDesktop]}>
+            {/* Coding */}
+            <TouchableOpacity
+              style={[styles.quickCard, isDesktop && styles.quickCardDesktop]}
+              onPress={() => router.push('/coding-problems' as any)}
+              activeOpacity={0.8}
+            >
+              <View style={[styles.quickIconBox, isDesktop && styles.quickIconBoxDesktop, { backgroundColor: '#E0F2FE' }]}>
+                <Feather name="code" size={isDesktop ? 20 : 16} color="#0284C7" />
+              </View>
+              <Text style={[styles.quickTitle, isDesktop && styles.quickTitleDesktop]}>Coding</Text>
+              <Text style={[styles.quickSub, isDesktop && styles.quickSubDesktop]}>26+ Problems</Text>
+            </TouchableOpacity>
+
+            {/* DSA Roadmap */}
+            <TouchableOpacity
+              style={[styles.quickCard, isDesktop && styles.quickCardDesktop]}
+              onPress={() => router.push('/dsa-practice' as any)}
+              activeOpacity={0.8}
+            >
+              <View style={[styles.quickIconBox, isDesktop && styles.quickIconBoxDesktop, { backgroundColor: '#DCFCE7' }]}>
+                <Feather name="git-branch" size={isDesktop ? 20 : 16} color="#10B981" />
+              </View>
+              <Text style={[styles.quickTitle, isDesktop && styles.quickTitleDesktop]}>DSA Roadmap</Text>
+              <Text style={[styles.quickSub, isDesktop && styles.quickSubDesktop]}>12 Topics</Text>
+            </TouchableOpacity>
+
+            {/* Topic Quiz */}
+            <TouchableOpacity
+              style={[styles.quickCard, isDesktop && styles.quickCardDesktop]}
+              onPress={() => router.push('/quizzpage' as any)}
+              activeOpacity={0.8}
+            >
+              <View style={[styles.quickIconBox, isDesktop && styles.quickIconBoxDesktop, { backgroundColor: '#F3E8FF' }]}>
+                <Feather name="file-text" size={isDesktop ? 20 : 16} color="#8B5CF6" />
+              </View>
+              <Text style={[styles.quickTitle, isDesktop && styles.quickTitleDesktop]}>Topic Quiz</Text>
+              <Text style={[styles.quickSub, isDesktop && styles.quickSubDesktop]}>12 Topics</Text>
+            </TouchableOpacity>
+
+            {/* AI Interview */}
+            <TouchableOpacity
+              style={[styles.quickCard, isDesktop && styles.quickCardDesktop]}
+              onPress={() => router.push('/mock-interviews' as any)}
+              activeOpacity={0.8}
+            >
+              <View style={[styles.quickIconBox, isDesktop && styles.quickIconBoxDesktop, { backgroundColor: '#FCE7F3' }]}>
+                <Feather name="cpu" size={isDesktop ? 20 : 16} color="#EC4899" />
+              </View>
+              <Text style={[styles.quickTitle, isDesktop && styles.quickTitleDesktop]}>AI Interview</Text>
+              <Text style={[styles.quickSub, isDesktop && styles.quickSubDesktop, { color: '#0284C7', fontWeight: '700' }]}>
+                Practice Now
+              </Text>
+            </TouchableOpacity>
+          </View>
+
+          {/* 5. Live Interview Card */}
+          <TouchableOpacity
+            style={[styles.actionCardLive, isDesktop && styles.actionCardLiveDesktop]}
+            onPress={() => router.push('/live-interview' as any)}
             activeOpacity={0.85}
           >
-            <Text style={styles.primaryBtnText}>Continue Practice</Text>
-            <Feather name="arrow-right" size={16} color="#FFFFFF" />
-          </TouchableOpacity>
-        </View>
-
-        {/* 🏫 MY COLLEGE WORKSPACE HERO CARD */}
-        <TouchableOpacity
-          style={styles.collegeHeroCard}
-          onPress={() => router.push('/my-college' as any)}
-          activeOpacity={0.85}
-        >
-          <View style={styles.collegeHeroTop}>
-            <View style={styles.collegeIconBox}>
-              <Feather name="book-open" size={22} color={Palette.primary} />
+            <View style={[styles.actionIconCircleRed, isDesktop && styles.actionIconCircleRedDesktop]}>
+              <Feather name="video" size={isDesktop ? 20 : 17} color="#E11D48" />
             </View>
-            <View style={{ flex: 1 }}>
-              <View style={styles.collegeTagRow}>
-                <View style={styles.collegePill}>
-                  <Text style={styles.collegePillText}>🏫 MY COLLEGE</Text>
-                </View>
-                <View style={styles.notifPill}>
-                  <Text style={styles.notifPillText}>{collegeUpdatesCount} New Update{collegeUpdatesCount === 1 ? '' : 's'}</Text>
+            <View style={styles.actionTextCol}>
+              <View style={styles.actionTitleRow}>
+                <Text style={[styles.actionTitle, isDesktop && styles.actionTitleDesktop]}>Live Interview</Text>
+                <View style={styles.liveTag}>
+                  <Text style={styles.liveTagText}>LIVE</Text>
                 </View>
               </View>
-              <Text style={styles.collegeTitle}>{profile.collegeName || 'KVG College of Engineering'}</Text>
-              <Text style={styles.collegeSub}>
-                {profile.department || 'ECE'} • {profile.academicYear || '3rd Year'} Sec {profile.section || 'A'}
+              <Text style={[styles.actionSub, isDesktop && styles.actionSubDesktop]}>
+                1-on-1 video calls with expert mentors & placement guidance
               </Text>
             </View>
-          </View>
+            <Feather name="chevron-right" size={isDesktop ? 18 : 16} color="#94A3B8" />
+          </TouchableOpacity>
 
-          <View style={styles.collegeHeroFooter}>
-            <Text style={styles.collegeActionText}>Open College Workspace (Notices, Notes, Quizzes)</Text>
-            <Feather name="arrow-right" size={15} color={Palette.primary} />
-          </View>
-        </TouchableOpacity>
-
-        {/* 2. Continue Learning Carousel */}
-        <View style={styles.sectionHeaderRow}>
-          <Text style={styles.sectionTitle}>Continue Learning</Text>
-          <Text style={styles.sectionSubtitle}>Jump back into your active tracks</Text>
-        </View>
-
-        <ScrollView
-          horizontal
-          showsHorizontalScrollIndicator={false}
-          contentContainerStyle={styles.horizontalScroll}
-        >
-          {/* Card 1: DSA */}
-          <View style={styles.continueCard}>
-            <View style={styles.trackBadge}>
-              <Text style={styles.trackBadgeText}>DSA</Text>
-            </View>
-            <Text style={styles.continueModuleTitle}>Arrays & Memory</Text>
-            <Text style={styles.continueProgressText}>65% complete</Text>
-            <View style={styles.continueProgressBar}>
-              <ProgressBar progress={0.65} color={Palette.primary} />
-            </View>
-            <TouchableOpacity
-              style={styles.continueBtn}
-              onPress={() => router.push('/dsa-practice' as any)}
-            >
-              <Text style={styles.continueBtnText}>Continue</Text>
-              <Feather name="play" size={12} color={Palette.primary} />
-            </TouchableOpacity>
-          </View>
-
-          {/* Card 2: English */}
-          <View style={styles.continueCard}>
-            <View style={[styles.trackBadge, { backgroundColor: Palette.warningLight }]}>
-              <Text style={[styles.trackBadgeText, { color: Palette.warning }]}>ENGLISH</Text>
-            </View>
-            <Text style={styles.continueModuleTitle}>Tenses & Rules</Text>
-            <Text style={styles.continueProgressText}>40% complete</Text>
-            <View style={styles.continueProgressBar}>
-              <ProgressBar progress={0.4} color={Palette.warning} />
-            </View>
-            <TouchableOpacity
-              style={styles.continueBtn}
-              onPress={() => router.push('/english' as any)}
-            >
-              <Text style={styles.continueBtnText}>Continue</Text>
-              <Feather name="play" size={12} color={Palette.primary} />
-            </TouchableOpacity>
-          </View>
-
-          {/* Card 3: Quantitative Math */}
-          <View style={styles.continueCard}>
-            <View style={[styles.trackBadge, { backgroundColor: Palette.successLight }]}>
-              <Text style={[styles.trackBadgeText, { color: Palette.success }]}>MATH</Text>
-            </View>
-            <Text style={styles.continueModuleTitle}>Percentage & Profit</Text>
-            <Text style={styles.continueProgressText}>50% complete</Text>
-            <View style={styles.continueProgressBar}>
-              <ProgressBar progress={0.5} color={Palette.success} />
-            </View>
-            <TouchableOpacity
-              style={styles.continueBtn}
-              onPress={() => router.push('/mathematics' as any)}
-            >
-              <Text style={styles.continueBtnText}>Continue</Text>
-              <Feather name="play" size={12} color={Palette.primary} />
-            </TouchableOpacity>
-          </View>
-        </ScrollView>
-
-        {/* 3. Choose Your Path */}
-        <View style={styles.sectionHeaderRow}>
-          <Text style={styles.sectionTitle}>Choose Your Path</Text>
-          <Text style={styles.sectionSubtitle}>Select your main academic track</Text>
-        </View>
-
-        <View style={styles.pathsContainer}>
-          {/* Engineering Path Card */}
+          {/* 6. Govt Jobs & Exam Notifications Card */}
           <TouchableOpacity
-            style={styles.pathLargeCard}
-            onPress={() => router.push('/engineering' as any)}
-            activeOpacity={0.88}
+            style={[styles.actionCardJobs, isDesktop && styles.actionCardJobsDesktop]}
+            onPress={() => router.push('/govt-jobs' as any)}
+            activeOpacity={0.85}
           >
-            <View style={styles.pathIconHeader}>
-              <View style={styles.pathIconCircle}>
-                <Feather name="cpu" size={24} color={Palette.primary} />
-              </View>
-              <View style={styles.pathBadge}>
-                <Text style={styles.pathBadgeText}>5 Modules</Text>
-              </View>
+            <View style={[styles.actionIconCircleBlue, isDesktop && styles.actionIconCircleBlueDesktop]}>
+              <Feather name="bell" size={isDesktop ? 20 : 17} color="#0284C7" />
             </View>
-            <Text style={styles.pathLargeTitle}>Engineering Learning</Text>
-            <Text style={styles.pathLargeDesc}>
-              Coding • DSA • Resume • Interview • Placement Ready
+            <View style={styles.actionTextCol}>
+              <Text style={[styles.actionTitle, isDesktop && styles.actionTitleDesktop]}>
+                Govt Jobs & Exam Notifications
+              </Text>
+              <Text style={[styles.actionSub, isDesktop && styles.actionSubDesktop]}>
+                Latest updates for all government jobs, exams & results
+              </Text>
+            </View>
+            <Feather name="chevron-right" size={isDesktop ? 18 : 16} color="#94A3B8" />
+          </TouchableOpacity>
+
+          {/* 7. Weekly Progress */}
+          <View style={[styles.weeklyCard, isDesktop && styles.weeklyCardDesktop]}>
+            <Text style={[styles.weeklyTitle, isDesktop && styles.weeklyTitleDesktop]}>Weekly Progress</Text>
+            <Text style={[styles.weeklySub, isDesktop && styles.weeklySubDesktop]}>
+              {weeklyStats?.total_solved_this_week || 0} questions solved this week
             </Text>
-            <View style={styles.pathCardFooter}>
-              <Text style={styles.pathExploreText}>Explore Engineering</Text>
-              <Feather name="arrow-right" size={16} color={Palette.primary} />
-            </View>
-          </TouchableOpacity>
 
-          {/* Competitive Exams Path Card */}
-          <TouchableOpacity
-            style={styles.pathLargeCard}
-            onPress={() => router.push('/competitive' as any)}
-            activeOpacity={0.88}
-          >
-            <View style={styles.pathIconHeader}>
-              <View style={[styles.pathIconCircle, { backgroundColor: Palette.warningLight }]}>
-                <Feather name="award" size={24} color={Palette.warning} />
-              </View>
-              <View style={[styles.pathBadge, { backgroundColor: Palette.warningLight }]}>
-                <Text style={[styles.pathBadgeText, { color: Palette.warning }]}>6 Subjects</Text>
-              </View>
-            </View>
-            <Text style={styles.pathLargeTitle}>Competitive Exams</Text>
-            <Text style={styles.pathLargeDesc}>
-              Aptitude • Reasoning • English • GK • Science • Fitness
-            </Text>
-            <View style={styles.pathCardFooter}>
-              <Text style={[styles.pathExploreText, { color: Palette.warning }]}>Explore Competitive</Text>
-              <Feather name="arrow-right" size={16} color={Palette.warning} />
-            </View>
-          </TouchableOpacity>
-        </View>
-
-        {/* 4. Quick Practice Actions */}
-        <View style={styles.sectionHeaderRow}>
-          <Text style={styles.sectionTitle}>Quick Practice</Text>
-          <Text style={styles.sectionSubtitle}>Jump into targeted drills</Text>
-        </View>
-
-        <View style={styles.quickGrid}>
-          <TouchableOpacity
-            style={styles.quickCard}
-            onPress={() => router.push('/coding-problems' as any)}
-            activeOpacity={0.7}
-          >
-            <View style={styles.quickIconCircle}>
-              <Feather name="terminal" size={18} color={Palette.primary} />
-            </View>
-            <Text style={styles.quickLabel}>Coding</Text>
-            <Text style={styles.quickMeta}>250+ Problems</Text>
-          </TouchableOpacity>
-
-          <TouchableOpacity
-            style={styles.quickCard}
-            onPress={() => router.push('/dsa-practice' as any)}
-            activeOpacity={0.7}
-          >
-            <View style={[styles.quickIconCircle, { backgroundColor: Palette.successLight }]}>
-              <Feather name="code" size={18} color={Palette.success} />
-            </View>
-            <Text style={styles.quickLabel}>DSA Roadmap</Text>
-            <Text style={styles.quickMeta}>12 Topics</Text>
-          </TouchableOpacity>
-
-          <TouchableOpacity
-            style={styles.quickCard}
-            onPress={() => router.push('/quizzpage' as any)}
-            activeOpacity={0.7}
-          >
-            <View style={[styles.quickIconCircle, { backgroundColor: Palette.warningLight }]}>
-              <Feather name="edit-3" size={18} color={Palette.warning} />
-            </View>
-            <Text style={styles.quickLabel}>Topic Quiz</Text>
-            <Text style={styles.quickMeta}>Timed Drills</Text>
-          </TouchableOpacity>
-
-          <TouchableOpacity
-            style={styles.quickCard}
-            onPress={() => router.push('/mock-interviews' as any)}
-            activeOpacity={0.7}
-          >
-            <View style={[styles.quickIconCircle, { backgroundColor: Palette.aiPurpleLight }]}>
-              <Feather name="message-square" size={18} color={Palette.aiPurple} />
-            </View>
-            <Text style={styles.quickLabel}>AI Interview</Text>
-            <Text style={styles.quickMeta}>Voice & Tech</Text>
-          </TouchableOpacity>
-        </View>
-
-        {/* SkillExa Live Interview Banner (Human-to-Human Video Call) */}
-        <TouchableOpacity
-          style={styles.liveInterviewBanner}
-          onPress={() => router.push('/live-interview' as any)}
-          activeOpacity={0.85}
-        >
-          <View style={styles.liveInterviewBadge}>
-            <Feather name="video" size={20} color="#FFFFFF" />
-          </View>
-          <View style={{ flex: 1 }}>
-            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
-              <Text style={styles.liveInterviewTitle}>SkillExa Live Interview</Text>
-              <View style={styles.liveDotPill}>
-                <View style={styles.liveDot} />
-                <Text style={styles.liveDotText}>LIVE MEET</Text>
-              </View>
-            </View>
-            <Text style={styles.liveInterviewDesc}>
-              1-on-1 human video panels with teachers, trainers & placement evaluators.
-            </Text>
-          </View>
-          <Feather name="chevron-right" size={20} color={Palette.primary} />
-        </TouchableOpacity>
-
-        {/* Live Government Jobs & Exam Notifications Banner */}
-        <TouchableOpacity
-          style={styles.govtJobsBanner}
-          onPress={() => router.push('/govt-jobs' as any)}
-          activeOpacity={0.85}
-        >
-          <View style={styles.govtJobsBadge}>
-            <Feather name="award" size={20} color="#FFFFFF" />
-          </View>
-          <View style={{ flex: 1 }}>
-            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
-              <Text style={styles.govtJobsTitle}>Live Govt Jobs & Exam Notifications</Text>
-              <View style={styles.govtLiveDotPill}>
-                <View style={styles.govtLiveDot} />
-                <Text style={styles.govtLiveDotText}>LIVE FEEDS</Text>
-              </View>
-            </View>
-            <Text style={styles.govtJobsDesc}>
-              Official updates from SSC, UPSC, IBPS, KPSC, BSF, SSB, RRB & Karnataka Police.
-            </Text>
-          </View>
-          <Feather name="chevron-right" size={20} color="#4F46E5" />
-        </TouchableOpacity>
-
-        {/* 5. Weekly Activity Chart */}
-        <View style={styles.sectionHeaderRow}>
-          <Text style={styles.sectionTitle}>Weekly Progress</Text>
-          <Text style={styles.sectionSubtitle}>
-            {weeklyStats
-              ? `${weeklyStats.total_solved_this_week} question${weeklyStats.total_solved_this_week === 1 ? '' : 's'} solved this week`
-              : '0 questions solved this week'}
-          </Text>
-        </View>
-
-        <View style={styles.weeklyCard}>
-          <View style={styles.chartBarsRow}>
-            {weeklyDays.map((d, i) => {
-              const maxCount = Math.max(...weeklyDays.map((x) => x.count), 25);
-              const barHeight = d.count > 0 ? Math.max((d.count / maxCount) * 70, 10) : 4;
-              return (
-                <View key={i} style={styles.chartCol}>
-                  <Text style={styles.barCount}>{d.count > 0 ? d.count : ''}</Text>
-                  <View style={styles.barTrack}>
+            <View style={[styles.barChartRow, isDesktop && styles.barChartRowDesktop]}>
+              {weeklyDays.map((item, idx) => (
+                <View key={idx} style={styles.barCol}>
+                  <View style={[styles.barTrack, isDesktop && styles.barTrackDesktop]}>
                     <View
                       style={[
                         styles.barFill,
-                        { height: barHeight },
-                        d.isToday && styles.barFillToday,
+                        item.isToday ? styles.barFillToday : undefined,
+                        { height: `${Math.min(100, Math.max(12, item.count * 16))}%` },
                       ]}
                     />
                   </View>
-                  <Text style={[styles.barDayLabel, d.isToday && styles.barDayToday]}>
-                    {d.day}
+                  <Text style={[styles.barDayLabel, isDesktop && styles.barDayLabelDesktop, item.isToday && styles.barDayToday]}>
+                    {item.day}
                   </Text>
                 </View>
-              );
-            })}
-          </View>
-        </View>
-
-        {/* 6. Recommended For You */}
-        <View style={styles.sectionHeaderRow}>
-          <Text style={styles.sectionTitle}>Recommended for You</Text>
-          <Text style={styles.sectionSubtitle}>Based on your recent performance</Text>
-        </View>
-
-        <View style={styles.recommendCard}>
-          <View style={styles.recommendHeader}>
-            <View style={styles.recommendIconBox}>
-              <Feather name="trending-up" size={18} color={Palette.primary} />
-            </View>
-            <View style={styles.recommendInfo}>
-              <Text style={styles.recommendTitle}>
-                Practice {recommendation?.topic || 'Quantitative Aptitude'} — {recommendation?.difficulty || 'Medium'}
-              </Text>
-              <Text style={styles.recommendStats}>
-                Your current accuracy: {recommendation ? `${Math.round(recommendation.accuracy_percentage)}%` : '0%'}
-              </Text>
+              ))}
             </View>
           </View>
-          <Text style={styles.recommendDesc}>
-            {recommendation?.reason || 'Boosting your accuracy by practicing focused topics unlocks placement level evaluations.'}
-          </Text>
-          <TouchableOpacity
-            style={styles.recommendBtn}
-            onPress={() => {
-              if (recommendation?.practice_route) {
-                router.push(recommendation.practice_route as any);
-              } else {
-                router.push('/mathematics' as any);
-              }
-            }}
-          >
-            <Text style={styles.recommendBtnText}>Practice Now</Text>
-            <Feather name="arrow-right" size={14} color="#FFFFFF" />
-          </TouchableOpacity>
         </View>
       </ScrollView>
     </SafeAreaView>
@@ -525,544 +356,532 @@ export default function HomeScreen() {
 const styles = StyleSheet.create({
   safeArea: {
     flex: 1,
-    backgroundColor: Palette.background,
+    backgroundColor: '#FFFFFF',
   },
   scrollContent: {
+    paddingHorizontal: 12,
+    paddingTop: 10,
+    paddingBottom: 95, // Leaves clean clearance for the bottom navigation
+  },
+  scrollContentDesktop: {
+    paddingHorizontal: 24,
+    paddingTop: 18,
+    paddingBottom: 110,
+  },
+  container: {
+    width: '100%',
+  },
+  containerDesktop: {
+    maxWidth: 1240,
+    alignSelf: 'center',
+  },
+
+  // 1. Dynamic Greeting Card
+  greetingCard: {
+    backgroundColor: '#F0F7FF',
+    borderRadius: 14,
     paddingHorizontal: 16,
-    paddingTop: 16,
-    paddingBottom: 40,
-  },
-  greetingHeader: {
-    marginBottom: 20,
-  },
-  greetingTitle: {
-    fontSize: 22,
-    fontWeight: '800',
-    color: Palette.textTitle,
-  },
-  greetingSubtitle: {
-    fontSize: 14,
-    color: Palette.textSecondary,
-    marginTop: 3,
-  },
-  goalCard: {
-    backgroundColor: '#FFFFFF',
-    borderRadius: Radii.card,
-    padding: 18,
+    paddingVertical: 12,
     borderWidth: 1,
-    borderColor: Palette.border,
-    marginBottom: 24,
-    ...Shadows.card,
-  },
-  goalTopRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginBottom: 12,
-  },
-  goalIconBox: {
-    width: 36,
-    height: 36,
-    borderRadius: 10,
-    backgroundColor: Palette.primaryLight,
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginRight: 12,
-  },
-  goalTitleCol: {
-    flex: 1,
-  },
-  goalLabel: {
-    fontSize: 11,
-    fontWeight: '800',
-    color: Palette.primary,
-    letterSpacing: 0.8,
-  },
-  goalTitle: {
-    fontSize: 15,
-    fontWeight: '700',
-    color: Palette.textTitle,
-    marginTop: 2,
-  },
-  goalPercent: {
-    fontSize: 16,
-    fontWeight: '800',
-    color: Palette.primary,
-  },
-  goalProgressWrapper: {
+    borderColor: '#D8EAFF',
     marginBottom: 16,
   },
-  goalProgressDetail: {
-    fontSize: 12,
-    color: Palette.textSecondary,
-    marginTop: 6,
-  },
-  primaryBtn: {
-    backgroundColor: Palette.primary,
-    borderRadius: Radii.button,
-    paddingVertical: 12,
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    gap: 8,
-    ...Shadows.button,
-  },
-  primaryBtnText: {
-    color: '#FFFFFF',
-    fontSize: 14,
-    fontWeight: '700',
-  },
-  sectionHeaderRow: {
-    marginBottom: 12,
-  },
-  sectionTitle: {
-    fontSize: 18,
-    fontWeight: '800',
-    color: Palette.textTitle,
-  },
-  sectionSubtitle: {
-    fontSize: 12,
-    color: Palette.textSecondary,
-    marginTop: 2,
-  },
-  horizontalScroll: {
-    gap: 12,
-    paddingBottom: 4,
+  greetingCardDesktop: {
+    borderRadius: 18,
+    paddingHorizontal: 24,
+    paddingVertical: 18,
     marginBottom: 24,
   },
-  continueCard: {
-    width: 200,
-    backgroundColor: '#FFFFFF',
-    borderRadius: Radii.card,
-    padding: 16,
-    borderWidth: 1,
-    borderColor: Palette.border,
-    ...Shadows.card,
+  greetingTitle: {
+    fontSize: 17,
+    fontWeight: '800',
+    color: '#0F172A',
+    marginBottom: 3,
   },
-  trackBadge: {
-    alignSelf: 'flex-start',
-    backgroundColor: Palette.primaryLight,
-    paddingHorizontal: 8,
-    paddingVertical: 3,
-    borderRadius: 6,
+  greetingTitleDesktop: {
+    fontSize: 22,
+    marginBottom: 5,
+  },
+  greetingSub: {
+    fontSize: 12,
+    color: '#475569',
+    fontWeight: '500',
+  },
+  greetingSubDesktop: {
+    fontSize: 14,
+  },
+
+  // Section Headers
+  sectionHeader: {
     marginBottom: 10,
   },
-  trackBadgeText: {
-    fontSize: 10,
+  sectionTitle: {
+    fontSize: 16,
     fontWeight: '800',
-    color: Palette.primary,
-    letterSpacing: 0.6,
+    color: '#0F172A',
   },
-  continueModuleTitle: {
-    fontSize: 15,
-    fontWeight: '700',
-    color: Palette.textTitle,
-    marginBottom: 6,
+  sectionTitleDesktop: {
+    fontSize: 19,
   },
-  continueProgressText: {
-    fontSize: 12,
-    color: Palette.textSecondary,
-    marginBottom: 8,
+  sectionSub: {
+    fontSize: 11.5,
+    color: '#64748B',
+    marginTop: 2,
   },
-  continueProgressBar: {
-    marginBottom: 12,
+  sectionSubDesktop: {
+    fontSize: 13.5,
   },
-  continueBtn: {
+
+  // 2. Choose Your Path
+  pathCardsRow: {
     flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    gap: 6,
-    paddingVertical: 8,
-    borderRadius: 8,
-    backgroundColor: Palette.primaryLight,
+    gap: 10,
+    marginBottom: 16,
   },
-  continueBtnText: {
-    fontSize: 12,
-    fontWeight: '700',
-    color: Palette.primary,
-  },
-  pathsContainer: {
-    gap: 12,
+  pathCardsRowDesktop: {
+    gap: 16,
     marginBottom: 24,
   },
-  pathLargeCard: {
-    backgroundColor: '#FFFFFF',
-    borderRadius: Radii.card,
-    padding: 18,
+  engPathCard: {
+    flex: 1,
+    backgroundColor: '#F0F8FF',
+    borderRadius: 14,
+    padding: 11,
     borderWidth: 1,
-    borderColor: Palette.border,
-    ...Shadows.card,
-  },
-  pathIconHeader: {
-    flexDirection: 'row',
+    borderColor: '#D0E7FF',
     justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: 12,
+    minHeight: 125,
   },
-  pathIconCircle: {
+  engPathCardDesktop: {
+    borderRadius: 18,
+    padding: 18,
+    minHeight: 150,
+  },
+  compPathCard: {
+    flex: 1,
+    backgroundColor: '#FFF8F0',
+    borderRadius: 14,
+    padding: 11,
+    borderWidth: 1,
+    borderColor: '#FED7AA',
+    justifyContent: 'space-between',
+    minHeight: 125,
+  },
+  compPathCardDesktop: {
+    borderRadius: 18,
+    padding: 18,
+    minHeight: 150,
+  },
+  pathCardTop: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    justifyContent: 'space-between',
+  },
+  engIconBox: {
+    width: 32,
+    height: 32,
+    borderRadius: 8,
+    backgroundColor: '#E0F2FE',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginRight: 6,
+  },
+  engIconBoxDesktop: {
     width: 44,
     height: 44,
     borderRadius: 12,
-    backgroundColor: Palette.primaryLight,
+    marginRight: 10,
+  },
+  compIconBox: {
+    width: 32,
+    height: 32,
+    borderRadius: 8,
+    backgroundColor: '#FFEDD5',
     alignItems: 'center',
     justifyContent: 'center',
+    marginRight: 6,
   },
-  pathBadge: {
-    backgroundColor: Palette.primaryLight,
-    paddingHorizontal: 10,
-    paddingVertical: 4,
-    borderRadius: 8,
+  compIconBoxDesktop: {
+    width: 44,
+    height: 44,
+    borderRadius: 12,
+    marginRight: 10,
   },
-  pathBadgeText: {
-    fontSize: 11,
-    fontWeight: '700',
-    color: Palette.primary,
-  },
-  pathLargeTitle: {
-    fontSize: 17,
+  pathCardTitle: {
+    flex: 1,
+    fontSize: 12.5,
     fontWeight: '800',
-    color: Palette.textTitle,
-    marginBottom: 4,
+    color: '#0F172A',
+    lineHeight: 16,
   },
-  pathLargeDesc: {
-    fontSize: 13,
-    color: Palette.textSecondary,
+  pathCardTitleDesktop: {
+    fontSize: 16,
+    lineHeight: 22,
+  },
+  pathChevron: {
+    marginTop: 2,
+  },
+  pathSubWrapper: {
+    marginTop: 10,
+  },
+  pathSubWrapperDesktop: {
+    marginTop: 14,
+  },
+  pathSubtext: {
+    fontSize: 9.5,
+    color: '#64748B',
+    lineHeight: 14,
+  },
+  pathSubtextDesktop: {
+    fontSize: 12,
     lineHeight: 18,
-    marginBottom: 14,
   },
-  pathCardFooter: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 6,
+
+  // 3. College Workspace Banner (Transparent Background)
+  collegeBanner: {
+    backgroundColor: 'transparent',
+    borderRadius: 14,
+    borderWidth: 1,
+    borderColor: '#D8EAFF',
+    marginBottom: 16,
   },
-  pathExploreText: {
-    fontSize: 13,
-    fontWeight: '700',
-    color: Palette.primary,
-  },
-  quickGrid: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    justifyContent: 'space-between',
-    gap: 10,
+  collegeBannerDesktop: {
+    borderRadius: 18,
     marginBottom: 24,
   },
-  quickCard: {
-    width: '48%',
-    backgroundColor: '#FFFFFF',
-    borderRadius: Radii.card,
-    padding: 14,
-    borderWidth: 1,
-    borderColor: Palette.border,
-    ...Shadows.card,
+  collegeBannerContent: {
+    paddingHorizontal: 14,
+    paddingVertical: 12,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    gap: 10,
+    backgroundColor: 'transparent',
   },
-  quickIconCircle: {
+  collegeBannerContentDesktop: {
+    paddingHorizontal: 22,
+    paddingVertical: 16,
+    gap: 16,
+  },
+  collegeLeft: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    flex: 1,
+    gap: 10,
+    minWidth: 0,
+  },
+  collegeCapBox: {
     width: 36,
     height: 36,
     borderRadius: 10,
-    backgroundColor: Palette.primaryLight,
+    backgroundColor: '#E0F2FE',
     alignItems: 'center',
     justifyContent: 'center',
-    marginBottom: 8,
   },
-  quickLabel: {
+  collegeCapBoxDesktop: {
+    width: 44,
+    height: 44,
+    borderRadius: 12,
+  },
+  collegeTextCol: {
+    flex: 1,
+    minWidth: 0,
+  },
+  collegeBannerTitle: {
     fontSize: 14,
-    fontWeight: '700',
-    color: Palette.textTitle,
+    fontWeight: '800',
+    color: '#0F172A',
   },
-  quickMeta: {
+  collegeBannerTitleDesktop: {
+    fontSize: 16.5,
+  },
+  collegeBannerSub: {
     fontSize: 11,
-    color: Palette.textSecondary,
+    color: '#64748B',
     marginTop: 2,
   },
-  weeklyCard: {
-    backgroundColor: '#FFFFFF',
-    borderRadius: Radii.card,
-    padding: 16,
+  collegeBannerSubDesktop: {
+    fontSize: 13,
+    marginTop: 3,
+  },
+  openWorkspaceBtn: {
+    backgroundColor: '#E0F2FE',
+    paddingHorizontal: 12,
+    paddingVertical: 7,
+    borderRadius: 16,
+    flexShrink: 0,
     borderWidth: 1,
-    borderColor: Palette.border,
-    marginBottom: 24,
+    borderColor: '#BAE6FD',
+  },
+  openWorkspaceBtnDesktop: {
+    paddingHorizontal: 16,
+    paddingVertical: 9,
+    borderRadius: 20,
+  },
+  openWorkspaceText: {
+    color: '#0284C7',
+    fontSize: 11.5,
+    fontWeight: '700',
+  },
+  openWorkspaceTextDesktop: {
+    fontSize: 13,
+  },
+
+  // 4. Quick Practice
+  quickPracticeHeader: {
+    flexDirection: 'row',
+    alignItems: 'flex-end',
+    justifyContent: 'space-between',
+    marginBottom: 10,
+  },
+  exploreAllText: {
+    fontSize: 12.5,
+    color: '#0284C7',
+    fontWeight: '700',
+  },
+  exploreAllTextDesktop: {
+    fontSize: 14,
+  },
+  quickGrid: {
+    flexDirection: 'row',
+    gap: 8,
+    marginBottom: 14,
+  },
+  quickGridDesktop: {
+    gap: 14,
+    marginBottom: 20,
+  },
+  quickCard: {
+    flex: 1,
+    backgroundColor: '#FFFFFF',
+    borderRadius: 12,
+    paddingVertical: 10,
+    paddingHorizontal: 4,
+    alignItems: 'center',
+    borderWidth: 1,
+    borderColor: '#E2E8F0',
     ...Shadows.card,
   },
-  chartBarsRow: {
+  quickCardDesktop: {
+    borderRadius: 16,
+    paddingVertical: 16,
+    paddingHorizontal: 10,
+  },
+  quickIconBox: {
+    width: 34,
+    height: 34,
+    borderRadius: 10,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: 6,
+  },
+  quickIconBoxDesktop: {
+    width: 44,
+    height: 44,
+    borderRadius: 14,
+    marginBottom: 10,
+  },
+  quickTitle: {
+    fontSize: 11.5,
+    fontWeight: '700',
+    color: '#0F172A',
+    textAlign: 'center',
+  },
+  quickTitleDesktop: {
+    fontSize: 13.5,
+  },
+  quickSub: {
+    fontSize: 9.5,
+    color: '#64748B',
+    marginTop: 2,
+    textAlign: 'center',
+  },
+  quickSubDesktop: {
+    fontSize: 11.5,
+    marginTop: 3,
+  },
+
+  // 5. Action Cards
+  actionCardLive: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#FFF1F2',
+    borderWidth: 1,
+    borderColor: '#FECDD3',
+    borderRadius: 13,
+    paddingHorizontal: 12,
+    paddingVertical: 10,
+    marginBottom: 10,
+    gap: 10,
+  },
+  actionCardLiveDesktop: {
+    borderRadius: 16,
+    paddingHorizontal: 18,
+    paddingVertical: 14,
+    marginBottom: 12,
+    gap: 14,
+  },
+  actionIconCircleRed: {
+    width: 34,
+    height: 34,
+    borderRadius: 17,
+    backgroundColor: '#FFE4E6',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  actionIconCircleRedDesktop: {
+    width: 42,
+    height: 42,
+    borderRadius: 21,
+  },
+  actionTextCol: {
+    flex: 1,
+    minWidth: 0,
+  },
+  actionTitleRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    marginBottom: 2,
+  },
+  actionTitle: {
+    fontSize: 13,
+    fontWeight: '800',
+    color: '#0F172A',
+  },
+  actionTitleDesktop: {
+    fontSize: 15,
+  },
+  liveTag: {
+    backgroundColor: '#E11D48',
+    paddingHorizontal: 5,
+    paddingVertical: 1.5,
+    borderRadius: 4,
+  },
+  liveTagText: {
+    color: '#FFFFFF',
+    fontSize: 8.5,
+    fontWeight: '800',
+  },
+  actionSub: {
+    fontSize: 10.5,
+    color: '#64748B',
+  },
+  actionSubDesktop: {
+    fontSize: 12,
+  },
+
+  actionCardJobs: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#F0F9FF',
+    borderWidth: 1,
+    borderColor: '#BAE6FD',
+    borderRadius: 13,
+    paddingHorizontal: 12,
+    paddingVertical: 10,
+    marginBottom: 16,
+    gap: 10,
+  },
+  actionCardJobsDesktop: {
+    borderRadius: 16,
+    paddingHorizontal: 18,
+    paddingVertical: 14,
+    marginBottom: 24,
+    gap: 14,
+  },
+  actionIconCircleBlue: {
+    width: 34,
+    height: 34,
+    borderRadius: 17,
+    backgroundColor: '#E0F2FE',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  actionIconCircleBlueDesktop: {
+    width: 42,
+    height: 42,
+    borderRadius: 21,
+  },
+
+  // 6. Weekly Progress
+  weeklyCard: {
+    backgroundColor: '#FFFFFF',
+    borderRadius: 14,
+    padding: 14,
+    borderWidth: 1,
+    borderColor: '#E2E8F0',
+    ...Shadows.card,
+  },
+  weeklyCardDesktop: {
+    borderRadius: 18,
+    padding: 22,
+  },
+  weeklyTitle: {
+    fontSize: 14,
+    fontWeight: '800',
+    color: '#0F172A',
+  },
+  weeklyTitleDesktop: {
+    fontSize: 16,
+  },
+  weeklySub: {
+    fontSize: 11,
+    color: '#64748B',
+    marginTop: 2,
+    marginBottom: 14,
+  },
+  weeklySubDesktop: {
+    fontSize: 12.5,
+    marginTop: 3,
+    marginBottom: 20,
+  },
+  barChartRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'flex-end',
-    height: 110,
-    paddingTop: 10,
+    height: 65,
   },
-  chartCol: {
+  barChartRowDesktop: {
+    height: 90,
+  },
+  barCol: {
     alignItems: 'center',
     flex: 1,
   },
-  barCount: {
-    fontSize: 10,
-    fontWeight: '700',
-    color: Palette.textSecondary,
-    marginBottom: 4,
-  },
   barTrack: {
-    width: 14,
-    height: 70,
-    backgroundColor: Palette.backgroundSecondary,
+    width: 13,
+    height: 46,
+    backgroundColor: '#F1F5F9',
     borderRadius: 7,
     justifyContent: 'flex-end',
     overflow: 'hidden',
   },
+  barTrackDesktop: {
+    width: 18,
+    height: 60,
+    borderRadius: 9,
+  },
   barFill: {
     width: '100%',
-    backgroundColor: Palette.primaryBorder,
+    backgroundColor: '#BFDBFE',
     borderRadius: 7,
   },
   barFillToday: {
-    backgroundColor: Palette.primary,
+    backgroundColor: '#0284C7',
   },
   barDayLabel: {
-    fontSize: 11,
+    fontSize: 10,
     fontWeight: '600',
-    color: Palette.textSecondary,
+    color: '#64748B',
     marginTop: 6,
   },
+  barDayLabelDesktop: {
+    fontSize: 11.5,
+    marginTop: 8,
+  },
   barDayToday: {
-    color: Palette.primary,
+    color: '#0284C7',
     fontWeight: '800',
-  },
-  recommendCard: {
-    backgroundColor: '#FFFFFF',
-    borderRadius: Radii.card,
-    padding: 18,
-    borderWidth: 1,
-    borderColor: Palette.border,
-    ...Shadows.card,
-  },
-  recommendHeader: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginBottom: 10,
-  },
-  recommendIconBox: {
-    width: 36,
-    height: 36,
-    borderRadius: 10,
-    backgroundColor: Palette.primaryLight,
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginRight: 12,
-  },
-  recommendInfo: {
-    flex: 1,
-  },
-  recommendTitle: {
-    fontSize: 15,
-    fontWeight: '700',
-    color: Palette.textTitle,
-  },
-  recommendStats: {
-    fontSize: 12,
-    color: Palette.primary,
-    fontWeight: '600',
-    marginTop: 1,
-  },
-  recommendDesc: {
-    fontSize: 13,
-    color: Palette.textBody,
-    lineHeight: 19,
-    marginBottom: 14,
-  },
-  recommendBtn: {
-    backgroundColor: Palette.primary,
-    borderRadius: Radii.button,
-    paddingVertical: 10,
-    paddingHorizontal: 16,
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    gap: 6,
-  },
-  recommendBtnText: {
-    color: '#FFFFFF',
-    fontSize: 13,
-    fontWeight: '700',
-  },
-  collegeHeroCard: {
-    backgroundColor: '#FFFFFF',
-    borderRadius: Radii.cardLarge,
-    padding: 16,
-    borderWidth: 1,
-    borderColor: Palette.primaryBorder,
-    borderLeftWidth: 4,
-    borderLeftColor: Palette.primary,
-    marginBottom: 20,
-    ...Shadows.card,
-  },
-  collegeHeroTop: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 12,
-    marginBottom: 12,
-  },
-  collegeIconBox: {
-    width: 44,
-    height: 44,
-    borderRadius: 12,
-    backgroundColor: Palette.primaryLight,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  collegeTagRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 6,
-    marginBottom: 3,
-  },
-  collegePill: {
-    backgroundColor: Palette.primaryLight,
-    paddingHorizontal: 6,
-    paddingVertical: 2,
-    borderRadius: 4,
-  },
-  collegePillText: {
-    fontSize: 9.5,
-    fontWeight: '800',
-    color: Palette.primary,
-    letterSpacing: 0.6,
-  },
-  notifPill: {
-    backgroundColor: Palette.dangerLight,
-    paddingHorizontal: 6,
-    paddingVertical: 2,
-    borderRadius: 4,
-  },
-  notifPillText: {
-    fontSize: 9.5,
-    fontWeight: '800',
-    color: Palette.danger,
-  },
-  collegeTitle: {
-    fontSize: 15.5,
-    fontWeight: '800',
-    color: Palette.textTitle,
-  },
-  collegeSub: {
-    fontSize: 12,
-    color: Palette.primary,
-    fontWeight: '700',
-    marginTop: 1,
-  },
-  collegeHeroFooter: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    paddingTop: 10,
-    borderTopWidth: 1,
-    borderTopColor: Palette.borderSubtle,
-  },
-  collegeActionText: {
-    fontSize: 12,
-    fontWeight: '700',
-    color: Palette.textTitle,
-  },
-  liveInterviewBanner: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 12,
-    backgroundColor: '#FFFFFF',
-    marginHorizontal: 16,
-    marginBottom: 20,
-    padding: 14,
-    borderRadius: Radii.lg,
-    borderWidth: 1.5,
-    borderColor: '#E2E8F0',
-    ...Shadows.md,
-  },
-  liveInterviewBadge: {
-    width: 44,
-    height: 44,
-    borderRadius: 22,
-    backgroundColor: '#DC2626',
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  liveInterviewTitle: {
-    fontSize: 15,
-    fontWeight: '800',
-    color: '#0F172A',
-  },
-  liveDotPill: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 4,
-    backgroundColor: '#FEE2E2',
-    paddingHorizontal: 6,
-    paddingVertical: 2,
-    borderRadius: 4,
-  },
-  liveDot: {
-    width: 6,
-    height: 6,
-    borderRadius: 3,
-    backgroundColor: '#DC2626',
-  },
-  liveDotText: {
-    fontSize: 9.5,
-    fontWeight: '800',
-    color: '#DC2626',
-  },
-  liveInterviewDesc: {
-    fontSize: 12,
-    color: '#64748B',
-    marginTop: 2,
-    lineHeight: 16,
-  },
-  govtJobsBanner: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 12,
-    backgroundColor: '#FFFFFF',
-    marginHorizontal: 16,
-    marginBottom: 20,
-    padding: 14,
-    borderRadius: Radii.lg,
-    borderWidth: 1.5,
-    borderColor: '#C7D2FE',
-    ...Shadows.md,
-  },
-  govtJobsBadge: {
-    width: 44,
-    height: 44,
-    borderRadius: 22,
-    backgroundColor: '#4F46E5',
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  govtJobsTitle: {
-    fontSize: 15,
-    fontWeight: '800',
-    color: '#0F172A',
-  },
-  govtLiveDotPill: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 4,
-    backgroundColor: '#EEF2FF',
-    paddingHorizontal: 6,
-    paddingVertical: 2,
-    borderRadius: 4,
-  },
-  govtLiveDot: {
-    width: 6,
-    height: 6,
-    borderRadius: 3,
-    backgroundColor: '#16A34A',
-  },
-  govtLiveDotText: {
-    fontSize: 9.5,
-    fontWeight: '800',
-    color: '#4F46E5',
-  },
-  govtJobsDesc: {
-    fontSize: 12,
-    color: '#64748B',
-    marginTop: 2,
-    lineHeight: 16,
   },
 });

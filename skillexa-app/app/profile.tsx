@@ -3,6 +3,7 @@ import { router } from 'expo-router';
 import React, { useEffect, useState } from 'react';
 import {
   ActivityIndicator,
+  useWindowDimensions,
   Alert,
   Modal,
   Platform,
@@ -26,6 +27,8 @@ const YEAR_OPTIONS = ['1st Year', '2nd Year', '3rd Year', '4th Year'];
 const SECTION_OPTIONS = ['A', 'B', 'C'];
 
 export default function ProfileScreen() {
+  const { width } = useWindowDimensions();
+  const isDesktop = width >= 768;
   const { profile, logout, updateProfile } = useAuth();
   const [showLogoutModal, setShowLogoutModal] = useState(false);
   const [showEditModal, setShowEditModal] = useState(false);
@@ -844,7 +847,7 @@ export default function ProfileScreen() {
 
 const styles = StyleSheet.create({
   safeArea: { flex: 1, backgroundColor: Palette.background },
-  scrollContent: { paddingHorizontal: 16, paddingTop: 16, paddingBottom: 40 },
+  scrollContent: { maxWidth: 960, width: '100%', alignSelf: 'center', paddingHorizontal: 16, paddingTop: 16, paddingBottom: 60 },
   profileCard: {
     backgroundColor: '#FFFFFF',
     borderRadius: Radii.cardLarge,

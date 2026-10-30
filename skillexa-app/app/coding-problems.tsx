@@ -3,6 +3,7 @@ import { router, useLocalSearchParams } from 'expo-router';
 import React, { useEffect, useState } from 'react';
 import {
   Dimensions,
+  useWindowDimensions,
   Platform,
   SafeAreaView,
   ScrollView,
@@ -21,6 +22,7 @@ import {
   TopicItem,
 } from '../data/topicCatalogData';
 import { ApiClient } from '../services/api';
+import { ThemeToggle } from '../components/theme-context';
 
 const { width } = Dimensions.get('window');
 const isDesktop = width > 768;
@@ -35,6 +37,9 @@ export const getLanguageDetails = (langKey: string) => {
 };
 
 export default function CodingProblemsPage() {
+  const { width } = useWindowDimensions();
+  const isDesktop = width >= 768;
+  const cardWidth = width >= 1024 ? '23.6%' : width >= 640 ? '48%' : '100%';
   const params = useLocalSearchParams<{ language?: string }>();
   const initialLanguage = (typeof params.language === 'string' && params.language) ? params.language.toLowerCase() : 'python';
   const [selectedLanguage, setSelectedLanguage] = useState<string>(initialLanguage);
@@ -120,6 +125,7 @@ export default function CodingProblemsPage() {
           </Text>
         </View>
 
+        <ThemeToggle style={{ marginLeft: 'auto', marginRight: 12 }} />
         {isDesktop && (
           <View style={styles.navLinks}>
             <TouchableOpacity onPress={() => router.push('/home')}>
@@ -185,7 +191,7 @@ export default function CodingProblemsPage() {
               <TouchableOpacity
                 key={topic.id}
                 style={[
-                  styles.topicCard,
+                  [styles.topicCard, { width: cardWidth } as any],
                   isLocked && styles.topicCardLocked,
                   isInProgress && styles.topicCardActive,
                   isCompleted && styles.topicCardCompleted,
@@ -306,7 +312,10 @@ const styles = StyleSheet.create({
     fontWeight: '700',
   },
   scrollContent: {
-    paddingHorizontal: 24,
+    maxWidth: 1240,
+    width: '100%',
+    alignSelf: 'center',
+    paddingHorizontal: 16,
     paddingTop: 20,
     paddingBottom: 60,
   },

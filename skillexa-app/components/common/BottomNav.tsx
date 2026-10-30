@@ -1,4 +1,4 @@
-import { Feather } from '@expo/vector-icons';
+import { Feather, Ionicons } from '@expo/vector-icons';
 import { router, usePathname } from 'expo-router';
 import React from 'react';
 import {
@@ -14,16 +14,16 @@ import { Palette, Shadows } from '../../constants/theme';
 interface NavItem {
   id: string;
   label: string;
-  icon: keyof typeof Feather.glyphMap;
+  iconName: string;
+  iconFamily: 'feather' | 'ionicons';
   route: string;
 }
 
 const NAV_ITEMS: NavItem[] = [
-  { id: 'home', label: 'Home', icon: 'home', route: '/home' },
-  { id: 'learn', label: 'Learn', icon: 'book-open', route: '/pathselection' },
-  { id: 'practice', label: 'Practice', icon: 'check-circle', route: '/coding-problems' },
-  { id: 'progress', label: 'Progress', icon: 'bar-chart-2', route: '/progress' },
-  { id: 'profile', label: 'Profile', icon: 'user', route: '/profile' },
+  { id: 'home', label: 'Home', iconName: 'home', iconFamily: 'feather', route: '/home' },
+  { id: 'engineering', label: 'Engineering', iconName: 'school-outline', iconFamily: 'ionicons', route: '/engineering' },
+  { id: 'competitive', label: 'Competitive', iconName: 'target', iconFamily: 'feather', route: '/competitive' },
+  { id: 'profile', label: 'Profile', iconName: 'user', iconFamily: 'feather', route: '/profile' },
 ];
 
 export function BottomNav() {
@@ -52,10 +52,9 @@ export function BottomNav() {
 
   const getActiveTab = () => {
     if (pathname === '/home' || pathname === '/') return 'home';
-    if (pathname.includes('pathselection') || pathname.includes('engineering') || pathname.includes('competitive') || pathname.includes('english') || pathname.includes('mathematics') || pathname.includes('reasoning') || pathname.includes('awareness') || pathname.includes('science') || pathname.includes('fitness') || pathname.includes('topic-learning')) return 'learn';
-    if (pathname.includes('coding-problems') || pathname.includes('dsa-practice') || pathname.includes('placement-preparation')) return 'practice';
-    if (pathname.includes('progress') || pathname.includes('userdashboard') || pathname.includes('subjectdashboard')) return 'progress';
-    if (pathname.includes('profile')) return 'profile';
+    if (pathname.startsWith('/engineering') || pathname.includes('pathselection') || pathname.includes('topic-learning')) return 'engineering';
+    if (pathname.startsWith('/competitive') || pathname.includes('aptitude') || pathname.includes('mathematics') || pathname.includes('reasoning') || pathname.includes('english') || pathname.includes('awareness') || pathname.includes('science') || pathname.includes('fitness')) return 'competitive';
+    if (pathname.startsWith('/profile') || pathname.includes('settings')) return 'profile';
     return 'home';
   };
 
@@ -73,16 +72,25 @@ export function BottomNav() {
               onPress={() => router.push(item.route as any)}
               activeOpacity={0.7}
             >
-              <Feather
-                name={item.icon}
-                size={20}
-                color={isActive ? Palette.primary : Palette.textMuted}
-              />
+              {item.iconFamily === 'ionicons' ? (
+                <Ionicons
+                  name={item.iconName as any}
+                  size={21}
+                  color={isActive ? Palette.primary : Palette.textMuted}
+                />
+              ) : (
+                <Feather
+                  name={item.iconName as any}
+                  size={19}
+                  color={isActive ? Palette.primary : Palette.textMuted}
+                />
+              )}
               <Text
                 style={[
                   styles.tabLabel,
                   isActive && styles.tabLabelActive,
                 ]}
+                numberOfLines={1}
               >
                 {item.label}
               </Text>
@@ -99,29 +107,49 @@ const styles = StyleSheet.create({
     backgroundColor: '#FFFFFF',
     borderTopWidth: 1,
     borderTopColor: Palette.border,
-    paddingTop: 8,
-    ...Shadows.floating,
+    paddingTop: 6,
+    zIndex: 9999,
+    ...(Platform.OS === 'web'
+      ? ({
+          position: 'fixed' as const,
+          bottom: 0,
+          left: 0,
+          right: 0,
+          boxShadow: '0 -4px 16px rgba(0, 0, 0, 0.06)',
+        } as any)
+      : {
+          elevation: 12,
+          shadowColor: '#000',
+          shadowOffset: { width: 0, height: -3 },
+          shadowOpacity: 0.08,
+          shadowRadius: 10,
+        }),
   },
   container: {
     flexDirection: 'row',
-    alignItems: 'center',
     justifyContent: 'space-around',
+    alignItems: 'center',
+    maxWidth: 960,
+    alignSelf: 'center',
+    width: '100%',
     paddingHorizontal: 8,
   },
   tabButton: {
-    flex: 1,
     alignItems: 'center',
     justifyContent: 'center',
     paddingVertical: 4,
+    paddingHorizontal: 4,
+    flex: 1,
+    minHeight: 44,
   },
   tabLabel: {
     fontSize: 11,
-    fontWeight: '500',
+    fontWeight: '600',
     color: Palette.textMuted,
     marginTop: 3,
   },
   tabLabelActive: {
     color: Palette.primary,
-    fontWeight: '700',
+    fontWeight: '800',
   },
 });

@@ -3,6 +3,7 @@ import { router, useLocalSearchParams } from 'expo-router';
 import React, { useEffect, useState } from 'react';
 import {
   ActivityIndicator,
+  useWindowDimensions,
   Dimensions,
   Platform,
   SafeAreaView,
@@ -15,6 +16,8 @@ import {
   View,
 } from 'react-native';
 import { ApiClient } from '../services/api';
+import { ProgressStorage } from '../services/progressStorage';
+import { ThemeToggle } from '../components/theme-context';
 
 const { width } = Dimensions.get('window');
 const isDesktop = width > 800;
@@ -27,6 +30,8 @@ const DEFAULT_STARTER_CODES: Record<string, string> = {
 };
 
 export default function DsaSolverPage() {
+  const { width } = useWindowDimensions();
+  const isDesktop = width >= 800;
   const params = useLocalSearchParams<{ id?: string; problemId?: string; language?: string }>();
   const problemId = params.id || params.problemId || 'dsa-1';
 
@@ -168,6 +173,7 @@ export default function DsaSolverPage() {
     if (res.success && res.data) {
       setSubmitResult(res.data);
       if (res.data.status === 'PASSED') {
+        ProgressStorage.addSolvedDsaProblem(problemId);
         setProblem((prev: any) => (prev ? { ...prev, is_solved: true } : prev));
         setShowMultiSolution(true);
         setSolutionTab(selectedLang);
@@ -217,6 +223,7 @@ export default function DsaSolverPage() {
         </View>
 
         <View style={styles.headerRightActions}>
+          <ThemeToggle style={{ marginRight: 8, height: 28, width: 28 }} />
           <View style={[styles.badge, getDifficultyStyle(problem?.difficulty)]}>
             <Text style={styles.badgeText}>{problem?.difficulty || 'Medium'}</Text>
           </View>

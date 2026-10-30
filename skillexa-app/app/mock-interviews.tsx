@@ -1604,8 +1604,11 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   scrollContent: {
+    maxWidth: 1000,
+    width: '100%',
+    alignSelf: 'center',
     padding: 16,
-    paddingBottom: 40,
+    paddingBottom: 60,
   },
   headerHistoryBtn: {
     flexDirection: 'row',

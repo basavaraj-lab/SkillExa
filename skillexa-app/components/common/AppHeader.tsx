@@ -11,7 +11,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Palette, Radii } from '../../constants/theme';
 import { NotificationBellButton } from '../CollegeNotificationsModal';
 import { useAuth } from '../auth-context';
-import { BackendStatusBadge } from './BackendStatusBadge';
+import { ThemeToggle } from '../theme-context';
 
 interface AppHeaderProps {
   title?: string;
@@ -70,11 +70,14 @@ export function AppHeader({
         ) : (
           <View style={styles.brandRow}>
             <View style={styles.brandIconBox}>
-              <Feather name="book-open" size={16} color="#FFFFFF" />
+              <Feather name="layers" size={16} color="#FFFFFF" />
             </View>
-            <Text style={styles.brandTitle}>
-              Skill<Text style={styles.brandHighlight}>Exa</Text>
-            </Text>
+            <View>
+              <Text style={styles.brandTitle}>
+                Skill<Text style={styles.brandHighlight}>Exa</Text>
+              </Text>
+              <Text style={styles.brandTagline}>Learn • Practice • Achieve</Text>
+            </View>
           </View>
         )}
 
@@ -94,18 +97,18 @@ export function AppHeader({
 
         {/* Right side Profile / Custom action */}
         <View style={styles.rightGroup}>
+          <ThemeToggle style={{ marginRight: 7 }} />
           {rightAction ? (
             rightAction
           ) : (
             <View style={{ flexDirection: 'row', alignItems: 'center', gap: 7 }}>
-              <BackendStatusBadge compact />
               <NotificationBellButton />
               <TouchableOpacity
                 style={styles.avatarButton}
                 onPress={() => router.push('/profile' as any)}
                 activeOpacity={0.8}
               >
-                <Text style={styles.avatarText}>{initial}</Text>
+                <Feather name="user" size={16} color={Palette.primary} />
               </TouchableOpacity>
             </View>
           )}
@@ -128,7 +131,10 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    minHeight: 38,
+    minHeight: 40,
+    maxWidth: 1240,
+    width: '100%',
+    alignSelf: 'center',
   },
   brandRow: {
     flexDirection: 'row',
@@ -144,10 +150,16 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   brandTitle: {
-    fontSize: 20,
+    fontSize: 18,
     fontWeight: '800',
     color: Palette.textTitle,
     letterSpacing: -0.4,
+  },
+  brandTagline: {
+    fontSize: 10,
+    fontWeight: '500',
+    color: Palette.textSecondary,
+    marginTop: -2,
   },
   brandHighlight: {
     color: Palette.primary,

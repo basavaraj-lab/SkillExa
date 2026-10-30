@@ -317,7 +317,7 @@ export default function FacultyDashboardScreen() {
 
 const styles = StyleSheet.create({
   safeArea: { flex: 1, backgroundColor: Palette.background },
-  scrollContent: { paddingHorizontal: 16, paddingTop: 16, paddingBottom: 40 },
+  scrollContent: { maxWidth: 1040, width: '100%', alignSelf: 'center', paddingHorizontal: 16, paddingTop: 16, paddingBottom: 60 },
   heroCard: {
     backgroundColor: '#FFFFFF',
     borderRadius: Radii.cardLarge,

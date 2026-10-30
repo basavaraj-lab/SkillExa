@@ -3,6 +3,7 @@ import { router, useFocusEffect } from 'expo-router';
 import React, { useEffect, useState } from 'react';
 import {
   ActivityIndicator,
+  useWindowDimensions,
   Dimensions,
   SafeAreaView,
   ScrollView,
@@ -17,6 +18,7 @@ import { AppHeader } from '../components/common/AppHeader';
 import { ProgressBar } from '../components/common/EducationalCards';
 import { Palette } from '../constants/theme';
 import { ApiClient } from '../services/api';
+import { ProgressStorage } from '../services/progressStorage';
 
 const { width } = Dimensions.get('window');
 const isDesktop = width > 768;
@@ -42,6 +44,8 @@ const LANGUAGES = ['All', 'Python', 'C', 'C++', 'Java'];
 const STATUSES = ['All', 'Solved', 'Unsolved'];
 
 export default function DsaPracticePage() {
+  const { width } = useWindowDimensions();
+  const isDesktop = width >= 768;
   const [searchQuery, setSearchQuery] = useState<string>('');
   const [selectedCategory, setSelectedCategory] = useState<string>('All');
   const [selectedDifficulty, setSelectedDifficulty] = useState<string>('All');
@@ -68,7 +72,13 @@ export default function DsaPracticePage() {
       limit: 300,
     }).then((res) => {
       if (res.success && res.data) {
-        setProblems(res.data);
+        const solvedIds = ProgressStorage.getSolvedDsaProblems();
+        setProblems(
+          res.data.map((p: any) => ({
+            ...p,
+            is_solved: solvedIds.includes(p.id),
+          }))
+        );
       } else {
         setProblems([
           {
@@ -127,26 +137,18 @@ export default function DsaPracticePage() {
     });
 
     ApiClient.getDsaProgress().then((res) => {
-      if (res.success && res.data) {
-        setProgressData(res.data);
-      } else {
-        setProgressData({
-          total_problems: 13,
-          solved_problems: 0,
-          unsolved_problems: 13,
-          progress_percentage: 0.0,
-          streak: 0,
-          categories: [
-            { category: 'Arrays', solved: 0, total: 6 },
-            { category: 'Strings', solved: 0, total: 3 },
-            { category: 'Searching', solved: 0, total: 1 },
-            { category: 'Sorting', solved: 0, total: 1 },
-            { category: 'Linked List', solved: 0, total: 2 },
-            { category: 'Stack', solved: 0, total: 2 },
-            { category: 'Recursion', solved: 0, total: 1 },
-          ],
-        });
-      }
+      const userSolved = ProgressStorage.getSolvedDsaProblems();
+      const total = (res.success && res.data?.total_problems) ? res.data.total_problems : 195;
+      const solved = userSolved.length;
+      const pct = total > 0 ? Math.round((solved / total) * 100) : 0;
+      setProgressData({
+        total_problems: total,
+        solved_problems: solved,
+        unsolved_problems: Math.max(0, total - solved),
+        progress_percentage: pct,
+        streak: (res.success && res.data?.streak) ? res.data.streak : 0,
+        categories: (res.success && res.data?.categories) ? res.data.categories : [],
+      });
     });
   };
 

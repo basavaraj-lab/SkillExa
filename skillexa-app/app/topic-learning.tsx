@@ -24,6 +24,7 @@ import {
   TopicItem,
 } from '../data/topicCatalogData';
 import { ApiClient } from '../services/api';
+import { ProgressStorage } from '../services/progressStorage';
 import { CodeExecutionService, ExecutionResult } from '../services/codeExecutionService';
 
 export const getTopicDatasetForLanguage = (lang: string): TopicItem[] => {
@@ -380,6 +381,7 @@ export default function TopicLearningPage() {
       if (!isSubjectLearning) {
         // Notify backend and unlock next topic for this language
         ApiClient.completeTopic(topicData.id, scorePct, language);
+        ProgressStorage.addSolvedCodingTopic(topicData.id.toString());
 
         // Unlock next topic in local language dataset
         const langDataset = getTopicDatasetForLanguage(language);
@@ -1196,7 +1198,10 @@ const styles = StyleSheet.create({
     fontWeight: '600',
   },
   scrollContent: {
-    paddingHorizontal: 20,
+    maxWidth: 1000,
+    width: '100%',
+    alignSelf: 'center',
+    paddingHorizontal: 16,
     paddingTop: 20,
     paddingBottom: 60,
   },

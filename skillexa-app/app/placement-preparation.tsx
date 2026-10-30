@@ -238,7 +238,7 @@ export default function PlacementPreparationPage() {
 
 const styles = StyleSheet.create({
   safeArea: { flex: 1, backgroundColor: Palette.background },
-  scrollContent: { paddingHorizontal: 16, paddingTop: 16, paddingBottom: 40 },
+  scrollContent: { maxWidth: 1040, width: '100%', alignSelf: 'center', paddingHorizontal: 16, paddingTop: 16, paddingBottom: 60 },
   header: { marginBottom: 18 },
   title: { fontSize: 22, fontWeight: '800', color: Palette.textTitle, marginBottom: 4 },
   subtitle: { fontSize: 13.5, color: Palette.textSecondary },

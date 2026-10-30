@@ -301,7 +301,7 @@ export function TopProfileMenu() {
           >
             <Text style={styles.avatarText}>{initial}</Text>
           </LinearGradient>
-          <View style={styles.onlineDot} />
+
         </TouchableOpacity>
       </View>
 
