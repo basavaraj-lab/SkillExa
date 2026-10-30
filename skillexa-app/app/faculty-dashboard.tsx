@@ -169,15 +169,6 @@ export default function FacultyDashboardScreen() {
                   <Feather name="check" size={10} color={Palette.success} />
                   <Text style={styles.statusText}>VERIFIED</Text>
                 </View>
-                <View style={{ flex: 1 }} />
-                <TouchableOpacity
-                  style={styles.heroSignOutBtn}
-                  onPress={() => setShowLogoutModal(true)}
-                  activeOpacity={0.7}
-                >
-                  <Feather name="log-out" size={13} color={Palette.danger} />
-                  <Text style={styles.heroSignOutText}>Sign Out</Text>
-                </TouchableOpacity>
               </View>
 
               <Text style={styles.heroTitle}>{profile.name || 'Dr. Kusumadhara S'}</Text>
@@ -186,6 +177,18 @@ export default function FacultyDashboardScreen() {
               </Text>
               <Text style={styles.collegeSubtext}>{profile.collegeName || 'KVG College of Engineering'}</Text>
             </View>
+          </View>
+
+          {/* Dedicated Sign Out Row - Sits cleanly inside card on all phone sizes */}
+          <View style={styles.heroFooterRow}>
+            <TouchableOpacity
+              style={styles.heroSignOutBtn}
+              onPress={() => setShowLogoutModal(true)}
+              activeOpacity={0.7}
+            >
+              <Feather name="log-out" size={13} color={Palette.danger} />
+              <Text style={styles.heroSignOutText}>Sign Out</Text>
+            </TouchableOpacity>
           </View>
         </View>
 
@@ -373,19 +376,28 @@ const styles = StyleSheet.create({
   modDesc: { fontSize: 12.5, color: Palette.textSecondary, lineHeight: 18, marginBottom: 12 },
   modFooter: { flexDirection: 'row', alignItems: 'center', gap: 6, paddingTop: 8, borderTopWidth: 1, borderTopColor: Palette.borderSubtle },
   openLinkText: { fontSize: 12.5, fontWeight: '700' },
+  heroFooterRow: {
+    flexDirection: 'row',
+    justifyContent: 'flex-end',
+    alignItems: 'center',
+    marginTop: 12,
+    paddingTop: 10,
+    borderTopWidth: 1,
+    borderTopColor: '#F1F5F9',
+  },
   heroSignOutBtn: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 4,
+    gap: 6,
     backgroundColor: '#FEF2F2',
     borderWidth: 1,
     borderColor: '#FCA5A5',
-    paddingHorizontal: 8,
-    paddingVertical: 3,
-    borderRadius: 6,
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 8,
   },
   heroSignOutText: {
-    fontSize: 10,
+    fontSize: 12,
     fontWeight: '700',
     color: Palette.danger,
   },

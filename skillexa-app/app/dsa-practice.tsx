@@ -376,37 +376,47 @@ export default function DsaPracticePage() {
                     }
                     activeOpacity={0.8}
                   >
-                    <View style={styles.problemRowLeft}>
-                      <View style={[styles.solvedStatusCircle, isSolved && styles.solvedStatusDone]}>
-                        {isSolved ? (
-                          <Feather name="check" size={12} color="#FFFFFF" />
-                        ) : (
-                          <Text style={styles.problemNumText}>#{prob.problem_num || 1}</Text>
-                        )}
+                    {/* Top Row: #num + Category on Left | Difficulty Badge on Right */}
+                    <View style={styles.cardTopRow}>
+                      <View style={styles.cardTopLeft}>
+                        <View style={[styles.solvedStatusCircle, isSolved && styles.solvedStatusDone]}>
+                          {isSolved ? (
+                            <Feather name="check" size={13} color="#FFFFFF" />
+                          ) : (
+                            <Text style={styles.problemNumText}>#{prob.problem_num || 1}</Text>
+                          )}
+                        </View>
+                        <Text style={styles.categoryBadge}>{prob.category || prob.topic || 'Arrays'}</Text>
                       </View>
 
-                      <View style={styles.problemTitleBox}>
-                        <Text style={styles.problemItemTitle}>{prob.title}</Text>
-                        <View style={styles.problemMetaRow}>
-                          <Text style={styles.categoryBadge}>{prob.category || prob.topic || 'Arrays'}</Text>
-                          {prob.time_complexity ? (
-                            <Text style={styles.metaSubText}>Time: {prob.time_complexity}</Text>
-                          ) : null}
-                          <Text style={styles.langPillBadge}>
-                            {selectedLang !== 'All' ? selectedLang : 'Python • C • C++ • Java'}
-                          </Text>
-                        </View>
+                      <View style={[styles.diffPill, getDiffPillStyle(diffLower)]}>
+                        <Text style={[styles.diffPillText, getDiffTextStyle(diffLower)]}>
+                          {(prob.difficulty || 'Medium').toUpperCase()}
+                        </Text>
                       </View>
                     </View>
 
-                    <View style={styles.problemRowRight}>
-                      <View style={[styles.diffPill, getDiffPillStyle(diffLower)]}>
-                        <Text style={styles.diffPillText}>{prob.difficulty || 'Medium'}</Text>
+                    {/* Middle: Full-width Problem Title */}
+                    <Text style={styles.problemItemTitle}>{prob.title}</Text>
+
+                    {/* Bottom Row: Meta Info on Left | Solve Button on Right */}
+                    <View style={styles.cardBottomRow}>
+                      <View style={styles.cardMetaLeft}>
+                        {prob.time_complexity ? (
+                          <View style={styles.timeComplexityBox}>
+                            <Feather name="clock" size={11} color="#64748B" />
+                            <Text style={styles.metaSubText}>Time: {prob.time_complexity}</Text>
+                          </View>
+                        ) : null}
+                        <Text style={styles.langPillBadge} numberOfLines={1}>
+                          {selectedLang !== 'All' ? selectedLang : 'Python • C • C++ • Java'}
+                        </Text>
                       </View>
-                      <TouchableOpacity style={styles.solveBtn}>
+
+                      <View style={[styles.solveBtn, isSolved && styles.solveBtnSolved]}>
                         <Text style={styles.solveBtnText}>{isSolved ? 'Re-solve' : 'Solve'}</Text>
-                        <Feather name="arrow-right" size={14} color="#FFFFFF" />
-                      </TouchableOpacity>
+                        <Feather name="arrow-right" size={13} color="#FFFFFF" />
+                      </View>
                     </View>
                   </TouchableOpacity>
                 );
@@ -420,9 +430,19 @@ export default function DsaPracticePage() {
 }
 
 function getDiffPillStyle(diff: string) {
-  if (diff === 'basic' || diff === 'easy') return { backgroundColor: '#DCFCE7', borderColor: '#166534' };
-  if (diff === 'hard') return { backgroundColor: '#FFE4E6', borderColor: '#9F1239' };
-  return { backgroundColor: '#FEF3C7', borderColor: '#92400E' };
+  const d = (diff || '').toLowerCase();
+  if (d === 'basic') return { backgroundColor: '#F0FDF4', borderColor: '#BBF7D0' };
+  if (d === 'easy') return { backgroundColor: '#DCFCE7', borderColor: '#86EFAC' };
+  if (d === 'hard') return { backgroundColor: '#FEF2F2', borderColor: '#FECACA' };
+  return { backgroundColor: '#FEF3C7', borderColor: '#FDE68A' };
+}
+
+function getDiffTextStyle(diff: string) {
+  const d = (diff || '').toLowerCase();
+  if (d === 'basic') return { color: '#16A34A' };
+  if (d === 'easy') return { color: '#15803D' };
+  if (d === 'hard') return { color: '#DC2626' };
+  return { color: '#D97706' };
 }
 
 const styles = StyleSheet.create({
@@ -432,6 +452,7 @@ const styles = StyleSheet.create({
   },
   scrollContent: {
     padding: 16,
+    paddingBottom: 110,
   },
   header: {
     marginBottom: 16,
@@ -619,7 +640,7 @@ const styles = StyleSheet.create({
   },
   subFilterGroup: {
     flexDirection: 'row',
-    alignItems: 'center',
+    alignItems: 'flex-start',
     flexWrap: 'wrap',
     gap: 6,
   },
@@ -628,6 +649,7 @@ const styles = StyleSheet.create({
     fontWeight: '700',
     color: '#64748B',
     width: 70,
+    paddingTop: 4,
   },
   chipsWrap: {
     flexDirection: 'row',
@@ -673,24 +695,32 @@ const styles = StyleSheet.create({
   },
   problemRowCard: {
     backgroundColor: '#FFFFFF',
-    borderRadius: 10,
+    borderRadius: 14,
     padding: 14,
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
     borderWidth: 1,
     borderColor: '#E2E8F0',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.04,
+    shadowRadius: 3,
+    elevation: 1,
   },
-  problemRowLeft: {
+  cardTopRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 12,
-    flex: 1,
+    justifyContent: 'space-between',
+    marginBottom: 8,
+  },
+  cardTopLeft: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    flexShrink: 1,
   },
   solvedStatusCircle: {
-    width: 28,
-    height: 28,
-    borderRadius: 14,
+    width: 26,
+    height: 26,
+    borderRadius: 13,
     backgroundColor: '#F1F5F9',
     justifyContent: 'center',
     alignItems: 'center',
@@ -703,25 +733,55 @@ const styles = StyleSheet.create({
     fontWeight: '700',
     color: '#64748B',
   },
-  problemTitleBox: {
-    flex: 1,
-  },
-  problemItemTitle: {
-    fontSize: 15,
-    fontWeight: '700',
-    color: '#0F172A',
-  },
-  problemMetaRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 8,
-    marginTop: 3,
-  },
   categoryBadge: {
-    fontSize: 11,
-    fontWeight: '600',
+    fontSize: 11.5,
+    fontWeight: '700',
     color: Palette.primary,
     backgroundColor: '#EFF6FF',
+    borderWidth: 1,
+    borderColor: '#BFDBFE',
+    paddingHorizontal: 8,
+    paddingVertical: 2,
+    borderRadius: 6,
+  },
+  diffPill: {
+    paddingHorizontal: 9,
+    paddingVertical: 3.5,
+    borderRadius: 6,
+    borderWidth: 1,
+  },
+  diffPillText: {
+    fontSize: 11,
+    fontWeight: '800',
+    letterSpacing: 0.5,
+  },
+  problemItemTitle: {
+    fontSize: 16,
+    fontWeight: '700',
+    color: '#0F172A',
+    lineHeight: 22,
+    marginBottom: 10,
+  },
+  cardBottomRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    gap: 8,
+  },
+  cardMetaLeft: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    flexWrap: 'wrap',
+    gap: 8,
+    flex: 1,
+  },
+  timeComplexityBox: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+    backgroundColor: '#F8FAFC',
+    borderWidth: 1,
+    borderColor: '#E2E8F0',
     paddingHorizontal: 6,
     paddingVertical: 2,
     borderRadius: 4,
@@ -729,31 +789,19 @@ const styles = StyleSheet.create({
   metaSubText: {
     fontSize: 11,
     color: '#64748B',
-  },
-  problemRowRight: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 10,
-  },
-  diffPill: {
-    paddingHorizontal: 8,
-    paddingVertical: 3,
-    borderRadius: 6,
-    borderWidth: 1,
-  },
-  diffPillText: {
-    fontSize: 11,
-    fontWeight: '700',
-    color: '#0F172A',
+    fontWeight: '500',
   },
   solveBtn: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 4,
     backgroundColor: Palette.primary,
-    paddingHorizontal: 12,
-    paddingVertical: 6,
-    borderRadius: 6,
+    paddingHorizontal: 13,
+    paddingVertical: 7,
+    borderRadius: 7,
+  },
+  solveBtnSolved: {
+    backgroundColor: '#059669',
   },
   solveBtnText: {
     color: '#FFFFFF',
