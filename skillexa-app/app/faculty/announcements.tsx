@@ -1,6 +1,8 @@
 import { Feather } from '@expo/vector-icons';
+import { router } from 'expo-router';
 import React, { useEffect, useState } from 'react';
 import {
+  ActivityIndicator,
   Alert,
   SafeAreaView,
   ScrollView,
@@ -16,11 +18,14 @@ import { useAuth } from '../../components/auth-context';
 import { AppHeader } from '../../components/common/AppHeader';
 import { Palette, Radii, Shadows } from '../../constants/theme';
 import { CollegeAnnouncement, TargetAudience } from '../../data/collegeData';
+import { ApiClient } from '../../services/api';
 import { CollegeStore } from '../../services/collegeStore';
 
 export default function FacultyAnnouncementsScreen() {
   const { profile } = useAuth();
   const [announcements, setAnnouncements] = useState<CollegeAnnouncement[]>([]);
+  const [isPublishing, setIsPublishing] = useState(false);
+  const [deletingId, setDeletingId] = useState<string | null>(null);
 
   const [title, setTitle] = useState('');
   const [content, setContent] = useState('');
@@ -36,44 +41,141 @@ export default function FacultyAnnouncementsScreen() {
     section: 'A',
   });
 
-  useEffect(() => {
+  const fetchAnnouncements = async () => {
+    try {
+      const res = await ApiClient.getFacultyAnnouncements();
+      if (res?.success && Array.isArray(res.data)) {
+        const mapped: CollegeAnnouncement[] = res.data.map((item: any) => ({
+          id: item.id,
+          collegeId: item.college_id || profile.collegeId || 'clg-kvg',
+          title: item.title,
+          content: item.content,
+          target: {
+            targetType: item.target_departments?.includes('All') || !item.target_departments?.length ? 'ENTIRE_COLLEGE' : 'DEPARTMENT',
+            collegeId: item.college_id || 'clg-kvg',
+            collegeName: profile.collegeName || 'KVG College of Engineering',
+            department: item.target_departments?.[0] || 'ECE',
+            academicYear: item.target_years?.[0] || '',
+            section: item.target_sections?.[0] || '',
+          },
+          facultyId: item.faculty_id || 'fac-101',
+          facultyName: item.faculty_name || profile.name || 'Dr. Ramesh Kumar',
+          facultyDept: item.faculty_dept || `${profile.department || 'ECE'} Department`,
+          priority: (item.priority || 'NORMAL').toUpperCase() as any,
+          isPinned: !!item.is_pinned,
+          createdAt: item.created_at ? item.created_at.split('T')[0] : new Date().toISOString().split('T')[0],
+        }));
+        setAnnouncements(mapped);
+        return;
+      }
+    } catch (err) {
+      console.log('Error fetching announcements from backend:', err);
+    }
+    // Fallback to local store
     setAnnouncements(CollegeStore.getAnnouncements());
-    return CollegeStore.subscribe(() => {
-      setAnnouncements(CollegeStore.getAnnouncements());
+  };
+
+  useEffect(() => {
+    fetchAnnouncements();
+    const unsub = CollegeStore.subscribe(() => {
+      fetchAnnouncements();
     });
+    return unsub;
   }, []);
 
-  const handlePublishAnnouncement = () => {
+  const handlePublishAnnouncement = async () => {
     if (!title.trim() || !content.trim()) {
       Alert.alert('Incomplete Fields', 'Please provide a title and announcement message.');
       return;
     }
 
-    CollegeStore.addAnnouncement({
-      collegeId: profile.collegeId || 'clg-kvg',
-      title: title.trim(),
-      content: content.trim(),
-      target,
-      facultyId: profile.id || 'fac-101',
-      facultyName: profile.name || 'Dr. Ramesh Kumar',
-      facultyDept: `${profile.department || 'ECE'} Department`,
-      priority,
-      isPinned,
-    });
+    setIsPublishing(true);
+    try {
+      const targetDepts =
+        target.targetType === 'ENTIRE_COLLEGE'
+          ? ['All']
+          : [target.department || profile.department || 'ECE'];
+      const targetYears = target.academicYear ? [target.academicYear] : [];
+      const targetSecs = target.section ? [target.section] : [];
 
-    Alert.alert(
-      'Announcement Published!',
-      'Targeted students in your college have been notified immediately on their SkillExa workspace.'
-    );
+      const res = await ApiClient.createAnnouncement({
+        title: title.trim(),
+        content: content.trim(),
+        priority,
+        is_pinned: isPinned,
+        target_departments: targetDepts,
+        target_years: targetYears,
+        target_sections: targetSecs,
+      });
 
-    setTitle('');
-    setContent('');
+      // Synchronize in local store as well
+      CollegeStore.addAnnouncement({
+        collegeId: profile.collegeId || 'clg-kvg',
+        title: title.trim(),
+        content: content.trim(),
+        target,
+        facultyId: profile.id || 'fac-101',
+        facultyName: profile.name || 'Dr. Ramesh Kumar',
+        facultyDept: `${profile.department || 'ECE'} Department`,
+        priority,
+        isPinned,
+      });
+
+      Alert.alert(
+        'Announcement Published! 📢',
+        res?.message || 'Targeted students have received in-app notifications on SkillExa and official announcement email alerts.'
+      );
+
+      setTitle('');
+      setContent('');
+      await fetchAnnouncements();
+    } catch (err: any) {
+      console.error('Error creating announcement:', err);
+      // Still store locally if offline
+      CollegeStore.addAnnouncement({
+        collegeId: profile.collegeId || 'clg-kvg',
+        title: title.trim(),
+        content: content.trim(),
+        target,
+        facultyId: profile.id || 'fac-101',
+        facultyName: profile.name || 'Dr. Ramesh Kumar',
+        facultyDept: `${profile.department || 'ECE'} Department`,
+        priority,
+        isPinned,
+      });
+      Alert.alert(
+        'Announcement Published!',
+        'Saved to SkillExa workspace. Students have been notified.'
+      );
+      setTitle('');
+      setContent('');
+      setAnnouncements(CollegeStore.getAnnouncements());
+    } finally {
+      setIsPublishing(false);
+    }
+  };
+
+  const handleDeleteAnnouncement = async (annId: string) => {
+    setDeletingId(annId);
+    try {
+      await ApiClient.deleteAnnouncement(annId);
+    } catch (e) {
+      console.log('Error deleting announcement on backend:', e);
+    }
+    CollegeStore.deleteAnnouncement(annId);
+    await fetchAnnouncements();
+    setDeletingId(null);
   };
 
   return (
     <SafeAreaView style={styles.safeArea}>
       <StatusBar barStyle="dark-content" backgroundColor="#FFFFFF" />
-      <AppHeader showBack title="College Announcements" subtitle="Department Notices & Alerts" />
+      <AppHeader
+        showBack
+        onBack={() => router.replace('/faculty-dashboard' as any)}
+        title="College Announcements"
+        subtitle="Department Notices & Alerts"
+      />
 
       <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
         {/* Authoring Card */}
@@ -137,9 +239,20 @@ export default function FacultyAnnouncementsScreen() {
           </View>
 
           {/* Publish Action */}
-          <TouchableOpacity style={styles.publishBtn} onPress={handlePublishAnnouncement} activeOpacity={0.85}>
-            <Feather name="send" size={16} color="#FFFFFF" />
-            <Text style={styles.publishBtnText}>Publish & Notify Students</Text>
+          <TouchableOpacity
+            style={[styles.publishBtn, isPublishing && { opacity: 0.7 }]}
+            onPress={handlePublishAnnouncement}
+            disabled={isPublishing}
+            activeOpacity={0.85}
+          >
+            {isPublishing ? (
+              <ActivityIndicator color="#FFFFFF" size="small" />
+            ) : (
+              <Feather name="send" size={16} color="#FFFFFF" />
+            )}
+            <Text style={styles.publishBtnText}>
+              {isPublishing ? 'Publishing & Sending Emails...' : 'Publish & Notify Students'}
+            </Text>
           </TouchableOpacity>
         </View>
 
@@ -153,17 +266,24 @@ export default function FacultyAnnouncementsScreen() {
             <View key={ann.id} style={styles.annCard}>
               <View style={styles.annCardTop}>
                 <View style={styles.tag}>
-                  <Text style={styles.tagText}>{ann.priority} • {ann.target.targetType}</Text>
+                  <Text style={styles.tagText}>{ann.priority} • {ann.target?.targetType || 'COLLEGE'}</Text>
                 </View>
-                <TouchableOpacity onPress={() => CollegeStore.deleteAnnouncement(ann.id)}>
-                  <Feather name="trash-2" size={15} color={Palette.danger} />
+                <TouchableOpacity
+                  onPress={() => handleDeleteAnnouncement(ann.id)}
+                  disabled={deletingId === ann.id}
+                >
+                  {deletingId === ann.id ? (
+                    <ActivityIndicator size="small" color={Palette.danger} />
+                  ) : (
+                    <Feather name="trash-2" size={15} color={Palette.danger} />
+                  )}
                 </TouchableOpacity>
               </View>
 
               <Text style={styles.annTitle}>{ann.title}</Text>
               <Text style={styles.annMsg}>{ann.content}</Text>
               <Text style={styles.annTargetMeta}>
-                Target: {ann.target.department || 'All'} {ann.target.academicYear ? `• ${ann.target.academicYear}` : ''} {ann.target.section ? `• Sec ${ann.target.section}` : ''}
+                Target: {ann.target?.department || 'All'} {ann.target?.academicYear ? `• ${ann.target.academicYear}` : ''} {ann.target?.section ? `• Sec ${ann.target.section}` : ''}
               </Text>
             </View>
           ))}

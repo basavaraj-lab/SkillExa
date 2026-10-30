@@ -9,125 +9,29 @@ import {
   TargetAudience,
 } from '../data/collegeData';
 
-// Initial Announcements Seed
+// Initial Announcements Seed (Synchronized with Backend)
 let announcementsList: CollegeAnnouncement[] = [
   {
-    id: 'ann-1',
+    id: '38690bc1-9633-434b-8174-9eefbdbb835b',
     collegeId: 'clg-kvg',
-    title: '📢 Tomorrow\'s Embedded Systems Quiz at 10:00 AM',
-    content: 'All 3rd Year ECE Section A students are required to attempt the Unit 3 ARM Cortex-M Quiz on SkillExa. Duration is 15 minutes with negative marking.',
-    target: {
-      targetType: 'SECTION',
-      collegeId: 'clg-kvg',
-      department: 'ECE',
-      academicYear: '3rd Year',
-      section: 'A',
-    },
-    facultyId: 'fac-101',
-    facultyName: 'Dr. Kusumadhara S',
-    facultyDept: 'ECE Department',
-    priority: 'HIGH',
-    isPinned: true,
-    createdAt: 'Today, 09:30 AM',
-  },
-  {
-    id: 'ann-2',
-    collegeId: 'clg-kvg',
-    title: '📄 VLSI Design Lab Manual & Theory Notes Released',
-    content: 'The complete CMOS stick diagrams & layout rules notes have been published in your Faculty Notes section.',
-    target: {
-      targetType: 'YEAR',
-      collegeId: 'clg-kvg',
-      department: 'ECE',
-      academicYear: '3rd Year',
-    },
-    facultyId: 'fac-101',
-    facultyName: 'Dr. Kusumadhara S',
-    facultyDept: 'ECE Department',
-    priority: 'NORMAL',
-    isPinned: false,
-    createdAt: 'Yesterday, 04:15 PM',
-  },
-  {
-    id: 'ann-3',
-    collegeId: 'clg-kvg',
-    title: '💼 Campus Placement Technical Screening Schedule',
-    content: 'All final and pre-final year engineering students must complete their SkillExa AI Mock Interview & DSA milestones by Friday.',
+    title: '📢 aptitude test on 31/10/2026 at 3:30AM',
+    content: 'everyone should attend the aptitude without fail',
     target: {
       targetType: 'ENTIRE_COLLEGE',
       collegeId: 'clg-kvg',
+      department: 'ECE',
     },
-    facultyId: 'fac-103',
-    facultyName: 'Dr. Suresh Gowda',
-    facultyDept: 'Placement Cell & CSE',
-    priority: 'URGENT',
+    facultyId: '6b8409c4-36db-4085-9f6d-fd0a8f323ba2',
+    facultyName: 'Dr. Ramesh Kumar',
+    facultyDept: 'ECE Department',
+    priority: 'HIGH',
     isPinned: true,
-    createdAt: 'Aug 14, 2026',
+    createdAt: '2026-10-30',
   },
 ];
 
-// Initial In-App Notifications
-let notificationsList: CollegeNotification[] = [
-  {
-    id: 'notif-1',
-    studentId: 'std-101',
-    collegeId: 'clg-kvg',
-    title: '🔔 New Quiz Available',
-    message: 'Dr. Kusumadhara S assigned "ARM Cortex-M Architecture Assessment".',
-    type: 'QUIZ',
-    actionRoute: '/quizzpage',
-    actionParams: {
-      topic: 'Microcontrollers',
-      subject: 'Embedded Systems',
-      section: 'engineering',
-    },
-    isRead: false,
-    createdAt: '10 mins ago',
-  },
-  {
-    id: 'notif-2',
-    studentId: 'std-101',
-    collegeId: 'clg-kvg',
-    title: '🔔 New Faculty Notes Published',
-    message: 'New verified notes on "ARM Cortex-M Hardware & Memory Mapped I/O".',
-    type: 'NOTE',
-    actionRoute: '/topic-learning',
-    actionParams: {
-      topic: 'Microcontrollers',
-      subject: 'Embedded Systems',
-      section: 'engineering',
-    },
-    isRead: false,
-    createdAt: '1 hour ago',
-  },
-  {
-    id: 'notif-3',
-    studentId: 'std-101',
-    collegeId: 'clg-kvg',
-    title: '📢 Urgent Department Announcement',
-    message: 'Embedded Systems Quiz scheduled for tomorrow at 10:00 AM.',
-    type: 'ANNOUNCEMENT',
-    actionRoute: '/my-college',
-    isRead: true,
-    createdAt: '3 hours ago',
-  },
-  {
-    id: 'notif-4',
-    studentId: 'std-101',
-    collegeId: 'clg-kvg',
-    title: '🎥 New Lecture Video',
-    message: 'Dr. Kusumadhara S uploaded "ARM Cortex-M GPIO & BSRR Register Explained".',
-    type: 'VIDEO',
-    actionRoute: '/topic-learning',
-    actionParams: {
-      topic: 'Microcontrollers',
-      subject: 'Embedded Systems',
-      section: 'engineering',
-    },
-    isRead: true,
-    createdAt: '1 day ago',
-  },
-];
+// Notifications List (dynamic, synchronized with backend)
+let notificationsList: CollegeNotification[] = [];
 
 let facultyMembersList: FacultyMember[] = [...FACULTY_DIRECTORY_SEED];
 
@@ -252,8 +156,19 @@ export const CollegeStore = {
 
   // Notifications
   getNotifications(studentId?: string): CollegeNotification[] {
-    if (!studentId) return [...notificationsList];
-    return notificationsList.filter((n) => n.studentId === studentId || n.studentId === 'all');
+    const list = !studentId
+      ? notificationsList
+      : notificationsList.filter((n) => n.studentId === studentId || n.studentId === 'all');
+    const seen = new Set<string>();
+    const deduped: CollegeNotification[] = [];
+    for (const n of list) {
+      const key = `${(n.title || '').trim()}::${(n.message || '').trim()}`;
+      if (!seen.has(key)) {
+        seen.add(key);
+        deduped.push(n);
+      }
+    }
+    return deduped;
   },
 
   getUnreadCount(studentId?: string): number {
@@ -275,7 +190,18 @@ export const CollegeStore = {
     notify();
   },
 
+  deleteNotification(notificationId: string) {
+    notificationsList = notificationsList.filter((n) => n.id !== notificationId);
+    notify();
+  },
+
   dispatchNotification(notif: Omit<CollegeNotification, 'id' | 'createdAt' | 'isRead'>) {
+    // Avoid duplicate notifications with identical title and message
+    const isDuplicate = notificationsList.some(
+      (n) => (n.title || '').trim() === (notif.title || '').trim() && (n.message || '').trim() === (notif.message || '').trim()
+    );
+    if (isDuplicate) return;
+
     const newNotif: CollegeNotification = {
       ...notif,
       id: `notif-${Date.now()}-${Math.random().toString(36).substring(2, 5)}`,

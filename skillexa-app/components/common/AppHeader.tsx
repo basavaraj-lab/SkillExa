@@ -1,5 +1,5 @@
 import { Feather } from '@expo/vector-icons';
-import { router } from 'expo-router';
+import { router, usePathname } from 'expo-router';
 import React from 'react';
 import {
   StyleSheet,
@@ -30,15 +30,24 @@ export function AppHeader({
 }: AppHeaderProps) {
   const insets = useSafeAreaInsets();
   const { profile } = useAuth();
-  const initial = (profile?.name || 'User').charAt(0).toUpperCase();
+  const pathname = usePathname();
+  const isFac =
+    profile?.role === 'FACULTY' ||
+    profile?.role === 'ADMIN' ||
+    profile?.email?.includes('faculty') ||
+    profile?.email === 'dr.ramesh@kvgce.edu.in';
+
+  const initial = (profile?.name || (isFac ? 'Dr. Ramesh' : 'User')).charAt(0).toUpperCase();
 
   const handleBack = () => {
     if (onBack) {
       onBack();
+    } else if (pathname?.startsWith('/faculty/') || (isFac && pathname !== '/faculty-dashboard')) {
+      router.replace('/faculty-dashboard' as any);
     } else if (router.canGoBack()) {
       router.back();
     } else {
-      if (profile?.role === 'FACULTY' || profile?.role === 'ADMIN') {
+      if (isFac) {
         router.replace('/faculty-dashboard' as any);
       } else {
         router.replace('/home' as any);

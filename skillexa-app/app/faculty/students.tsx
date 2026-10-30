@@ -1,5 +1,5 @@
 import { Feather } from '@expo/vector-icons';
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import {
   SafeAreaView,
   ScrollView,
@@ -15,13 +15,43 @@ import { AppHeader } from '../../components/common/AppHeader';
 import { ProgressBar } from '../../components/common/EducationalCards';
 import { Palette, Radii, Shadows } from '../../constants/theme';
 import { StudentTopicPerformance } from '../../data/curriculumSchema';
+import { ApiClient } from '../../services/api';
 import { FacultySystemStore } from '../../services/facultyStore';
 
 export default function FacultyStudentsScreen() {
   const { profile } = useAuth();
-  const [students] = useState<StudentTopicPerformance[]>(
+  const [students, setStudents] = useState<StudentTopicPerformance[]>(
     FacultySystemStore.getStudentPerformances()
   );
+
+  useEffect(() => {
+    ApiClient.getFacultyPerformance()
+      .then((res) => {
+        if (res?.success && Array.isArray(res.data) && res.data.length > 0) {
+          const apiStudents: StudentTopicPerformance[] = res.data.map((item: any) => ({
+            studentId: item.student_id,
+            studentName: item.student_name,
+            email: item.email,
+            overallScore: Math.round(item.overall_score || 85),
+            quizzesCompletedCount: item.quizzes_completed || 0,
+            quizAccuracy: Math.round(item.quiz_accuracy || 85),
+            notesCompletedCount: item.notes_read || 0,
+            codingSolvedCount: item.coding_solved || 0,
+            dsaProgressPct: Math.round(item.dsa_progress_pct || 75),
+            interviewsConductedCount: item.interviews_conducted || 0,
+            interviewsScore: Math.round(item.interviews_score || 85),
+            topicMastery: item.topic_mastery || [],
+          }));
+          setStudents(apiStudents);
+          FacultySystemStore.setStudentPerformances(apiStudents);
+        }
+      })
+      .catch(() => {});
+
+    return FacultySystemStore.subscribe(() => {
+      setStudents(FacultySystemStore.getStudentPerformances());
+    });
+  }, []);
   const [selectedYear, setSelectedYear] = useState<string>('3rd Year');
   const [selectedSection, setSelectedSection] = useState<string>('A');
   const [searchQuery, setSearchQuery] = useState<string>('');

@@ -341,6 +341,7 @@ export default function RegisterUser() {
         name: name.trim(),
         email: email.trim(),
         password,
+        phone: mobile.trim() || undefined,
         role: "STUDENT",
         collegeId: "clg-kvg",
         collegeName: collegeName.trim() || "KVG College of Engineering",

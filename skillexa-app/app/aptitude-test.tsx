@@ -20,7 +20,7 @@ import { Palette, Radii, Shadows } from '../constants/theme';
 import { ApiClient } from '../services/api';
 
 // Aptitude test categories and topics
-const CATEGORY_MAP: Record<string, string[]> = {
+export const CATEGORY_MAP: Record<string, string[]> = {
   'Quantitative Aptitude': [
     'Mixed Topics',
     'Number System',
@@ -37,6 +37,7 @@ const CATEGORY_MAP: Record<string, string[]> = {
     'Mixtures and Allegations',
     'HCF and LCM',
     'Simplification',
+    'Mensuration',
     'Data Interpretation',
   ],
   'Logical Reasoning': [
@@ -76,6 +77,35 @@ const CATEGORY_MAP: Record<string, string[]> = {
     'Data Comparison',
   ],
   'Mixed Aptitude': ['Mixed Topics'],
+};
+
+export const normalizeAptitudeTopic = (rawTopic?: string, category = 'Quantitative Aptitude'): string => {
+  if (!rawTopic) return 'Mixed Topics';
+  const t = rawTopic.toLowerCase();
+  if (t.includes('percent')) return 'Percentages';
+  if (t.includes('profit') || t.includes('loss')) return 'Profit and Loss';
+  if (t.includes('number') || t.includes('simplif')) return 'Number System';
+  if (t.includes('work') || t.includes('pipe') || t.includes('cistern')) return 'Time and Work';
+  if (t.includes('mensurat')) return 'Mensuration';
+  if (t.includes('ratio') || t.includes('proport')) return 'Ratio and Proportion';
+  if (t.includes('speed') || t.includes('dist') || t.includes('train')) return 'Time, Speed and Distance';
+  if (t.includes('interest')) return 'Simple and Compound Interest';
+  if (t.includes('data') || t.includes('di') || t.includes('chart') || t.includes('graph')) return 'Data Interpretation';
+  if (t.includes('age')) return 'Problems on Ages';
+  if (t.includes('average')) return 'Averages';
+  if (t.includes('probab')) return 'Probability';
+  if (t.includes('permut') || t.includes('combin')) return 'Permutations and Combinations';
+  if (t.includes('mixture') || t.includes('alleg')) return 'Mixtures and Allegations';
+  if (t.includes('hcf') || t.includes('lcm')) return 'HCF and LCM';
+  if (t.includes('syllog')) return 'Syllogisms';
+  if (t.includes('blood')) return 'Blood Relations';
+  if (t.includes('direction')) return 'Direction Sense';
+  if (t.includes('series')) return 'Number and Alphabet Series';
+  if (t.includes('seating') || t.includes('puzzle')) return 'Puzzles';
+  if (t.includes('reading') || t.includes('comprehen')) return 'Reading Comprehension';
+  if (t.includes('vocabu') || t.includes('synonym') || t.includes('antonym')) return 'Vocabulary';
+  if (t.includes('grammar') || t.includes('tense')) return 'Grammar';
+  return rawTopic;
 };
 
 const TEST_PRESETS = [
@@ -137,16 +167,28 @@ interface AttemptResult {
 }
 
 export default function AptitudeTestScreen() {
-  const params = useLocalSearchParams<{ attemptId?: string }>();
+  const params = useLocalSearchParams<{
+    attemptId?: string;
+    category?: string;
+    topic?: string;
+    difficulty?: string;
+    preset?: string;
+    autoStart?: string;
+  }>();
+
+  const initialCategory = params.category || 'Quantitative Aptitude';
+  const initialTopic = params.topic ? normalizeAptitudeTopic(params.topic, initialCategory) : 'Mixed Topics';
+  const initialDifficulty = params.difficulty || 'Intermediate';
+  const initialPreset = params.preset || 'quick';
 
   // Screen View Mode: 'config' | 'generating' | 'runner' | 'result' | 'history'
   const [viewMode, setViewMode] = useState<'config' | 'generating' | 'runner' | 'result' | 'history'>('config');
 
   // Config State
-  const [selectedCategory, setSelectedCategory] = useState<string>('Quantitative Aptitude');
-  const [selectedTopic, setSelectedTopic] = useState<string>('Mixed Topics');
-  const [selectedDifficulty, setSelectedDifficulty] = useState<string>('Intermediate');
-  const [selectedPreset, setSelectedPreset] = useState<string>('quick');
+  const [selectedCategory, setSelectedCategory] = useState<string>(initialCategory);
+  const [selectedTopic, setSelectedTopic] = useState<string>(initialTopic);
+  const [selectedDifficulty, setSelectedDifficulty] = useState<string>(initialDifficulty);
+  const [selectedPreset, setSelectedPreset] = useState<string>(initialPreset);
   const [customQuestionCount, setCustomQuestionCount] = useState<string>('15');
   const [customMinutes, setCustomMinutes] = useState<string>('20');
   const [generationError, setGenerationError] = useState<string | null>(null);
@@ -171,8 +213,82 @@ export default function AptitudeTestScreen() {
 
   const timerRef = useRef<any>(null);
 
-  // On mount: check if there's an ongoing attempt in URL or localStorage
+  const handleBackToSubject = () => {
+    if (selectedCategory === 'Quantitative Aptitude' || params.category === 'Quantitative Aptitude') {
+      router.push('/mathematics');
+    } else if (selectedCategory === 'Logical Reasoning' || params.category === 'Logical Reasoning') {
+      router.push('/reasoning');
+    } else if (selectedCategory === 'Verbal Ability' || params.category === 'Verbal Ability') {
+      router.push('/english');
+    } else if (router.canGoBack()) {
+      router.back();
+    } else {
+      router.push('/home');
+    }
+  };
+
+  const startTestWithParams = async (
+    category: string,
+    topic: string,
+    difficulty: string,
+    preset: string
+  ) => {
+    setViewMode('generating');
+    setGenerationError(null);
+    setSelectedCategory(category);
+    setSelectedTopic(topic);
+    setSelectedDifficulty(difficulty);
+    setSelectedPreset(preset);
+
+    const qCount = preset === 'quick' ? 10 : preset === 'standard' ? 20 : preset === 'full' ? 30 : 15;
+    const durMins = preset === 'quick' ? 15 : preset === 'standard' ? 30 : preset === 'full' ? 45 : 20;
+
+    try {
+      const payload = {
+        category,
+        topic,
+        difficulty,
+        question_count: qCount,
+        test_mode: preset,
+        duration_minutes: durMins,
+      };
+
+      const res = await ApiClient.createAptitudeTestAttempt(payload);
+      if (res && res.data) {
+        const data = res.data;
+        setAttemptId(data.attempt_id);
+        setQuestions(data.questions || []);
+        setSelectedAnswers({});
+        setCurrentIndex(0);
+        const durationSec = (data.duration_minutes || durMins) * 60;
+        setRemainingSeconds(durationSec);
+        setTotalSecondsAllowed(durationSec);
+
+        if (typeof window !== 'undefined' && window.localStorage) {
+          window.localStorage.setItem('skillexa_active_aptitude_attempt', data.attempt_id);
+        }
+
+        setViewMode('runner');
+      } else {
+        throw new Error('Failed to retrieve generated test questions.');
+      }
+    } catch (err: any) {
+      console.error('Error generating aptitude test:', err);
+      setGenerationError(err?.message || 'Failed to generate test. Please try again.');
+      setViewMode('config');
+    }
+  };
+
+  // On mount: check if there's an ongoing attempt in URL or localStorage OR if autoStart
   useEffect(() => {
+    if (params.autoStart === 'true') {
+      if (typeof window !== 'undefined' && window.localStorage) {
+        window.localStorage.removeItem('skillexa_active_aptitude_attempt');
+      }
+      startTestWithParams(initialCategory, initialTopic, initialDifficulty, initialPreset);
+      return;
+    }
+
     const resumeSavedAttempt = async () => {
       let savedAttemptId = params.attemptId;
       if (!savedAttemptId && typeof window !== 'undefined' && window.localStorage) {
@@ -204,7 +320,7 @@ export default function AptitudeTestScreen() {
     };
 
     resumeSavedAttempt();
-  }, [params.attemptId]);
+  }, [params.attemptId, params.autoStart, params.topic, params.category]);
 
   // Timer countdown
   useEffect(() => {
@@ -414,7 +530,7 @@ export default function AptitudeTestScreen() {
             showBack
             title="Aptitude Test"
             subtitle="LLM-Powered Dynamic Assessment"
-            onBack={() => router.push('/placement-preparation' as any)}
+            onBack={handleBackToSubject}
           />
 
           <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>

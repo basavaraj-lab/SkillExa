@@ -79,10 +79,11 @@ export default function ReasoningPage() {
                 style={[styles.topicCard, isInProgress && styles.topicCardActive]}
                 onPress={() =>
                   router.push({
-                    pathname: '/topic-learning',
+                    pathname: '/aptitude-test',
                     params: {
-                      subject: 'Logical Reasoning',
+                      category: 'Logical Reasoning',
                       topic: topic.title,
+                      autoStart: 'true',
                     },
                   })
                 }

@@ -68,6 +68,9 @@ class NoteResponse(BaseModel):
     visibility: VisibilityEnum
     published: bool
     views_count: int
+    file_name: Optional[str] = None
+    file_size_bytes: Optional[int] = None
+    download_url: Optional[str] = None
     created_at: datetime
     updated_at: datetime
 

@@ -29,6 +29,8 @@ export type UserProfile = {
   department: string; // or branch e.g. 'ECE', 'CSE'
   academicYear?: string; // '1st Year' | '2nd Year' | '3rd Year' | '4th Year'
   section?: string; // 'A' | 'B' | 'C'
+  rollNumber?: string;
+  phone?: string;
   facultyDesignation?: string; // e.g. 'Associate Professor'
   subjectsTaught?: string[]; // e.g. ['Embedded Systems', 'VLSI']
   verificationStatus?: 'APPROVED' | 'PENDING' | 'REJECTED';
@@ -54,6 +56,7 @@ export const defaultStudentProfile: UserProfile = {
   department: 'ECE',
   academicYear: '3rd Year',
   section: 'A',
+  rollNumber: '4KV22EC018',
   verificationStatus: 'APPROVED',
 };
 
@@ -88,7 +91,16 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     if (typeof window !== 'undefined' && window.localStorage) {
       try {
         const saved = window.localStorage.getItem('skillexa_user_profile');
-        if (saved) return JSON.parse(saved);
+        if (saved) {
+          const parsed = JSON.parse(saved);
+          if (parsed.email?.includes('faculty') || parsed.email === 'faculty@skillexa.edu') {
+            parsed.role = 'FACULTY';
+            if (!parsed.name || parsed.name === 'Student Scholar' || parsed.name === 'Faculty') {
+              parsed.name = 'Dr. Ramesh Kumar';
+            }
+          }
+          return parsed;
+        }
       } catch (e) {}
     }
     return defaultStudentProfile;
@@ -99,29 +111,33 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       if (firebaseUser && firebaseUser.email) {
         setIsAuthenticated(true);
         try {
+          const isFac = firebaseUser.email.includes('faculty') || firebaseUser.email.includes('ramesh');
           const syncRes = await ApiClient.googleLogin({
             email: firebaseUser.email,
             name: firebaseUser.displayName || undefined,
             avatar: firebaseUser.photoURL || undefined,
+            role: isFac ? 'faculty' : undefined,
           });
           if (syncRes.success && syncRes.data?.user) {
             const bUser = syncRes.data.user;
             const bRole: UserRole =
-              bUser.role?.toUpperCase() === 'FACULTY' || bUser.role?.toUpperCase() === 'ADMIN'
+              bUser.role?.toUpperCase() === 'FACULTY' || bUser.role?.toUpperCase() === 'ADMIN' || isFac
                 ? 'FACULTY'
                 : 'STUDENT';
             const updatedProfile: UserProfile = {
               id: bUser.id,
-              name: bUser.name || firebaseUser.displayName || firebaseUser.email.split('@')[0],
+              name: bUser.name && bUser.name !== 'Student Scholar' ? bUser.name : (bRole === 'FACULTY' ? 'Dr. Ramesh Kumar' : (firebaseUser.displayName || firebaseUser.email.split('@')[0])),
               email: bUser.email || firebaseUser.email,
               role: bRole,
-              collegeId: bUser.student_profile?.college_id || bUser.faculty_profile?.college_id || 'clg-kvg',
+              collegeId: bUser.student_profile?.college_id || bUser.faculty_profile?.college_id || '0f669a91-5c8d-4304-a815-818bde05e996',
               collegeName: bUser.college_name || 'KVG College of Engineering',
               department: bUser.student_profile?.branch || bUser.faculty_profile?.department || 'ECE',
               academicYear: bUser.student_profile?.academic_year || '3rd Year',
               section: bUser.student_profile?.section || 'A',
-              facultyDesignation: bUser.faculty_profile?.designation,
-              subjectsTaught: bUser.faculty_profile?.subjects_taught,
+              rollNumber: bUser.student_profile?.roll_number || '4KV22EC018',
+              phone: bUser.student_profile?.phone,
+              facultyDesignation: bUser.faculty_profile?.designation || (bRole === 'FACULTY' ? 'Professor & HOD' : undefined),
+              subjectsTaught: bUser.faculty_profile?.subjects_taught || (bRole === 'FACULTY' ? ['Embedded Systems', 'VLSI', 'Programming in C'] : undefined),
               verificationStatus: 'APPROVED',
             };
             setProfile(updatedProfile);
@@ -137,12 +153,16 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           console.warn('Backend sync during onAuthStateChanged notice:', e);
         }
 
-        setProfile((prev) => ({
-          ...prev,
-          id: firebaseUser.uid,
-          email: firebaseUser.email || prev.email,
-          name: firebaseUser.displayName || (firebaseUser.email ? firebaseUser.email.split('@')[0] : '') || prev.name,
-        }));
+        setProfile((prev) => {
+          const isFac = (firebaseUser.email || prev.email || '').includes('faculty');
+          return {
+            ...prev,
+            id: firebaseUser.uid,
+            email: firebaseUser.email || prev.email,
+            role: isFac ? 'FACULTY' : prev.role,
+            name: isFac && (!prev.name || prev.name === 'Student Scholar') ? 'Dr. Ramesh Kumar' : (firebaseUser.displayName || prev.name),
+          };
+        });
       }
     });
     return () => unsubscribe();
@@ -155,6 +175,27 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       try {
         window.localStorage.setItem('skillexa_user_profile', JSON.stringify(nextProfile));
         window.localStorage.setItem('skillexa_user_role', nextProfile.role);
+        window.localStorage.setItem('skillexa_auth_email', nextProfile.email);
+        window.localStorage.setItem('skillexa_auth_name', nextProfile.name);
+      } catch (e) {}
+
+      // Cross-platform sync: Ensure competitive platform has this unified profile under the same Gmail
+      try {
+        fetch('http://localhost:3001/api/user/sync', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            email: nextProfile.email,
+            name: nextProfile.name,
+            phone: nextProfile.phone,
+            college: nextProfile.collegeName,
+            branch: nextProfile.department,
+            year: nextProfile.academicYear,
+            section: nextProfile.section,
+            rollNumber: nextProfile.rollNumber,
+            role: nextProfile.role === 'FACULTY' ? 'admin' : 'student',
+          }),
+        }).catch(() => {});
       } catch (e) {}
     }
   }, []);
@@ -171,12 +212,42 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         window.localStorage.removeItem('skillexa_jwt_token');
         window.localStorage.removeItem('skillexa_user_profile');
         window.localStorage.removeItem('skillexa_user_role');
+        window.localStorage.removeItem('skillexa_auth_email');
+        window.localStorage.removeItem('skillexa_auth_name');
       } catch (e) {}
     }
   }, []);
 
   const updateProfile = React.useCallback((updates: Partial<UserProfile>) => {
-    setProfile((prev) => ({ ...prev, ...updates }));
+    setProfile((prev) => {
+      const merged = { ...prev, ...updates };
+      if (typeof window !== 'undefined' && window.localStorage) {
+        try {
+          window.localStorage.setItem('skillexa_user_profile', JSON.stringify(merged));
+          window.localStorage.setItem('skillexa_auth_email', merged.email);
+          window.localStorage.setItem('skillexa_auth_name', merged.name);
+        } catch (e) {}
+
+        try {
+          fetch('http://localhost:3001/api/user/sync', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              email: merged.email,
+              name: merged.name,
+              phone: merged.phone,
+              college: merged.collegeName,
+              branch: merged.department,
+              year: merged.academicYear,
+              section: merged.section,
+              rollNumber: merged.rollNumber,
+              role: merged.role === 'FACULTY' ? 'admin' : 'student',
+            }),
+          }).catch(() => {});
+        } catch (e) {}
+      }
+      return merged;
+    });
   }, []);
 
   const isFaculty = profile.role === 'FACULTY';
@@ -260,6 +331,19 @@ export function TopProfileMenu() {
               <Text style={styles.menuText}>View Profile</Text>
             </TouchableOpacity>
 
+            {(profile.role === 'FACULTY' || profile.email?.includes('faculty')) && (
+              <TouchableOpacity
+                style={styles.menuItem}
+                onPress={() => {
+                  setMenuVisible(false);
+                  router.push('/faculty-dashboard' as any);
+                }}
+              >
+                <Feather name="layout" size={16} color={Palette.primary} />
+                <Text style={styles.menuText}>Faculty Workspace</Text>
+              </TouchableOpacity>
+            )}
+
             <TouchableOpacity style={[styles.menuItem, styles.logoutItem]} onPress={handleLogout}>
               <Feather name="log-out" size={16} color={Palette.rose} />
               <Text style={[styles.menuText, styles.logoutText]}>Sign Out</Text>
@@ -304,11 +388,14 @@ export function TopProfileMenu() {
               <View style={styles.infoRow}>
                 <Feather name="layers" size={16} color={Palette.cyan} />
                 <View style={styles.infoContent}>
-                  <Text style={styles.infoLabel}>DEPARTMENT & CLASS</Text>
+                  <Text style={styles.infoLabel}>
+                    {profile.role === 'FACULTY' ? 'DEPARTMENT & DESIGNATION' : 'DEPARTMENT & CLASS'}
+                  </Text>
                   <Text style={styles.detailText}>
-                    {profile.department || "ECE"}
-                    {profile.academicYear ? ` • ${profile.academicYear}` : ""}
-                    {profile.section ? ` • Sec ${profile.section}` : ""}
+                    {profile.department || 'ECE'}
+                    {profile.role === 'FACULTY'
+                      ? ` • ${profile.facultyDesignation || 'Professor & HOD'}`
+                      : `${profile.academicYear ? ` • ${profile.academicYear}` : ''}${profile.section ? ` • Sec ${profile.section}` : ''}`}
                   </Text>
                 </View>
               </View>

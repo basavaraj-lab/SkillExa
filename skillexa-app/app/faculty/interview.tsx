@@ -80,15 +80,6 @@ export default function FacultyInterviewScreen() {
       facultyName: profile.name || 'Dr. Ramesh Kumar',
     });
 
-    CollegeStore.dispatchNotification({
-      studentId: 'std-101',
-      collegeId: profile.collegeId || 'clg-kvg',
-      title: '🎤 Interview Invitation',
-      message: `${profile.name || 'Faculty'} scheduled a ${selectedType} for ${role.trim()} (${scheduledTime.trim()}).`,
-      type: 'INTERVIEW',
-      actionRoute: '/my-college',
-    });
-
     Alert.alert('Interview Scheduled!', `Interview invitation created for ${studentName}. The student has been notified on their College workspace.`);
   };
 

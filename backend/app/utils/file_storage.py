@@ -60,6 +60,46 @@ async def save_uploaded_pdf(file: UploadFile) -> Tuple[str, str, int]:
     return target_path, clean_name, file_size_bytes
 
 
+async def save_uploaded_note_file(file: UploadFile) -> Tuple[str, str, int, str]:
+    """
+    Validate and save an uploaded note document (PDF, Word, TXT, PPT, Images).
+    Returns: (file_path, file_name, file_size_bytes, mime_type)
+    """
+    if not file.filename:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Filename is missing.",
+        )
+
+    content = await file.read()
+    file_size_bytes = len(content)
+    max_bytes = 50 * 1024 * 1024  # 50MB max for notes/documents
+
+    if file_size_bytes > max_bytes:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="File exceeds maximum allowed size of 50MB.",
+        )
+
+    if file_size_bytes == 0:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Uploaded file is empty.",
+        )
+
+    notes_storage_dir = os.path.join(settings.STORAGE_LOCAL_DIR, "notes")
+    os.makedirs(notes_storage_dir, exist_ok=True)
+    clean_name = sanitize_filename(file.filename)
+    unique_filename = f"{uuid.uuid4()}_{clean_name}"
+    target_path = os.path.join(notes_storage_dir, unique_filename)
+
+    with open(target_path, "wb") as f:
+        f.write(content)
+
+    mime_type = file.content_type or "application/octet-stream"
+    return target_path, clean_name, file_size_bytes, mime_type
+
+
 def delete_stored_file(file_path: str) -> bool:
     """Safely delete stored file from disk."""
     try:

@@ -73,20 +73,6 @@ export default function FacultyVideosScreen() {
     });
 
     if (visibility === 'college') {
-      CollegeStore.dispatchNotification({
-        studentId: 'std-101',
-        collegeId: profile.collegeId || 'clg-kvg',
-        title: '🎥 New Lecture Video',
-        message: `${profile.name || 'Faculty'} uploaded "${title.trim()}" for ${topic.trim()}.`,
-        type: 'VIDEO',
-        actionRoute: '/topic-learning',
-        actionParams: {
-          topic: topic.trim(),
-          subject,
-          section,
-        },
-      });
-
       Alert.alert('Video Attached!', `Video lesson attached to "${topic}". Target students in ${profile.collegeName || 'your college'} have been notified!`);
     } else {
       Alert.alert(
@@ -192,23 +178,33 @@ export default function FacultyVideosScreen() {
         </View>
 
         <View style={styles.list}>
-          {videos.map((v) => (
-            <View key={v.id} style={styles.videoCard}>
-              <View style={styles.cardHeader}>
-                <View style={styles.badge}>
-                  <Text style={styles.badgeText}>{v.subject} • {v.topic}</Text>
-                </View>
-                <TouchableOpacity onPress={() => FacultySystemStore.deleteVideo(v.id)}>
-                  <Feather name="trash-2" size={15} color={Palette.danger} />
-                </TouchableOpacity>
-              </View>
-
-              <Text style={styles.vTitle}>{v.title}</Text>
-              <Text style={styles.vUrl} numberOfLines={1}>🔗 {v.videoUrl}</Text>
-              <Text style={styles.vDesc}>{v.description}</Text>
-              <Text style={styles.vMeta}>Duration: {v.duration || '15 mins'} • By {v.facultyName}</Text>
+          {videos.length === 0 ? (
+            <View style={styles.emptyCard}>
+              <Feather name="video" size={32} color={Palette.textMuted} />
+              <Text style={styles.emptyCardTitle}>No videos published yet</Text>
+              <Text style={styles.emptyCardSub}>
+                Use the form above to attach educational lecture videos for your students.
+              </Text>
             </View>
-          ))}
+          ) : (
+            videos.map((v) => (
+              <View key={v.id} style={styles.videoCard}>
+                <View style={styles.cardHeader}>
+                  <View style={styles.badge}>
+                    <Text style={styles.badgeText}>{v.subject} • {v.topic}</Text>
+                  </View>
+                  <TouchableOpacity onPress={() => FacultySystemStore.deleteVideo(v.id)}>
+                    <Feather name="trash-2" size={15} color={Palette.danger} />
+                  </TouchableOpacity>
+                </View>
+
+                <Text style={styles.vTitle}>{v.title}</Text>
+                <Text style={styles.vUrl} numberOfLines={1}>🔗 {v.videoUrl}</Text>
+                <Text style={styles.vDesc}>{v.description}</Text>
+                <Text style={styles.vMeta}>Duration: {v.duration || '15 mins'} • By {v.facultyName}</Text>
+              </View>
+            ))
+          )}
         </View>
       </ScrollView>
     </SafeAreaView>
@@ -262,4 +258,27 @@ const styles = StyleSheet.create({
   vUrl: { fontSize: 11.5, color: Palette.primary, marginBottom: 4 },
   vDesc: { fontSize: 12, color: Palette.textSecondary, marginBottom: 6 },
   vMeta: { fontSize: 11, color: Palette.textMuted },
+  emptyCard: {
+    backgroundColor: '#FFFFFF',
+    borderRadius: Radii.card,
+    padding: 32,
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderWidth: 1,
+    borderColor: Palette.border,
+    gap: 8,
+  },
+  emptyCardTitle: {
+    fontSize: 15,
+    fontWeight: '800',
+    color: Palette.textTitle,
+    marginTop: 6,
+  },
+  emptyCardSub: {
+    fontSize: 12.5,
+    color: Palette.textSecondary,
+    textAlign: 'center',
+    lineHeight: 18,
+    maxWidth: 340,
+  },
 });

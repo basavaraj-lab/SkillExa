@@ -76,10 +76,11 @@ export default function SciencePage() {
                 style={[styles.topicCard, isInProgress && styles.topicCardActive]}
                 onPress={() =>
                   router.push({
-                    pathname: '/topic-learning',
+                    pathname: '/aptitude-test',
                     params: {
-                      subject: 'General Science',
+                      category: 'Quantitative Aptitude',
                       topic: topic.title,
+                      autoStart: 'true',
                     },
                   })
                 }

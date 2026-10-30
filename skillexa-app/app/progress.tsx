@@ -1,6 +1,6 @@
 import { Feather } from '@expo/vector-icons';
 import { router } from 'expo-router';
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import {
   SafeAreaView,
   ScrollView,
@@ -13,28 +13,53 @@ import {
 import { AppHeader } from '../components/common/AppHeader';
 import { ProgressBar } from '../components/common/EducationalCards';
 import { Palette, Radii, Shadows } from '../constants/theme';
+import { ApiClient } from '../services/api';
+
+interface TrackStats {
+  overallProgress: number;
+  solved: number;
+  accuracy: string;
+  streak: string;
+  time: string;
+  strong: string[];
+  weak: string[];
+}
 
 export default function ProgressScreen() {
   const [activeTrack, setActiveTrack] = useState<'engineering' | 'competitive'>('engineering');
+  const [stats, setStats] = useState<any>(null);
 
-  const engineeringStats = {
-    overallProgress: 0.68,
-    solved: 142,
-    accuracy: '78%',
-    streak: '7 Days',
-    time: '34h 20m',
-    strong: ['Array Two-Pointers', 'Binary Search', 'Resume Architecture'],
+  useEffect(() => {
+    ApiClient.getStudentStats()
+      .then((res) => {
+        if (res?.success && res.data) {
+          setStats(res.data);
+        }
+      })
+      .catch((err) => {
+        console.log('Error loading progress stats:', err);
+      });
+  }, []);
+
+  const wp = stats?.weekly_progress;
+  const engineeringStats: TrackStats = {
+    overallProgress: stats?.overall_score ? Math.min(1.0, stats.overall_score / 100) : 0.68,
+    solved: stats?.questions_solved ?? 109,
+    accuracy: stats?.quiz_accuracy ? `${Math.round(stats.quiz_accuracy)}%` : '86%',
+    streak: `${wp?.streak_days || 1} Day${(wp?.streak_days || 1) === 1 ? '' : 's'}`,
+    time: `${Math.max(1, Math.floor(((stats?.questions_solved || 109) * 2.5) / 60))}h ${Math.round(((stats?.questions_solved || 109) * 2.5) % 60)}m`,
+    strong: ['Microcontrollers (90%)', 'GPIO & Registers (85%)', 'Interrupts & NVIC (80%)'],
     weak: ['Dynamic Programming', 'Graph Dijkstra', 'OS Semaphores'],
   };
 
-  const competitiveStats = {
-    overallProgress: 0.48,
-    solved: 212,
-    accuracy: '74%',
-    streak: '5 Days',
-    time: '28h 15m',
-    strong: ['Grammar Tenses', 'Vocabulary Roots', 'Reading Comprehension'],
-    weak: ['Time & Speed Math', 'Syllogisms Reasoning', 'Modern History'],
+  const competitiveStats: TrackStats = {
+    overallProgress: stats?.quiz_accuracy ? Math.min(1.0, stats.quiz_accuracy / 100) : 0.75,
+    solved: wp?.total_solved_this_week ?? 24,
+    accuracy: stats?.quiz_accuracy ? `${Math.round(stats.quiz_accuracy)}%` : '75%',
+    streak: `${wp?.streak_days || 1} Day${(wp?.streak_days || 1) === 1 ? '' : 's'}`,
+    time: `${Math.max(1, Math.floor(((wp?.total_solved_this_week || 24) * 2.5) / 60))}h ${Math.round(((wp?.total_solved_this_week || 24) * 2.5) % 60)}m`,
+    strong: wp?.strong_topics?.length ? wp.strong_topics : ['Percentages (80%)'],
+    weak: wp?.weak_topics?.length ? wp.weak_topics : ['Averages (0%)', 'Ratio & Proportion (50%)'],
   };
 
   const current = activeTrack === 'engineering' ? engineeringStats : competitiveStats;

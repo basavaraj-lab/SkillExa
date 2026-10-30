@@ -13,7 +13,7 @@ from backend.app.schemas.auth import (
     TokenResponse,
 )
 from backend.app.schemas.common import ApiResponse
-from backend.app.schemas.user import UserResponse
+from backend.app.schemas.user import UpdateStudentProfileRequest, UserResponse
 from backend.app.services.auth_service import AuthService
 from backend.app.services.otp_service import OTPService
 
@@ -136,5 +136,36 @@ def get_current_user_profile(current_user: User = Depends(get_current_user)):
     return ApiResponse(
         success=True,
         message="Current user profile retrieved.",
+        data=current_user,
+    )
+
+
+@router.put("/me", response_model=ApiResponse[UserResponse])
+def update_current_user_profile(
+    req: UpdateStudentProfileRequest,
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db),
+):
+    if req.name:
+        current_user.name = req.name.strip()
+    if current_user.student_profile:
+        sp = current_user.student_profile
+        if req.branch is not None:
+            sp.branch = req.branch.strip()
+        if req.academic_year is not None:
+            sp.academic_year = req.academic_year.strip()
+        if req.section is not None:
+            sp.section = req.section.strip()
+        if req.roll_number is not None:
+            sp.roll_number = req.roll_number.strip()
+        if req.phone is not None:
+            sp.phone = req.phone.strip()
+        if req.target_exam is not None:
+            sp.target_exam = req.target_exam.strip()
+    db.commit()
+    db.refresh(current_user)
+    return ApiResponse(
+        success=True,
+        message="Profile updated successfully.",
         data=current_user,
     )

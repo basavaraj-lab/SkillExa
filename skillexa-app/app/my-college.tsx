@@ -3,6 +3,8 @@ import { router } from 'expo-router';
 import React, { useEffect, useState } from 'react';
 import {
   Alert,
+  Linking,
+  Platform,
   SafeAreaView,
   ScrollView,
   StatusBar,
@@ -26,6 +28,7 @@ import {
   FacultyQuiz,
   FacultyVideo,
 } from '../data/curriculumSchema';
+import { ApiClient, getApiBaseUrl } from '../services/api';
 import { CollegeStore } from '../services/collegeStore';
 import { FacultySystemStore } from '../services/facultyStore';
 
@@ -53,6 +56,25 @@ export default function MyCollegeScreen() {
   const [selectedSubject, setSelectedSubject] = useState<string>('all');
   const [selectedLanguage, setSelectedLanguage] = useState<string>('all');
 
+  const openDocument = (downloadUrl?: string) => {
+    if (!downloadUrl) {
+      Alert.alert('No file attached', 'This note does not have an attached physical file.');
+      return;
+    }
+    const apiBase = getApiBaseUrl().replace(/\/api$/, '');
+    const fullUrl = downloadUrl.startsWith('http')
+      ? downloadUrl
+      : `${apiBase}${downloadUrl.startsWith('/') ? '' : '/'}${downloadUrl}`;
+
+    if (Platform.OS === 'web' && typeof window !== 'undefined') {
+      window.open(fullUrl, '_blank');
+    } else {
+      Linking.openURL(fullUrl).catch(() => {
+        Alert.alert('Error', 'Unable to open file link');
+      });
+    }
+  };
+
   useEffect(() => {
     // Load targeted content for this student
     const loadContent = () => {
@@ -63,6 +85,92 @@ export default function MyCollegeScreen() {
       setFacultyVideos(FacultySystemStore.getVideos().filter((v) => v.visibility !== 'community'));
       setFacultyQuizzes(FacultySystemStore.getQuizzes().filter((q) => q.visibility !== 'community'));
       setInterviews(FacultySystemStore.getInterviews());
+
+      // Fetch persistent notes and announcements from backend database
+      ApiClient.getMyCollegeWorkspace().then((res) => {
+        if (res?.success && res.data) {
+          // 1. Department Announcements from backend DB
+          if (res.data.announcements && Array.isArray(res.data.announcements) && res.data.announcements.length > 0) {
+            const dbAnnouncements: CollegeAnnouncement[] = res.data.announcements.map((a: any) => ({
+              id: a.id,
+              collegeId: profile.collegeId || 'clg-kvg',
+              title: a.title,
+              content: a.content,
+              facultyId: 'fac-101',
+              facultyName: a.faculty_name || 'Dr. Ramesh Kumar',
+              facultyDept: a.faculty_dept || `${profile.department || 'ECE'} Department`,
+              priority: (a.priority || 'NORMAL').toUpperCase() as any,
+              isPinned: !!a.is_pinned,
+              target: {
+                targetType: 'ALL_COLLEGE',
+                collegeId: profile.collegeId || 'clg-kvg',
+                collegeName: profile.collegeName || 'KVG College of Engineering',
+              },
+              createdAt: a.created_at ? a.created_at.split('T')[0] : new Date().toISOString().split('T')[0],
+            }));
+            setAnnouncements(dbAnnouncements);
+          }
+
+          // 2. Notes from backend DB
+          if (res.data.notes && Array.isArray(res.data.notes)) {
+            const dbNotes: FacultyNote[] = res.data.notes.map((n: any) => ({
+              id: n.id,
+              section: n.section || 'engineering',
+              subject: n.subject || 'Engineering',
+              topic: n.topic || n.title,
+              title: n.title,
+              description: n.description,
+              introduction: n.description || '',
+              theory: n.content || n.description || '',
+              fileName: n.file_name || undefined,
+              fileSize: n.file_size_bytes || undefined,
+              downloadUrl: n.download_url || (n.file_path ? `/api/notes/${n.id}/download` : undefined),
+              facultyName: n.faculty_name || 'Dr. Ramesh Kumar',
+              collegeName: profile.collegeName || 'KVG College of Engineering',
+              isVerifiedFaculty: true,
+              visibility: 'college',
+              published: true,
+              createdAt: n.created_at ? n.created_at.split('T')[0] : new Date().toISOString().split('T')[0],
+            }));
+
+            if (dbNotes.length > 0) {
+              setFacultyNotes(dbNotes);
+            } else {
+              setFacultyNotes(FacultySystemStore.getNotes().filter((n) => n.visibility !== 'community'));
+            }
+          }
+
+          // 3. Quizzes & Assessments from backend DB
+          if (res.data.quizzes && Array.isArray(res.data.quizzes)) {
+            if (res.data.quizzes.length > 0) {
+              const dbQuizzes: FacultyQuiz[] = res.data.quizzes.map((q: any) => ({
+                id: q.id,
+                section: (q.section || 'engineering').toLowerCase() as any,
+                subject: q.subject || 'Embedded Systems',
+                topic: q.topic || 'Assessment',
+                subtopic: q.subtopic || '',
+                quizName: q.title,
+                description: q.description || 'Faculty assessment quiz',
+                durationMinutes: q.duration_minutes || 15,
+                difficulty: (q.difficulty || 'medium').toLowerCase(),
+                totalMarks: q.total_marks || 20,
+                negativeMarks: q.negative_marks || 0.25,
+                passingScore: 60,
+                questions: [],
+                published: true,
+                facultyName: q.faculty_name || 'Dr. Ramesh Kumar',
+                collegeId: profile.collegeId || '0f669a91-5c8d-4304-a815-818bde05e996',
+                collegeName: profile.collegeName || 'KVG College of Engineering',
+                isVerifiedFaculty: true,
+                visibility: 'college',
+              }));
+              setFacultyQuizzes(dbQuizzes);
+            } else {
+              setFacultyQuizzes([]);
+            }
+          }
+        }
+      }).catch((e) => console.log('Error loading backend notes/announcements in my-college:', e));
 
       // Community items (public across all colleges from verified educators)
       setCommunityItems(
@@ -248,37 +356,44 @@ export default function MyCollegeScreen() {
                 </View>
 
                 <View style={styles.cardsGrid}>
-                  {facultyQuizzes.map((q) => (
-                    <View key={q.id} style={styles.quizCard}>
-                      <View style={styles.quizTop}>
-                        <View style={styles.tag}>
-                          <Text style={styles.tagText}>{q.subject} • {q.topic}</Text>
-                        </View>
-                        <Text style={styles.quizMeta}>{q.durationMinutes} Mins • {q.totalMarks} Marks</Text>
-                      </View>
-
-                      <Text style={styles.quizTitle}>{q.quizName}</Text>
-                      <Text style={styles.quizDesc}>{q.description}</Text>
-
-                      <TouchableOpacity
-                        style={styles.startQuizBtn}
-                        onPress={() =>
-                          router.push({
-                            pathname: '/quizzpage',
-                            params: {
-                              topic: q.topic,
-                              subject: q.subject,
-                              section: q.section,
-                            },
-                          })
-                        }
-                        activeOpacity={0.85}
-                      >
-                        <Text style={styles.startQuizBtnText}>Start Quiz Assessment</Text>
-                        <Feather name="arrow-right" size={14} color="#FFFFFF" />
-                      </TouchableOpacity>
+                  {facultyQuizzes.length === 0 ? (
+                    <View style={styles.emptyCard}>
+                      <Feather name="check-circle" size={24} color={Palette.textMuted} />
+                      <Text style={styles.emptyCardText}>No active faculty quizzes right now.</Text>
                     </View>
-                  ))}
+                  ) : (
+                    facultyQuizzes.map((q) => (
+                      <View key={q.id} style={styles.quizCard}>
+                        <View style={styles.quizTop}>
+                          <View style={styles.tag}>
+                            <Text style={styles.tagText}>{q.subject} • {q.topic}</Text>
+                          </View>
+                          <Text style={styles.quizMeta}>{q.durationMinutes} Mins • {q.totalMarks} Marks</Text>
+                        </View>
+
+                        <Text style={styles.quizTitle}>{q.quizName}</Text>
+                        <Text style={styles.quizDesc}>{q.description}</Text>
+
+                        <TouchableOpacity
+                          style={styles.startQuizBtn}
+                          onPress={() =>
+                            router.push({
+                              pathname: '/quizzpage',
+                              params: {
+                                topic: q.topic,
+                                subject: q.subject,
+                                section: q.section,
+                              },
+                            })
+                          }
+                          activeOpacity={0.85}
+                        >
+                          <Text style={styles.startQuizBtnText}>Start Quiz Assessment</Text>
+                          <Feather name="arrow-right" size={14} color="#FFFFFF" />
+                        </TouchableOpacity>
+                      </View>
+                    ))
+                  )}
                 </View>
 
                 {/* 3. 📚 FACULTY NOTES & PDFS */}
@@ -291,36 +406,65 @@ export default function MyCollegeScreen() {
 
                 <View style={styles.notesGrid}>
                   {facultyNotes.map((fn) => (
-                    <TouchableOpacity
-                      key={fn.id}
-                      style={styles.noteCard}
-                      onPress={() =>
-                        router.push({
-                          pathname: '/topic-learning',
-                          params: {
-                            topic: fn.topic,
-                            subject: fn.subject,
-                            section: fn.section,
-                          },
-                        })
-                      }
-                      activeOpacity={0.8}
-                    >
+                    <View key={fn.id} style={styles.noteCard}>
                       <View style={styles.noteCardTop}>
                         <View style={styles.noteTag}>
                           <Text style={styles.noteTagText}>📚 {fn.subject}</Text>
                         </View>
-                        <Text style={styles.noteDate}>Verified</Text>
+                        <Text style={styles.noteDate}>Verified Faculty</Text>
                       </View>
 
                       <Text style={styles.noteTitle}>{fn.title}</Text>
-                      <Text style={styles.noteIntro} numberOfLines={2}>{fn.introduction || fn.theory}</Text>
+                      <Text style={styles.noteIntro} numberOfLines={2}>
+                        {fn.description || fn.introduction || fn.theory}
+                      </Text>
+
+                      {/* Attached Document / PDF Download Badge */}
+                      {(fn.fileName || fn.downloadUrl) && (
+                        <View style={styles.noteFileAttachment}>
+                          <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6, flex: 1 }}>
+                            <Feather name="file-text" size={14} color={Palette.primary} />
+                            <Text style={styles.noteFileName} numberOfLines={1}>
+                              {fn.fileName || `${fn.title}.pdf`}
+                            </Text>
+                          </View>
+                          {fn.downloadUrl && (
+                            <TouchableOpacity
+                              style={styles.noteDownloadBtn}
+                              onPress={() => openDocument(fn.downloadUrl)}
+                              activeOpacity={0.8}
+                            >
+                              <Feather name="download" size={12} color="#FFFFFF" />
+                              <Text style={styles.noteDownloadBtnText}>View / Download PDF</Text>
+                            </TouchableOpacity>
+                          )}
+                        </View>
+                      )}
 
                       <View style={styles.noteFooter}>
                         <Text style={styles.noteAuthorText}>By {fn.facultyName}</Text>
-                        <Feather name="arrow-right" size={14} color={Palette.primary} />
+                        <TouchableOpacity
+                          style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}
+                          onPress={() =>
+                            fn.downloadUrl
+                              ? openDocument(fn.downloadUrl)
+                              : router.push({
+                                  pathname: '/topic-learning',
+                                  params: {
+                                    topic: fn.topic,
+                                    subject: fn.subject,
+                                    section: fn.section,
+                                  },
+                                })
+                          }
+                        >
+                          <Text style={{ fontSize: 12, fontWeight: '700', color: Palette.primary }}>
+                            {fn.downloadUrl ? 'Open File' : 'Study Notes'}
+                          </Text>
+                          <Feather name="arrow-right" size={14} color={Palette.primary} />
+                        </TouchableOpacity>
                       </View>
-                    </TouchableOpacity>
+                    </View>
                   ))}
                 </View>
 
@@ -858,6 +1002,29 @@ const styles = StyleSheet.create({
   noteDate: { fontSize: 11, color: Palette.success, fontWeight: '700' },
   noteTitle: { fontSize: 14.5, fontWeight: '800', color: Palette.textTitle, marginBottom: 4 },
   noteIntro: { fontSize: 12.5, color: Palette.textSecondary, lineHeight: 17, marginBottom: 8 },
+  noteFileAttachment: {
+    backgroundColor: Palette.backgroundSecondary,
+    borderRadius: 8,
+    padding: 8,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    marginBottom: 8,
+    borderWidth: 1,
+    borderColor: Palette.border,
+    gap: 8,
+  },
+  noteFileName: { fontSize: 12, fontWeight: '600', color: Palette.textTitle, flexShrink: 1 },
+  noteDownloadBtn: {
+    backgroundColor: Palette.primary,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+    paddingHorizontal: 8,
+    paddingVertical: 5,
+    borderRadius: 6,
+  },
+  noteDownloadBtnText: { color: '#FFFFFF', fontSize: 11, fontWeight: '700' },
   noteFooter: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingTop: 6, borderTopWidth: 1, borderTopColor: Palette.borderSubtle },
   noteAuthorText: { fontSize: 11, color: Palette.textMuted },
   videosGrid: { gap: 10 },
@@ -1029,4 +1196,19 @@ const styles = StyleSheet.create({
   emptyCommBox: { backgroundColor: '#FFFFFF', borderRadius: Radii.card, padding: 30, alignItems: 'center', justifyContent: 'center', borderWidth: 1, borderColor: Palette.border, marginTop: 10 },
   emptyCommTitle: { fontSize: 15, fontWeight: '800', color: Palette.textTitle, marginTop: 8 },
   emptyCommSubtitle: { fontSize: 12, color: Palette.textSecondary, textAlign: 'center', marginTop: 4, lineHeight: 17 },
+  emptyCard: {
+    backgroundColor: '#FFFFFF',
+    borderRadius: Radii.card,
+    padding: 24,
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderWidth: 1,
+    borderColor: Palette.border,
+    gap: 8,
+  },
+  emptyCardText: {
+    fontSize: 13,
+    fontWeight: '600',
+    color: Palette.textMuted,
+  },
 });

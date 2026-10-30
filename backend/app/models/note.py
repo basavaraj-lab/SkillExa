@@ -58,12 +58,32 @@ class FacultyNote(Base):
     target_student_ids = Column(JSON, default=list)
     
     views_count = Column(Integer, default=0)
+    file_path = Column(String(500), nullable=True)
+    file_name = Column(String(255), nullable=True)
+    file_size_bytes = Column(Integer, nullable=True)
+    download_url = Column(String(500), nullable=True)
     created_at = Column(DateTime, default=datetime.utcnow, nullable=False)
     updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow, nullable=False)
 
     # Relationships
     faculty = relationship("FacultyProfile", back_populates="notes")
     pdf_notes = relationship("PDFNote", back_populates="note", cascade="all, delete-orphan")
+
+    @property
+    def faculty_name(self) -> str:
+        if self.faculty and self.faculty.user:
+            return self.faculty.user.name
+        return "Dr. Kusumadhara S"
+
+    @property
+    def college_name(self) -> str:
+        if self.faculty and self.faculty.college:
+            return self.faculty.college.name
+        return "KVG College of Engineering"
+
+    @property
+    def is_verified_faculty(self) -> bool:
+        return True
 
 
 class PDFNote(Base):

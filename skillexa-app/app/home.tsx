@@ -14,26 +14,121 @@ import { useAuth } from '../components/auth-context';
 import { AppHeader } from '../components/common/AppHeader';
 import { ProgressBar } from '../components/common/EducationalCards';
 import { Palette, Radii, Shadows } from '../constants/theme';
+import { ApiClient } from '../services/api';
+
+interface WeeklyDayItem {
+  day: string;
+  date: string;
+  count: number;
+  isToday: boolean;
+  isFuture: boolean;
+}
+
+interface RecommendationItem {
+  category: string;
+  topic: string;
+  difficulty: string;
+  accuracy_percentage: number;
+  reason: string;
+  practice_route: string;
+}
+
+interface StudentWeeklyStats {
+  total_solved_this_week: number;
+  today_solved: number;
+  today_goal: number;
+  today_progress_pct: number;
+  daily_breakdown: WeeklyDayItem[];
+  recommendation?: RecommendationItem | null;
+  strong_topics?: string[];
+  weak_topics?: string[];
+  streak_days?: number;
+}
+
+const getInitialWeeklyDays = (): WeeklyDayItem[] => {
+  const dayNames = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
+  const today = new Date();
+  const currentDayIdx = (today.getDay() + 6) % 7; // 0=Mon, 4=Fri, 5=Sat, 6=Sun
+  return dayNames.map((d, i) => ({
+    day: d,
+    date: '',
+    count: 0,
+    isToday: i === currentDayIdx,
+    isFuture: i > currentDayIdx,
+  }));
+};
 
 export default function HomeScreen() {
   const { profile } = useAuth();
   const userName = profile?.name && profile.name.toLowerCase() !== 'faculty' ? profile.name : 'Scholar';
+  const [collegeUpdatesCount, setCollegeUpdatesCount] = React.useState(1);
+  const [weeklyStats, setWeeklyStats] = React.useState<StudentWeeklyStats | null>(null);
+  const [weeklyDays, setWeeklyDays] = React.useState<WeeklyDayItem[]>(getInitialWeeklyDays);
+  const [recommendation, setRecommendation] = React.useState<RecommendationItem | null>(null);
 
   React.useEffect(() => {
-    if (profile?.role === 'FACULTY' || profile?.role === 'ADMIN') {
+    if (
+      profile?.role === 'FACULTY' ||
+      profile?.role === 'ADMIN' ||
+      profile?.email?.includes('faculty') ||
+      profile?.email === 'dr.ramesh@kvgce.edu.in'
+    ) {
       router.replace('/faculty-dashboard' as any);
+      return;
     }
-  }, [profile?.role]);
 
-  const weeklyDays = [
-    { day: 'Mon', count: 18, isToday: false },
-    { day: 'Tue', count: 24, isToday: false },
-    { day: 'Wed', count: 12, isToday: false },
-    { day: 'Thu', count: 30, isToday: false },
-    { day: 'Fri', count: 22, isToday: false },
-    { day: 'Sat', count: 35, isToday: true },
-    { day: 'Sun', count: 0, isToday: false },
-  ];
+    ApiClient.getMyCollegeWorkspace()
+      .then((res) => {
+        if (res?.success && res.data) {
+          const anns = res.data.announcements?.length || 0;
+          const qzs = res.data.quizzes?.length || 0;
+          const nts = res.data.notes?.length || 0;
+          const total = anns + qzs + nts;
+          if (total > 0) {
+            setCollegeUpdatesCount(total);
+          }
+        }
+      })
+      .catch(() => {});
+
+    // Fetch real student stats and real weekly progress analysis
+    ApiClient.getStudentStats()
+      .then((res) => {
+        if (res?.success && res.data?.weekly_progress) {
+          const wp = res.data.weekly_progress;
+          setWeeklyStats({
+            total_solved_this_week: wp.total_solved_this_week ?? 0,
+            today_solved: wp.today_solved ?? 0,
+            today_goal: wp.today_goal ?? 20,
+            today_progress_pct: wp.today_progress_pct ?? 0,
+            daily_breakdown: wp.daily_breakdown ?? [],
+            recommendation: wp.recommendation,
+            strong_topics: wp.strong_topics,
+            weak_topics: wp.weak_topics,
+            streak_days: wp.streak_days,
+          });
+
+          if (Array.isArray(wp.daily_breakdown) && wp.daily_breakdown.length === 7) {
+            setWeeklyDays(
+              wp.daily_breakdown.map((d: any) => ({
+                day: d.day,
+                date: d.date,
+                count: d.count ?? 0,
+                isToday: Boolean(d.is_today),
+                isFuture: Boolean(d.is_future),
+              }))
+            );
+          }
+
+          if (wp.recommendation) {
+            setRecommendation(wp.recommendation);
+          }
+        }
+      })
+      .catch((err) => {
+        console.log('Error loading weekly student stats:', err);
+      });
+  }, [profile?.role, profile?.email]);
 
   return (
     <SafeAreaView style={styles.safeArea}>
@@ -58,19 +153,29 @@ export default function HomeScreen() {
             </View>
             <View style={styles.goalTitleCol}>
               <Text style={styles.goalLabel}>TODAY&apos;S GOAL</Text>
-              <Text style={styles.goalTitle}>Complete 20 practice questions</Text>
+              <Text style={styles.goalTitle}>Complete {weeklyStats?.today_goal || 20} practice questions</Text>
             </View>
-            <Text style={styles.goalPercent}>60%</Text>
+            <Text style={styles.goalPercent}>
+              {weeklyStats ? Math.round(weeklyStats.today_progress_pct * 100) : 0}%
+            </Text>
           </View>
 
           <View style={styles.goalProgressWrapper}>
-            <ProgressBar progress={0.6} color={Palette.primary} />
-            <Text style={styles.goalProgressDetail}>12 of 20 solved</Text>
+            <ProgressBar progress={weeklyStats?.today_progress_pct || 0} color={Palette.primary} />
+            <Text style={styles.goalProgressDetail}>
+              {weeklyStats?.today_solved || 0} of {weeklyStats?.today_goal || 20} solved
+            </Text>
           </View>
 
           <TouchableOpacity
             style={styles.primaryBtn}
-            onPress={() => router.push('/quizzpage' as any)}
+            onPress={() => {
+              if (recommendation?.practice_route) {
+                router.push(recommendation.practice_route as any);
+              } else {
+                router.push('/quizzpage' as any);
+              }
+            }}
             activeOpacity={0.85}
           >
             <Text style={styles.primaryBtnText}>Continue Practice</Text>
@@ -94,7 +199,7 @@ export default function HomeScreen() {
                   <Text style={styles.collegePillText}>🏫 MY COLLEGE</Text>
                 </View>
                 <View style={styles.notifPill}>
-                  <Text style={styles.notifPillText}>3 New Updates</Text>
+                  <Text style={styles.notifPillText}>{collegeUpdatesCount} New Update{collegeUpdatesCount === 1 ? '' : 's'}</Text>
                 </View>
               </View>
               <Text style={styles.collegeTitle}>{profile.collegeName || 'KVG College of Engineering'}</Text>
@@ -315,17 +420,45 @@ export default function HomeScreen() {
           <Feather name="chevron-right" size={20} color={Palette.primary} />
         </TouchableOpacity>
 
+        {/* Live Government Jobs & Exam Notifications Banner */}
+        <TouchableOpacity
+          style={styles.govtJobsBanner}
+          onPress={() => router.push('/govt-jobs' as any)}
+          activeOpacity={0.85}
+        >
+          <View style={styles.govtJobsBadge}>
+            <Feather name="award" size={20} color="#FFFFFF" />
+          </View>
+          <View style={{ flex: 1 }}>
+            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
+              <Text style={styles.govtJobsTitle}>Live Govt Jobs & Exam Notifications</Text>
+              <View style={styles.govtLiveDotPill}>
+                <View style={styles.govtLiveDot} />
+                <Text style={styles.govtLiveDotText}>LIVE FEEDS</Text>
+              </View>
+            </View>
+            <Text style={styles.govtJobsDesc}>
+              Official updates from SSC, UPSC, IBPS, KPSC, BSF, SSB, RRB & Karnataka Police.
+            </Text>
+          </View>
+          <Feather name="chevron-right" size={20} color="#4F46E5" />
+        </TouchableOpacity>
+
         {/* 5. Weekly Activity Chart */}
         <View style={styles.sectionHeaderRow}>
           <Text style={styles.sectionTitle}>Weekly Progress</Text>
-          <Text style={styles.sectionSubtitle}>110 questions solved this week</Text>
+          <Text style={styles.sectionSubtitle}>
+            {weeklyStats
+              ? `${weeklyStats.total_solved_this_week} question${weeklyStats.total_solved_this_week === 1 ? '' : 's'} solved this week`
+              : '0 questions solved this week'}
+          </Text>
         </View>
 
         <View style={styles.weeklyCard}>
           <View style={styles.chartBarsRow}>
             {weeklyDays.map((d, i) => {
-              const max = 35;
-              const barHeight = Math.max((d.count / max) * 70, 8);
+              const maxCount = Math.max(...weeklyDays.map((x) => x.count), 25);
+              const barHeight = d.count > 0 ? Math.max((d.count / maxCount) * 70, 10) : 4;
               return (
                 <View key={i} style={styles.chartCol}>
                   <Text style={styles.barCount}>{d.count > 0 ? d.count : ''}</Text>
@@ -359,16 +492,26 @@ export default function HomeScreen() {
               <Feather name="trending-up" size={18} color={Palette.primary} />
             </View>
             <View style={styles.recommendInfo}>
-              <Text style={styles.recommendTitle}>Practice Percentage — Medium</Text>
-              <Text style={styles.recommendStats}>Your current accuracy: 54%</Text>
+              <Text style={styles.recommendTitle}>
+                Practice {recommendation?.topic || 'Quantitative Aptitude'} — {recommendation?.difficulty || 'Medium'}
+              </Text>
+              <Text style={styles.recommendStats}>
+                Your current accuracy: {recommendation ? `${Math.round(recommendation.accuracy_percentage)}%` : '0%'}
+              </Text>
             </View>
           </View>
           <Text style={styles.recommendDesc}>
-            Boosting your accuracy in Quantitative Aptitude by 15% unlocks placement level evaluations.
+            {recommendation?.reason || 'Boosting your accuracy by practicing focused topics unlocks placement level evaluations.'}
           </Text>
           <TouchableOpacity
             style={styles.recommendBtn}
-            onPress={() => router.push('/mathematics' as any)}
+            onPress={() => {
+              if (recommendation?.practice_route) {
+                router.push(recommendation.practice_route as any);
+              } else {
+                router.push('/mathematics' as any);
+              }
+            }}
           >
             <Text style={styles.recommendBtnText}>Practice Now</Text>
             <Feather name="arrow-right" size={14} color="#FFFFFF" />
@@ -865,6 +1008,58 @@ const styles = StyleSheet.create({
     color: '#DC2626',
   },
   liveInterviewDesc: {
+    fontSize: 12,
+    color: '#64748B',
+    marginTop: 2,
+    lineHeight: 16,
+  },
+  govtJobsBanner: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+    backgroundColor: '#FFFFFF',
+    marginHorizontal: 16,
+    marginBottom: 20,
+    padding: 14,
+    borderRadius: Radii.lg,
+    borderWidth: 1.5,
+    borderColor: '#C7D2FE',
+    ...Shadows.md,
+  },
+  govtJobsBadge: {
+    width: 44,
+    height: 44,
+    borderRadius: 22,
+    backgroundColor: '#4F46E5',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  govtJobsTitle: {
+    fontSize: 15,
+    fontWeight: '800',
+    color: '#0F172A',
+  },
+  govtLiveDotPill: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+    backgroundColor: '#EEF2FF',
+    paddingHorizontal: 6,
+    paddingVertical: 2,
+    borderRadius: 4,
+  },
+  govtLiveDot: {
+    width: 6,
+    height: 6,
+    borderRadius: 3,
+    backgroundColor: '#16A34A',
+  },
+  govtLiveDotText: {
+    fontSize: 9.5,
+    fontWeight: '800',
+    color: '#4F46E5',
+  },
+  govtJobsDesc: {
     fontSize: 12,
     color: '#64748B',
     marginTop: 2,

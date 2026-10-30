@@ -1,14 +1,14 @@
 from datetime import datetime
 from typing import Dict, List, Optional
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, field_validator
 from backend.app.models.note import VisibilityEnum
 from backend.app.models.quiz import DifficultyEnum
 
 
 class CreateQuestionRequest(BaseModel):
     section: Optional[str] = "engineering"
-    subject: str = Field(..., min_length=2, max_length=100)
-    topic: str = Field(..., min_length=2, max_length=100)
+    subject: Optional[str] = None
+    topic: Optional[str] = None
     subtopic: Optional[str] = None
     language: Optional[str] = None
     
@@ -21,6 +21,12 @@ class CreateQuestionRequest(BaseModel):
     marks: float = 2.0
     negative_marks: float = 0.5
     order_index: int = 0
+
+    @field_validator("difficulty", mode="before")
+    def validate_difficulty(cls, v):
+        if isinstance(v, str):
+            return v.upper()
+        return v
 
 
 class QuestionForStudentResponse(BaseModel):
@@ -88,6 +94,18 @@ class CreateQuizRequest(BaseModel):
     target_student_ids: Optional[List[str]] = None
     
     questions: Optional[List[CreateQuestionRequest]] = Field(default_factory=list)
+
+    @field_validator("visibility", mode="before")
+    def validate_visibility(cls, v):
+        if isinstance(v, str):
+            return v.lower()
+        return v
+
+    @field_validator("difficulty", mode="before")
+    def validate_difficulty(cls, v):
+        if isinstance(v, str):
+            return v.upper()
+        return v
 
 
 class QuizResponse(BaseModel):

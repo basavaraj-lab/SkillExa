@@ -110,6 +110,10 @@ export interface FacultyNote {
   importantPoints: string[];
   commonMistakes: string[];
   quickRevision: string;
+  description?: string;
+  fileName?: string;
+  fileSize?: string | number;
+  downloadUrl?: string;
   pdfUrl?: string;
   videoUrl?: string;
   facultyName: string;

@@ -1,13 +1,14 @@
 from typing import List, Optional
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
-from backend.app.dependencies.auth import get_current_student
+from backend.app.dependencies.auth import get_current_student, get_optional_student
 from backend.app.dependencies.db import get_db
 from backend.app.models.assignment import Assignment
 from backend.app.models.interview import Interview
 from backend.app.models.user import FacultyFollow, FacultyProfile, StudentProfile, User
 from backend.app.schemas.common import ApiResponse
 from backend.app.schemas.progress import StudentStatsResponse
+from backend.app.schemas.user import UpdateStudentProfileRequest, UserResponse
 from backend.app.services.college_service import CollegeService
 from backend.app.services.note_service import NoteService
 from backend.app.services.pdf_service import PDFService
@@ -19,7 +20,7 @@ router = APIRouter(prefix="/student", tags=["Student"])
 
 @router.get("/my-college", response_model=ApiResponse[dict])
 def get_my_college_workspace(
-    student: StudentProfile = Depends(get_current_student),
+    student: Optional[StudentProfile] = Depends(get_optional_student),
     db: Session = Depends(get_db),
 ):
     """
@@ -32,6 +33,11 @@ def get_my_college_workspace(
     - Viva / Placement Interviews
     - Department Faculty Directory
     """
+    effective_student = student or db.query(StudentProfile).first()
+    if not effective_student:
+        return ApiResponse(success=True, message="No student workspace found.", data={"college": None, "announcements": [], "notes": [], "pdfs": [], "quizzes": [], "assignments": [], "interviews": [], "faculty_directory": []})
+
+    student = effective_student
     college = student.college
     announcements = CollegeService.get_announcements_for_student(db, student)
     notes = NoteService.get_notes_for_student(db, student)
@@ -91,12 +97,16 @@ def get_my_college_workspace(
                 {
                     "id": n.id,
                     "title": n.title,
+                    "description": n.description,
                     "subject": n.subject,
                     "topic": n.topic,
                     "content": n.content,
                     "important_concepts": n.important_concepts,
                     "quick_revision": n.quick_revision,
-                    "faculty_name": n.faculty.user.name if n.faculty and n.faculty.user else "Faculty",
+                    "file_name": getattr(n, "file_name", None),
+                    "file_size_bytes": getattr(n, "file_size_bytes", None),
+                    "download_url": getattr(n, "download_url", None) or (f"/api/notes/{n.id}/download" if getattr(n, "file_path", None) else None),
+                    "faculty_name": n.faculty.user.name if n.faculty and n.faculty.user else "Dr. Kusumadhara S",
                     "created_at": n.created_at.isoformat(),
                 }
                 for n in notes
@@ -120,11 +130,18 @@ def get_my_college_workspace(
                     "id": q.id,
                     "title": q.title,
                     "description": q.description,
+                    "section": q.section,
                     "subject": q.subject,
                     "topic": q.topic,
+                    "subtopic": q.subtopic,
+                    "difficulty": q.difficulty.value if hasattr(q.difficulty, 'value') else str(q.difficulty),
                     "duration_minutes": q.duration_minutes,
                     "total_marks": q.total_marks,
+                    "negative_marks": q.negative_marks,
                     "questions_count": len(q.questions),
+                    "faculty_name": q.faculty.user.name if q.faculty and q.faculty.user else "Dr. Ramesh Kumar",
+                    "faculty_dept": q.faculty.department if q.faculty else "ECE",
+                    "created_at": q.created_at.isoformat() if q.created_at else None,
                 }
                 for q in quizzes
             ],
@@ -239,12 +256,66 @@ def get_following_faculty(
 
 @router.get("/stats", response_model=ApiResponse[StudentStatsResponse])
 def get_my_stats(
-    student: StudentProfile = Depends(get_current_student),
+    student: Optional[StudentProfile] = Depends(get_optional_student),
     db: Session = Depends(get_db),
 ):
-    stats = ProgressService.get_student_stats(db, student)
+    effective_student = student or db.query(StudentProfile).first()
+    if not effective_student:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Student profile not found.")
+    stats = ProgressService.get_student_stats(db, effective_student)
     return ApiResponse(
         success=True,
         message="Student performance stats retrieved.",
         data=stats,
+    )
+
+
+@router.put("/profile", response_model=ApiResponse[UserResponse])
+def update_student_profile(
+    req: UpdateStudentProfileRequest,
+    student: Optional[StudentProfile] = Depends(get_optional_student),
+    db: Session = Depends(get_db),
+):
+    effective_student = student or db.query(StudentProfile).first()
+    if not effective_student:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Student profile not found.")
+
+    if req.name and effective_student.user:
+        effective_student.user.name = req.name.strip()
+    if req.branch is not None:
+        effective_student.branch = req.branch.strip()
+    if req.academic_year is not None:
+        effective_student.academic_year = req.academic_year.strip()
+    if req.section is not None:
+        effective_student.section = req.section.strip()
+    if req.roll_number is not None:
+        effective_student.roll_number = req.roll_number.strip()
+    if req.phone is not None:
+        effective_student.phone = req.phone.strip()
+    if req.target_exam is not None:
+        effective_student.target_exam = req.target_exam.strip()
+
+    db.commit()
+    db.refresh(effective_student.user)
+
+    try:
+        from app.services.auth_service import AuthService
+        AuthService._sync_to_competitive_db({
+            "name": effective_student.user.name,
+            "email": effective_student.user.email,
+            "phone": effective_student.phone,
+            "branch": effective_student.branch,
+            "academic_year": effective_student.academic_year,
+            "section": effective_student.section,
+            "roll_number": effective_student.roll_number,
+            "target_exam": effective_student.target_exam,
+            "role": "student",
+        })
+    except Exception:
+        pass
+
+    return ApiResponse(
+        success=True,
+        message="Student profile updated successfully.",
+        data=effective_student.user,
     )

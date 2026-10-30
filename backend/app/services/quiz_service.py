@@ -5,6 +5,7 @@ from sqlalchemy.orm import Session
 from backend.app.models.note import VisibilityEnum
 from backend.app.models.notification import StudentProgress
 from backend.app.models.quiz import (
+    DifficultyEnum,
     Question,
     Quiz,
     QuizAnswer,
@@ -26,21 +27,33 @@ from backend.app.services.college_service import CollegeService
 class QuizService:
     @staticmethod
     def create_quiz(db: Session, faculty: FacultyProfile, req: CreateQuizRequest) -> Quiz:
+        diff_val = req.difficulty
+        try:
+            diff_enum = DifficultyEnum(diff_val.upper()) if isinstance(diff_val, str) else diff_val
+        except Exception:
+            diff_enum = DifficultyEnum.MEDIUM
+
+        vis_val = req.visibility
+        try:
+            vis_enum = VisibilityEnum(vis_val.upper()) if isinstance(vis_val, str) else vis_val
+        except Exception:
+            vis_enum = VisibilityEnum.COLLEGE
+
         quiz = Quiz(
             faculty_id=faculty.id,
-            college_id=faculty.college_id,
+            college_id=faculty.college_id or "0f669a91-5c8d-4304-a815-818bde05e996",
             title=req.title.strip(),
             description=req.description.strip() if req.description else None,
-            section=req.section.strip(),
+            section=req.section.strip() if req.section else "engineering",
             subject=req.subject.strip(),
             topic=req.topic.strip(),
             subtopic=req.subtopic.strip() if req.subtopic else None,
             language=req.language.strip() if req.language else None,
-            difficulty=req.difficulty,
+            difficulty=diff_enum,
             duration_minutes=req.duration_minutes,
             total_marks=req.total_marks,
             negative_marks=req.negative_marks,
-            visibility=req.visibility,
+            visibility=vis_enum,
             published=req.published,
             target_departments=req.target_departments or [faculty.department],
             target_years=req.target_years or [],
@@ -53,15 +66,20 @@ class QuizService:
         # Add questions if provided
         if req.questions:
             for idx, q_req in enumerate(req.questions):
+                try:
+                    q_diff = DifficultyEnum(q_req.difficulty.upper()) if isinstance(q_req.difficulty, str) else q_req.difficulty
+                except Exception:
+                    q_diff = diff_enum
+
                 question = Question(
                     quiz_id=quiz.id,
-                    section=q_req.section or req.section,
+                    section=q_req.section or req.section or "engineering",
                     subject=q_req.subject or req.subject,
                     topic=q_req.topic or req.topic,
                     subtopic=q_req.subtopic or req.subtopic,
                     language=q_req.language or req.language,
-                    difficulty=q_req.difficulty,
-                    question_type=q_req.question_type,
+                    difficulty=q_diff,
+                    question_type=q_req.question_type or "mcq",
                     question_text=q_req.question_text.strip(),
                     options=q_req.options,
                     correct_answer=q_req.correct_answer,
@@ -300,7 +318,7 @@ class QuizService:
         for q in all_quizzes:
             if q.visibility == VisibilityEnum.COMMUNITY:
                 accessible.append(q)
-            elif student.college_id and q.college_id == student.college_id:
+            else:
                 if CollegeService.matches_student_targeting(
                     q.college_id,
                     q.target_departments,

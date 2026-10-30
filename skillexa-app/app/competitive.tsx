@@ -1,6 +1,6 @@
 import { Feather } from '@expo/vector-icons';
 import { router } from 'expo-router';
-import React from 'react';
+import React, { useEffect, useMemo, useRef } from 'react';
 import {
   Platform,
   SafeAreaView,
@@ -10,18 +10,72 @@ import {
   TouchableOpacity,
   View,
 } from 'react-native';
+import { useAuth } from '../components/auth-context';
 import { AppHeader } from '../components/common/AppHeader';
 import { Palette } from '../constants/theme';
 
 export default function CompetitiveDashboard() {
+  const { profile } = useAuth();
+  const iframeRef = useRef<HTMLIFrameElement | null>(null);
+
+  // Unified student profile parameters from SkillExa login & registration
+  const userEmail = profile?.email || 'ganesh@kvgce.edu.in';
+  const userName = profile?.name || 'Ganesh Sharan';
+  const userPhone = profile?.phone || '+91 98765 43210';
+  const userCollege = profile?.collegeName || 'KVG College of Engineering';
+  const userBranch = profile?.department || 'ECE';
+  const userYear = profile?.academicYear || '3rd Year';
+  const userSection = profile?.section || 'A';
+  const userRoll = profile?.rollNumber || '4KV22EC018';
+  const userRole = profile?.role === 'FACULTY' ? 'admin' : 'student';
+
+  const competitiveUrl = useMemo(() => {
+    const params = new URLSearchParams({
+      email: userEmail,
+      name: userName,
+      phone: userPhone,
+      college: userCollege,
+      branch: userBranch,
+      year: userYear,
+      section: userSection,
+      roll: userRoll,
+      role: userRole,
+    });
+    return `http://localhost:5173?${params.toString()}`;
+  }, [userEmail, userName, userPhone, userCollege, userBranch, userYear, userSection, userRoll, userRole]);
+
+  // Seamlessly sync student profile into Competitive platform backend
+  useEffect(() => {
+    if (userEmail) {
+      fetch('http://localhost:3001/api/user/sync', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          email: userEmail,
+          name: userName,
+          phone: userPhone,
+          college: userCollege,
+          branch: userBranch,
+          year: userYear,
+          section: userSection,
+          rollNumber: userRoll,
+          role: userRole,
+        }),
+      }).catch((err) => {
+        console.log('Competitive sync notice:', err);
+      });
+    }
+  }, [userEmail, userName, userPhone, userCollege, userBranch, userYear, userSection, userRoll, userRole]);
+
   if (Platform.OS === 'web') {
     return (
       <SafeAreaView style={styles.safeArea}>
         <StatusBar barStyle="dark-content" backgroundColor="#FFFFFF" />
-        <AppHeader showBack title="Competitive Exams Suite" subtitle="Powered by SkillExa Competitive Platform" />
+        <AppHeader showBack title="Competitive Exams Suite" subtitle={`Logged in as ${userName} (${userEmail})`} />
         <View style={styles.webContainer}>
           <iframe
-            src="http://localhost:5173"
+            ref={iframeRef as any}
+            src={competitiveUrl}
             style={{
               width: '100%',
               height: '100%',
@@ -43,13 +97,13 @@ export default function CompetitiveDashboard() {
         <Feather name="award" size={48} color={Palette.primary} />
         <Text style={styles.fallbackTitle}>Competitive Exams Platform</Text>
         <Text style={styles.fallbackSubtitle}>
-          Open the Competitive Exam Platform in your web browser.
+          Unified with your SkillExa account ({userEmail}). Open in your browser to continue.
         </Text>
         <TouchableOpacity
           style={styles.openBtn}
           onPress={() => {
             if (typeof window !== 'undefined') {
-              window.open('http://localhost:5173', '_blank');
+              window.open(competitiveUrl, '_blank');
             }
           }}
         >
@@ -62,8 +116,8 @@ export default function CompetitiveDashboard() {
 }
 
 const styles = StyleSheet.create({
-  safeArea: { flex: 1, backgroundColor: '#0B1120' },
-  webContainer: { flex: 1, backgroundColor: '#0B1120' },
+  safeArea: { flex: 1, backgroundColor: '#F8FAFC' },
+  webContainer: { flex: 1, backgroundColor: '#F8FAFC' },
   fallbackContainer: {
     flex: 1,
     alignItems: 'center',

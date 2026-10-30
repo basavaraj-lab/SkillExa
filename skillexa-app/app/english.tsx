@@ -78,10 +78,11 @@ export default function EnglishSubjectPage() {
                 style={[styles.topicCard, isInProgress && styles.topicCardActive]}
                 onPress={() =>
                   router.push({
-                    pathname: '/topic-learning',
+                    pathname: '/aptitude-test',
                     params: {
-                      subject: 'English',
+                      category: 'Verbal Ability',
                       topic: topic.title,
+                      autoStart: 'true',
                     },
                   })
                 }

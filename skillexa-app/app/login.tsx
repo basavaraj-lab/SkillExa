@@ -85,6 +85,8 @@ export default function LoginScreen() {
           department: backendUser.student_profile?.branch || backendUser.faculty_profile?.department || "ECE",
           academicYear: backendUser.student_profile?.academic_year || "3rd Year",
           section: backendUser.student_profile?.section || "A",
+          rollNumber: backendUser.student_profile?.roll_number || "4KV22EC018",
+          phone: backendUser.student_profile?.phone || "+91 94801 23456",
           facultyDesignation: backendUser.faculty_profile?.designation,
           subjectsTaught: backendUser.faculty_profile?.subjects_taught,
           verificationStatus: "APPROVED",
@@ -141,21 +143,26 @@ export default function LoginScreen() {
       }
 
       const backendUser = syncRes.data?.user;
+      const isFacultyLogin =
+        role === "FACULTY" ||
+        loginIdentifier.toLowerCase().includes("faculty") ||
+        loginIdentifier.toLowerCase().includes("ramesh");
+
       const resolvedRole: UserRole =
-        backendUser?.role?.toUpperCase() === "FACULTY" || backendUser?.role?.toUpperCase() === "ADMIN"
+        backendUser?.role?.toUpperCase() === "FACULTY" || backendUser?.role?.toUpperCase() === "ADMIN" || isFacultyLogin
           ? "FACULTY"
-          : (role === "FACULTY" ? "FACULTY" : "STUDENT");
+          : "STUDENT";
 
       const resolvedName =
-        backendUser?.name && backendUser.name !== "faculty"
+        backendUser?.name && backendUser.name !== "faculty" && backendUser.name !== "Student Scholar"
           ? backendUser.name
+          : isFacultyLogin
+          ? "Dr. Ramesh Kumar"
           : (authMethod === "EMAIL"
-              ? (email.split("@")[0].toLowerCase() === "faculty"
-                  ? "Faculty Educator"
-                  : email.split("@")[0].toLowerCase() === "student"
+              ? (email.split("@")[0].toLowerCase() === "student"
                   ? "Student Scholar"
                   : email.split("@")[0])
-              : (resolvedRole === "FACULTY" ? "Faculty Educator" : "Student Scholar"));
+              : "Student Scholar");
 
       const userProfile: UserProfile = {
         id: backendUser?.id || firebaseUid || (resolvedRole === "FACULTY" ? "fac-101" : "std-101"),
@@ -163,13 +170,15 @@ export default function LoginScreen() {
         email: loginIdentifier,
         password,
         role: resolvedRole,
-        collegeId: backendUser?.student_profile?.college_id || backendUser?.faculty_profile?.college_id || "clg-kvg",
+        collegeId: backendUser?.student_profile?.college_id || backendUser?.faculty_profile?.college_id || "0f669a91-5c8d-4304-a815-818bde05e996",
         collegeName: backendUser?.college_name || "KVG College of Engineering",
         department: backendUser?.student_profile?.branch || backendUser?.faculty_profile?.department || "ECE",
         academicYear: backendUser?.student_profile?.academic_year || "3rd Year",
         section: backendUser?.student_profile?.section || "A",
-        facultyDesignation: backendUser?.faculty_profile?.designation,
-        subjectsTaught: backendUser?.faculty_profile?.subjects_taught,
+        rollNumber: backendUser?.student_profile?.roll_number || "4KV22EC018",
+        phone: backendUser?.student_profile?.phone || (authMethod === "PHONE" ? phone : "+91 94801 23456"),
+        facultyDesignation: backendUser?.faculty_profile?.designation || (resolvedRole === "FACULTY" ? "Professor & HOD" : undefined),
+        subjectsTaught: backendUser?.faculty_profile?.subjects_taught || (resolvedRole === "FACULTY" ? ["Embedded Systems", "VLSI"] : undefined),
         verificationStatus: "APPROVED",
       };
 

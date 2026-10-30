@@ -30,6 +30,7 @@ APTITUDE_CATALOG: Dict[str, List[str]] = {
         "Mixtures and Allegations",
         "HCF and LCM",
         "Simplification",
+        "Mensuration",
         "Data Interpretation",
     ],
     "Logical Reasoning": [
@@ -455,6 +456,7 @@ class LLMAptitudeGenerator:
             cls._gen_time_speed_distance,
             cls._gen_time_and_work,
             cls._gen_ratio_and_proportion,
+            cls._gen_mensuration,
             cls._gen_averages,
             cls._gen_problems_on_ages,
             cls._gen_probability,
@@ -482,6 +484,8 @@ class LLMAptitudeGenerator:
             preferred = [cls._gen_time_speed_distance]
         elif "work" in topic_lower:
             preferred = [cls._gen_time_and_work]
+        elif "mensurat" in topic_lower:
+            preferred = [cls._gen_mensuration]
         elif "ratio" in topic_lower or "proportion" in topic_lower:
             preferred = [cls._gen_ratio_and_proportion]
         elif "average" in topic_lower:
@@ -801,6 +805,24 @@ class LLMAptitudeGenerator:
             "explanation": expl,
             "category": "Quantitative Aptitude",
             "topic": "HCF and LCM",
+        }
+
+    @staticmethod
+    def _gen_mensuration(difficulty: str) -> Dict[str, Any]:
+        radius = random.choice([7, 14, 21, 28])
+        height = random.choice([5, 10, 15, 20])
+        volume = int((22 / 7) * radius * radius * height)
+        q = f"A solid right circular cylinder has a base radius of {radius} cm and a height of {height} cm. Find its volume in cubic centimetres (use π = 22/7)."
+        ans = f"{volume:,} cm³"
+        expl = f"Volume of cylinder = π * r² * h = (22/7) * {radius} * {radius} * {height} = {volume:,} cm³."
+        distractors = [f"{volume + 154:,} cm³", f"{volume - 154:,} cm³", f"{volume + 308:,} cm³"]
+        return {
+            "question": q,
+            "options": [{"id": "A", "text": ans}] + [{"id": chr(66 + i), "text": d} for i, d in enumerate(distractors)],
+            "correct_answer": "A",
+            "explanation": expl,
+            "category": "Quantitative Aptitude",
+            "topic": "Mensuration",
         }
 
     @staticmethod

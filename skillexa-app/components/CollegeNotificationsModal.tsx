@@ -1,6 +1,6 @@
 import { Feather } from '@expo/vector-icons';
 import { router } from 'expo-router';
-import React, { useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import {
   Modal,
   Pressable,
@@ -12,6 +12,7 @@ import {
 } from 'react-native';
 import { Palette, Radii, Shadows } from '../constants/theme';
 import { CollegeNotification } from '../data/collegeData';
+import { ApiClient } from '../services/api';
 import { CollegeStore } from '../services/collegeStore';
 import { useAuth } from './auth-context';
 
@@ -19,15 +20,86 @@ export function CollegeNotificationsModal({ visible, onClose }: { visible: boole
   const { profile } = useAuth();
   const [notifications, setNotifications] = useState<CollegeNotification[]>([]);
 
+  const isFaculty =
+    profile?.role === 'FACULTY' ||
+    profile?.role === 'ADMIN' ||
+    profile?.email?.includes('faculty') ||
+    profile?.email === 'dr.ramesh@kvgce.edu.in';
+
+  const fetchNotifications = useCallback(async () => {
+    try {
+      const res = await ApiClient.getNotifications();
+      if (res?.success && Array.isArray(res.data)) {
+        let apiNotifs: CollegeNotification[] = res.data.map((n: any) => ({
+          id: n.id,
+          studentId: n.user_id,
+          collegeId: n.college_id || profile.collegeId || 'clg-kvg',
+          type: (n.type || 'ANNOUNCEMENT') as any,
+          title: n.title,
+          message: n.message,
+          createdAt: n.created_at ? n.created_at.split('T')[0] : 'Today',
+          isRead: !!n.is_read,
+          actionRoute: n.action_route || '/my-college',
+          actionParams: n.action_params || {},
+        }));
+
+        if (isFaculty) {
+          // Faculty only see administrative or broad updates, never student study materials
+          apiNotifs = apiNotifs.filter(
+            (n) => n.type !== 'NOTE' && n.type !== 'QUIZ' && n.type !== 'VIDEO' && n.type !== 'ASSIGNMENT'
+          );
+        }
+
+        // Strict de-duplication by title and message
+        const seen = new Set<string>();
+        const deduped: CollegeNotification[] = [];
+        for (const n of apiNotifs) {
+          const key = `${(n.title || '').trim()}::${(n.message || '').trim()}`;
+          if (!seen.has(key)) {
+            seen.add(key);
+            deduped.push(n);
+          }
+        }
+
+        setNotifications(deduped);
+        return;
+      }
+    } catch (err) {
+      console.log('Error fetching notifications from backend:', err);
+    }
+
+    if (isFaculty) {
+      setNotifications([]);
+      return;
+    }
+
+    const fallbackList = CollegeStore.getNotifications(profile.id);
+    const seen = new Set<string>();
+    const deduped: CollegeNotification[] = [];
+    for (const n of fallbackList) {
+      const key = `${(n.title || '').trim()}::${(n.message || '').trim()}`;
+      if (!seen.has(key)) {
+        seen.add(key);
+        deduped.push(n);
+      }
+    }
+    setNotifications(deduped);
+  }, [profile.id, profile.collegeId, isFaculty]);
+
   useEffect(() => {
-    setNotifications(CollegeStore.getNotifications(profile.id || 'std-101'));
-    return CollegeStore.subscribe(() => {
-      setNotifications(CollegeStore.getNotifications(profile.id || 'std-101'));
+    if (visible) {
+      fetchNotifications();
+    }
+    const unsub = CollegeStore.subscribe(() => {
+      fetchNotifications();
     });
-  }, [profile.id]);
+    return unsub;
+  }, [visible, fetchNotifications]);
 
   const handleNotificationPress = (notif: CollegeNotification) => {
     CollegeStore.markAsRead(notif.id);
+    ApiClient.markNotificationRead(notif.id).catch(() => {});
+    setNotifications((prev) => prev.map((n) => (n.id === notif.id ? { ...n, isRead: true } : n)));
     onClose();
     if (notif.actionRoute) {
       router.push({
@@ -35,6 +107,22 @@ export function CollegeNotificationsModal({ visible, onClose }: { visible: boole
         params: notif.actionParams,
       });
     }
+  };
+
+  const handleMarkAllAsRead = async () => {
+    CollegeStore.markAllAsRead(profile.id || 'std-101');
+    ApiClient.markAllNotificationsRead().catch(() => {});
+    setNotifications((prev) => prev.map((n) => ({ ...n, isRead: true })));
+  };
+
+  const handleDeleteNotification = async (id: string) => {
+    try {
+      await ApiClient.deleteNotification(id);
+    } catch (err) {
+      console.log('Error deleting notification on backend:', err);
+    }
+    CollegeStore.deleteNotification(id);
+    setNotifications((prev) => prev.filter((n) => n.id !== id));
   };
 
   const getIcon = (type: CollegeNotification['type']) => {
@@ -66,7 +154,7 @@ export function CollegeNotificationsModal({ visible, onClose }: { visible: boole
               <Text style={styles.title}>College Notifications</Text>
             </View>
 
-            <TouchableOpacity onPress={() => CollegeStore.markAllAsRead(profile.id || 'std-101')}>
+            <TouchableOpacity onPress={handleMarkAllAsRead}>
               <Text style={styles.markAllText}>Mark all as read</Text>
             </TouchableOpacity>
           </View>
@@ -94,8 +182,21 @@ export function CollegeNotificationsModal({ visible, onClose }: { visible: boole
 
                     <View style={{ flex: 1 }}>
                       <View style={styles.itemTopRow}>
-                        <Text style={styles.itemTitle}>{notif.title}</Text>
-                        {!notif.isRead && <View style={styles.unreadDot} />}
+                        <Text style={[styles.itemTitle, { flex: 1 }]} numberOfLines={1}>
+                          {notif.title}
+                        </Text>
+                        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8, marginLeft: 8 }}>
+                          {!notif.isRead && <View style={styles.unreadDot} />}
+                          <TouchableOpacity
+                            onPress={(e) => {
+                              e.stopPropagation?.();
+                              handleDeleteNotification(notif.id);
+                            }}
+                            hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+                          >
+                            <Feather name="trash-2" size={14} color={Palette.danger} />
+                          </TouchableOpacity>
+                        </View>
                       </View>
                       <Text style={styles.itemMessage}>{notif.message}</Text>
                       <Text style={styles.itemTime}>{notif.createdAt}</Text>
@@ -121,12 +222,44 @@ export function NotificationBellButton() {
   const [unreadCount, setUnreadCount] = useState(0);
   const [modalVisible, setModalVisible] = useState(false);
 
+  const isFaculty =
+    profile?.role === 'FACULTY' ||
+    profile?.role === 'ADMIN' ||
+    profile?.email?.includes('faculty') ||
+    profile?.email === 'dr.ramesh@kvgce.edu.in';
+
+  const refreshCount = useCallback(async () => {
+    try {
+      const res = await ApiClient.getNotifications();
+      if (res?.success && Array.isArray(res.data)) {
+        let list = res.data;
+        if (isFaculty) {
+          list = list.filter(
+            (n: any) => n.type !== 'NOTE' && n.type !== 'QUIZ' && n.type !== 'VIDEO' && n.type !== 'ASSIGNMENT'
+          );
+        }
+        const unread = list.filter((n: any) => !n.is_read).length;
+        setUnreadCount(unread);
+        return;
+      }
+    } catch {}
+
+    if (isFaculty) {
+      setUnreadCount(0);
+      return;
+    }
+    setUnreadCount(CollegeStore.getUnreadCount(profile.id));
+  }, [profile.id, isFaculty]);
+
   useEffect(() => {
-    setUnreadCount(CollegeStore.getUnreadCount(profile.id || 'std-101'));
-    return CollegeStore.subscribe(() => {
-      setUnreadCount(CollegeStore.getUnreadCount(profile.id || 'std-101'));
-    });
-  }, [profile.id]);
+    refreshCount();
+    const interval = setInterval(refreshCount, 15000);
+    const unsub = CollegeStore.subscribe(refreshCount);
+    return () => {
+      clearInterval(interval);
+      unsub();
+    };
+  }, [refreshCount]);
 
   return (
     <>
@@ -143,7 +276,10 @@ export function NotificationBellButton() {
         )}
       </TouchableOpacity>
 
-      <CollegeNotificationsModal visible={modalVisible} onClose={() => setModalVisible(false)} />
+      <CollegeNotificationsModal visible={modalVisible} onClose={() => {
+        setModalVisible(false);
+        refreshCount();
+      }} />
     </>
   );
 }

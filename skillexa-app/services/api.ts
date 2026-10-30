@@ -193,7 +193,12 @@ async function request<T>(
   options: RequestInit = {}
 ): Promise<{ success: boolean; data?: T; message?: string; code?: string; isOffline?: boolean }> {
   // Ensure authenticated token for non-auth endpoints
-  if (!authToken && !endpoint.includes('/auth/login') && !endpoint.includes('/health')) {
+  if (endpoint.startsWith('/faculty/')) {
+    const role = parseJwtRole(authToken);
+    if (!authToken || (role !== 'faculty' && role !== 'admin')) {
+      await ensureAuthToken(true, 'FACULTY');
+    }
+  } else if (!authToken && !endpoint.includes('/auth/login') && !endpoint.includes('/health')) {
     await ensureAuthToken();
   }
 
@@ -231,6 +236,16 @@ async function request<T>(
     }
 
     const data = await response.json();
+    if (!response.ok) {
+      const errMsg = Array.isArray(data?.detail)
+        ? data.detail.map((d: any) => `${d.loc ? d.loc.filter((x: any) => x !== 'body').join('.') + ': ' : ''}${d.msg}`).join(', ')
+        : (typeof data?.detail === 'string' ? data.detail : (data?.message || `Request failed with status ${response.status}`));
+      return {
+        success: false,
+        message: errMsg,
+        ...data,
+      };
+    }
     return data;
   } catch (error: any) {
     return {
@@ -377,6 +392,19 @@ export const ApiClient = {
 
   getStudentStats: () => request<any>('/student/stats'),
 
+  updateStudentProfile: (payload: {
+    name?: string;
+    branch?: string;
+    academic_year?: string;
+    section?: string;
+    roll_number?: string;
+    phone?: string;
+  }) =>
+    request<any>('/student/profile', {
+      method: 'PUT',
+      body: JSON.stringify(payload),
+    }),
+
   // 3. Community Feed
   getCommunityContent: (params: { category?: string; contentType?: string; search?: string; page?: number; limit?: number }) => {
     const query = new URLSearchParams();
@@ -396,13 +424,188 @@ export const ApiClient = {
     return request<any[]>(`/notes?${query.toString()}`);
   },
 
+  uploadFacultyNote: async (formData: FormData): Promise<{ success: boolean; data?: any; message?: string }> => {
+    try {
+      const url = `${getApiBaseUrl()}/faculty/notes/upload`;
+      let token = getAuthToken();
+      if (!token) {
+        token = await ensureAuthToken(false, 'FACULTY');
+      }
+      const headers: Record<string, string> = {};
+      if (token) {
+        headers['Authorization'] = `Bearer ${token}`;
+      }
+      const res = await fetch(url, {
+        method: 'POST',
+        headers,
+        body: formData,
+      });
+      const data = await res.json();
+      return {
+        success: res.ok && data.success !== false,
+        data: data.data || data,
+        message: data.message || 'Notes uploaded successfully',
+      };
+    } catch (e: any) {
+      console.warn('uploadFacultyNote error:', e);
+      return { success: false, message: e.message || 'Failed to upload notes' };
+    }
+  },
+
+  getFacultyNotes: () => request<any>('/faculty/notes'),
+
   createFacultyNote: (payload: any) =>
     request<any>('/faculty/notes', {
       method: 'POST',
       body: JSON.stringify(payload),
     }),
 
+  deleteFacultyNote: async (id: string) => {
+    try {
+      let token = getAuthToken();
+      if (!token) {
+        token = await ensureAuthToken(false, 'FACULTY');
+      }
+      return await request<any>(`/faculty/notes/${id}`, {
+        method: 'DELETE',
+      });
+    } catch (e: any) {
+      console.warn('deleteFacultyNote error:', e);
+      return { success: false, message: e.message || 'Failed to delete note' };
+    }
+  },
+
+  // Competitive Exams Suite Notes
+  getCompetitiveNotes: async (subject?: string, search?: string): Promise<{ success: boolean; data: any[] }> => {
+    try {
+      const params = new URLSearchParams();
+      if (subject && subject !== 'All') params.append('subject', subject);
+      if (search && search.trim()) params.append('search', search.trim());
+      const res = await fetch(`http://localhost:3001/api/notes?${params.toString()}`);
+      if (res.ok) {
+        const json = await res.json();
+        return { success: true, data: json.data || [] };
+      }
+      return { success: false, data: [] };
+    } catch (e: any) {
+      console.warn('getCompetitiveNotes error:', e);
+      return { success: false, data: [] };
+    }
+  },
+
+  uploadCompetitiveNote: async (formData: FormData): Promise<{ success: boolean; data?: any; message?: string }> => {
+    try {
+      // 1. Direct upload to competitive server Express
+      const res = await fetch('http://localhost:3001/api/faculty/notes', {
+        method: 'POST',
+        body: formData,
+      });
+      const data = await res.json();
+      return {
+        success: res.ok && data.success !== false,
+        data: data.data || data,
+        message: data.message || 'Competitive note published successfully!',
+      };
+    } catch (e: any) {
+      console.warn('uploadCompetitiveNote error:', e);
+      return { success: false, message: e.message || 'Failed to upload competitive note' };
+    }
+  },
+
+  deleteCompetitiveNote: async (id: number | string): Promise<{ success: boolean; message?: string }> => {
+    try {
+      const res = await fetch(`http://localhost:3001/api/faculty/notes/${id}`, {
+        method: 'DELETE',
+      });
+      const data = await res.json();
+      return {
+        success: res.ok && data.success !== false,
+        message: data.message || 'Competitive note deleted successfully',
+      };
+    } catch (e: any) {
+      console.warn('deleteCompetitiveNote error:', e);
+      return { success: false, message: e.message || 'Failed to delete competitive note' };
+    }
+  },
+
+  // Live Official Government Jobs & Exam Notifications
+  getGovtJobs: async (params?: {
+    organization?: string;
+    category?: string;
+    update_type?: string;
+    status?: string;
+    search?: string;
+    limit?: number;
+  }) => {
+    const query = new URLSearchParams();
+    if (params?.organization && params.organization !== 'All') query.append('organization', params.organization);
+    if (params?.category && params.category !== 'All') query.append('category', params.category);
+    if (params?.update_type && params.update_type !== 'All') query.append('update_type', params.update_type);
+    if (params?.status && params.status !== 'All') query.append('status', params.status);
+    if (params?.search && params.search.trim()) query.append('search', params.search.trim());
+    if (params?.limit) query.append('limit', String(params.limit));
+    return request<any[]>(`/govt-jobs?${query.toString()}`);
+  },
+
+  getGovtJobsSummary: () => request<any>('/govt-jobs/summary'),
+
+  getGovtOrganizations: () => request<any[]>('/govt-jobs/organizations'),
+
+  getUpcomingGovtExams: () => request<any[]>('/govt-jobs/upcoming-exams'),
+
+  getGovtAdmitCards: () => request<any[]>('/govt-jobs/admit-cards'),
+
+  getGovtResults: () => request<any[]>('/govt-jobs/results'),
+
+  getGovtDeadlines: () => request<any[]>('/govt-jobs/deadlines'),
+
+  getGovtJobDetail: (id: string) => request<any>(`/govt-jobs/${id}`),
+
+  triggerGovtJobScrape: async (organization?: string) => {
+    const query = organization ? `?organization=${encodeURIComponent(organization)}` : '';
+    return request<any>(`/govt-jobs/scrape${query}`, { method: 'POST' });
+  },
+
+  // College Announcements
+  createAnnouncement: async (payload: {
+    title: string;
+    content: string;
+    priority?: string;
+    is_pinned?: boolean;
+    target_departments?: string[];
+    target_years?: string[];
+    target_sections?: string[];
+  }) => {
+    return request<any>('/faculty/announcements', {
+      method: 'POST',
+      body: JSON.stringify(payload),
+    });
+  },
+
+  getFacultyAnnouncements: async () => {
+    return request<any[]>('/faculty/announcements');
+  },
+
+  deleteAnnouncement: async (id: string) => {
+    return request<any>(`/faculty/announcements/${id}`, {
+      method: 'DELETE',
+    });
+  },
+
   // 5. Quizzes & Assessments
+  createQuiz: (data: any) =>
+    request<any>('/faculty/quizzes', {
+      method: 'POST',
+      body: JSON.stringify(data),
+    }),
+
+  getFacultyQuizzes: () => request<any[]>('/faculty/quizzes'),
+
+  deleteFacultyQuiz: (id: string) =>
+    request<any>(`/faculty/quizzes/${id}`, {
+      method: 'DELETE',
+    }),
+
   startQuizAttempt: (quizId: string) =>
     request<any>(`/quizzes/${quizId}/start`, {
       method: 'POST',
@@ -475,6 +678,11 @@ export const ApiClient = {
   markAllNotificationsRead: () =>
     request<any>('/notifications/read-all', {
       method: 'POST',
+    }),
+
+  deleteNotification: (id: string) =>
+    request<any>(`/notifications/${id}`, {
+      method: 'DELETE',
     }),
 
   // 9. Topics & Learning Curriculum (Backend-verified)
@@ -689,6 +897,11 @@ export const ApiClient = {
     return request<any[]>('/faculty/students');
   },
 
+  getFacultyPerformance: async () => {
+    await ensureAuthToken(false, 'FACULTY');
+    return request<any[]>('/faculty/performance');
+  },
+
   // Aptitude Test APIs
   getAptitudeCategories: async () => {
     return request<{
@@ -773,6 +986,11 @@ export const ApiClient = {
     await ensureAuthToken(false, 'STUDENT');
     return request<any[]>('/aptitude/history');
   },
+
+  getAptitudeTopicModule: (subject: string, topic: string, difficulty = 'Intermediate', count = 5) =>
+    request<any>(
+      `/aptitude/topic-learning?subject=${encodeURIComponent(subject)}&topic=${encodeURIComponent(topic)}&difficulty=${encodeURIComponent(difficulty)}&count=${count}`
+    ),
 };
 
 /**

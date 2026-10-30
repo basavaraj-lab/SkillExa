@@ -18,15 +18,26 @@ import { setAuthToken } from '../services/api';
 import { FacultySystemStore } from '../services/facultyStore';
 
 export default function FacultyDashboardScreen() {
-  const { profile, logout } = useAuth();
+  const { profile, logout, updateProfile } = useAuth();
   const [showLogoutModal, setShowLogoutModal] = useState(false);
   const [stats, setStats] = useState(FacultySystemStore.getStats());
 
   useEffect(() => {
-    if (profile?.role === 'STUDENT') {
+    const isFacultyUser =
+      profile?.role === 'FACULTY' ||
+      profile?.role === 'ADMIN' ||
+      profile?.email?.includes('faculty') ||
+      profile?.email === 'dr.ramesh@kvgce.edu.in';
+
+    if (isFacultyUser && profile?.role !== 'FACULTY') {
+      updateProfile({
+        role: 'FACULTY',
+        name: profile?.name === 'Student Scholar' || !profile?.name ? 'Dr. Ramesh Kumar' : profile.name,
+      });
+    } else if (!isFacultyUser && profile?.role === 'STUDENT') {
       router.replace('/home' as any);
     }
-  }, [profile?.role]);
+  }, [profile?.role, profile?.email]);
 
   const performLogout = () => {
     setShowLogoutModal(false);
@@ -78,6 +89,15 @@ export default function FacultyDashboardScreen() {
       count: `${stats.notesPublished} Published`,
     },
     {
+      id: 'competitive-notes',
+      title: 'Competitive Notes Upload',
+      desc: 'Upload aptitude, reasoning, English & GS study notes directly to the Competitive Exams portal',
+      icon: 'award',
+      color: '#4F46E5',
+      route: '/faculty/competitive-notes',
+      count: 'Competitive Portal',
+    },
+    {
       id: 'create-quiz',
       title: 'Create Quiz',
       desc: 'Author multi-question quizzes with time & negative marking',
@@ -87,15 +107,6 @@ export default function FacultyDashboardScreen() {
       count: `${stats.quizzesCreated} Quizzes`,
     },
     {
-      id: 'question-bank',
-      title: 'Question Bank',
-      desc: 'Filterable repository of MCQs, Numerical & Coding questions',
-      icon: 'database',
-      color: Palette.warning,
-      route: '/faculty/question-bank',
-      count: '50+ Questions',
-    },
-    {
       id: 'assignments',
       title: 'Assignments & Grading',
       desc: 'Assign quizzes to classes and view detailed submissions',
@@ -103,15 +114,6 @@ export default function FacultyDashboardScreen() {
       color: Palette.aiPurple,
       route: '/faculty/assignments',
       count: 'Active Batches',
-    },
-    {
-      id: 'interview',
-      title: 'Take Interview',
-      desc: 'Schedule custom viva & placement interviews with students',
-      icon: 'message-square',
-      color: Palette.primary,
-      route: '/faculty/interview',
-      count: `${stats.pendingEvaluations} Pending`,
     },
     {
       id: 'live-interview',

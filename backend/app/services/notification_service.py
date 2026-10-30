@@ -1,7 +1,7 @@
 from typing import Any, Dict, List, Optional
 from sqlalchemy.orm import Session
 from backend.app.models.notification import Notification, NotificationTypeEnum
-from backend.app.models.user import FacultyFollow, StudentProfile
+from backend.app.models.user import FacultyFollow, RoleEnum, StudentProfile
 from backend.app.services.college_service import CollegeService
 
 
@@ -40,7 +40,7 @@ class NotificationService:
         target_years: Optional[List[str]],
         target_sections: Optional[List[str]],
         target_student_ids: Optional[List[str]],
-        notification_type: NotificationTypeEnum,
+        notification_type: Any,
         title: str,
         message: str,
         reference_id: Optional[str] = None,
@@ -48,11 +48,25 @@ class NotificationService:
         action_params: Optional[Dict[str, Any]] = None,
     ):
         """Dispatch notifications only to matching students."""
-        if not college_id:
-            return
+        college_ids = [college_id] if college_id else []
+        if college_id in ["0f669a91-5c8d-4304-a815-818bde05e996", "clg-kvg"]:
+            college_ids = ["0f669a91-5c8d-4304-a815-818bde05e996", "clg-kvg"]
 
-        students = db.query(StudentProfile).filter(StudentProfile.college_id == college_id).all()
+        students_query = db.query(StudentProfile)
+        if college_ids:
+            students_query = students_query.filter(StudentProfile.college_id.in_(college_ids))
+        students = students_query.all()
+
+        try:
+            notif_enum = NotificationTypeEnum(notification_type) if isinstance(notification_type, str) else notification_type
+        except Exception:
+            notif_enum = NotificationTypeEnum.ANNOUNCEMENT
+
         for student in students:
+            # Never notify faculty accounts
+            if student.user and student.user.role == RoleEnum.FACULTY:
+                continue
+
             if CollegeService.matches_student_targeting(
                 college_id,
                 target_departments,
@@ -61,9 +75,25 @@ class NotificationService:
                 target_student_ids,
                 student,
             ):
+                # De-duplicate: avoid inserting duplicate notifications for the same reference or title
+                if reference_id:
+                    existing = db.query(Notification).filter(
+                        Notification.user_id == student.user_id,
+                        Notification.reference_id == reference_id,
+                    ).first()
+                    if existing:
+                        continue
+                else:
+                    existing = db.query(Notification).filter(
+                        Notification.user_id == student.user_id,
+                        Notification.title == title,
+                    ).first()
+                    if existing:
+                        continue
+
                 notif = Notification(
                     user_id=student.user_id,
-                    type=notification_type,
+                    type=notif_enum,
                     title=title,
                     message=message,
                     reference_id=reference_id,

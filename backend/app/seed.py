@@ -146,7 +146,13 @@ def seed_database():
         # Check if already seeded
         if db.query(College).first():
             seed_live_interviews_if_empty(db)
-            print("Database already contains data. Skipped primary seed, ensured interview bookings.")
+            try:
+                import asyncio
+                from backend.app.services.govt_job_scraper import GovtJobScraperService
+                asyncio.run(GovtJobScraperService.run_scraper(db))
+            except Exception as ge:
+                logger.warning(f"Govt jobs seed notice: {ge}")
+            print("Database already contains data. Ensured interview bookings and live government job feeds.")
             return
 
         print("Seeding SkillExa database...")
@@ -239,51 +245,8 @@ def seed_database():
         )
         db.add(ann1)
 
-        # 5. Faculty Notes (Targeted & Community)
-        # Note 1: College Targeted
-        note1 = FacultyNote(
-            faculty_id=f_ramesh.id,
-            college_id=clg_kvg.id,
-            title="Embedded Systems: Microcontroller Architecture & GPIO Protocols",
-            description="Complete hardware register mapping, push-pull vs open-drain configuration, and interrupt vector tables.",
-            content="Microcontroller units (MCUs) integrate CPU cores, SRAM, Flash memory, and I/O peripherals onto a single monolithic die...",
-            section="engineering",
-            subject="Embedded Systems",
-            topic="Microcontrollers",
-            important_concepts=[
-                "Registers dictate pin modes (Input, Output, Alternate Function, Analog).",
-                "Push-pull drives both VDD and GND actively; open-drain requires external pull-up resistor.",
-                "NVIC (Nested Vectored Interrupt Controller) provides deterministic low-latency interrupt handling.",
-            ],
-            quick_revision="GPIO = General Purpose Input Output. Ensure MODER is configured before reading IDR or writing ODR.",
-            visibility=VisibilityEnum.COLLEGE,
-            published=True,
-            target_departments=["ECE"],
-            target_years=["3rd Year"],
-            target_sections=["A"],
-        )
-        db.add(note1)
-
-        # Note 2: Community Note by Dr. Sunita Rao (RVCE)
-        note2 = FacultyNote(
-            faculty_id=f_sunita.id,
-            college_id=clg_rvce.id,
-            title="Python Functions Mastery: First-Class Citizens, Closures & Decorator Patterns",
-            description="Deep dive into execution frames, lexical scoping, closure cell objects, and functools wrappers.",
-            content="In Python, functions are first-class objects, meaning they can be passed as arguments, assigned to variables, and returned from other functions...",
-            section="programming",
-            subject="Programming in Python",
-            topic="Functions & Scope",
-            important_concepts=[
-                "Lexical scoping follows LEGB (Local, Enclosing, Global, Built-in).",
-                "Closures remember free variables from enclosing scopes via __closure__ cells.",
-                "Decorators accept a callable and return an enhanced wrapper function.",
-            ],
-            quick_revision="Use @functools.wraps(fn) inside decorators to preserve docstrings and original function metadata.",
-            visibility=VisibilityEnum.COMMUNITY,
-            published=True,
-        )
-        db.add(note2)
+        # 5. Faculty Notes (Targeted & Community) - dynamic/user uploaded only
+        # No hardcoded mock notes
 
         # 6. Faculty Quizzes
         quiz1 = Quiz(
@@ -415,6 +378,16 @@ def seed_database():
         db.add(prog)
 
         db.commit()
+
+        # Seed Verified Official Government Jobs & Exam Notifications
+        try:
+            import asyncio
+            from backend.app.services.govt_job_scraper import GovtJobScraperService
+            asyncio.run(GovtJobScraperService.run_scraper(db))
+            print("Government Job Notifications seeded and mirrored successfully.")
+        except Exception as ge:
+            print(f"Govt jobs seed notice: {ge}")
+
         print("Database seeded successfully with initial colleges, faculty, student, notes, quizzes, and coding problems!")
 
         # 9. Seed curated DSA problems catalog

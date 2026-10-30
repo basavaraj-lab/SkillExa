@@ -16,6 +16,7 @@ from backend.app.routers.topics import router as topics_router
 from backend.app.routers.ai_interview import router as ai_interview_router
 from backend.app.routers.live_interview import router as live_interview_router
 from backend.app.routers.aptitude_test import router as aptitude_test_router
+from backend.app.routers.govt_jobs import router as govt_jobs_router
 
 __all__ = [
     "auth_router",
@@ -36,4 +37,5 @@ __all__ = [
     "ai_interview_router",
     "live_interview_router",
     "aptitude_test_router",
+    "govt_jobs_router",
 ]

@@ -79,10 +79,11 @@ export default function MathematicsPage() {
                 style={[styles.topicCard, isInProgress && styles.topicCardActive]}
                 onPress={() =>
                   router.push({
-                    pathname: '/topic-learning',
+                    pathname: '/aptitude-test',
                     params: {
-                      subject: 'Mathematics',
+                      category: 'Quantitative Aptitude',
                       topic: topic.title,
+                      autoStart: 'true',
                     },
                   })
                 }

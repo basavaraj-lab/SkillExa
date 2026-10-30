@@ -1,5 +1,5 @@
 from typing import Any, List
-from fastapi import APIRouter, Depends, status
+from fastapi import APIRouter, Depends, Query, status
 from sqlalchemy.orm import Session
 from backend.app.dependencies.auth import get_current_user
 from backend.app.dependencies.db import get_db
@@ -29,6 +29,32 @@ def get_aptitude_categories():
         success=True,
         message="Aptitude categories and presets retrieved successfully.",
         data=categories_data,
+    )
+
+
+@router.get("/topic-learning", response_model=ApiResponse[dict])
+def get_aptitude_topic_learning(
+    subject: str = Query("Quantitative Aptitude"),
+    topic: str = Query("Percentage"),
+    difficulty: str = Query("Intermediate"),
+    count: int = Query(5),
+    db: Session = Depends(get_db),
+):
+    """
+    Retrieve subject-specific curriculum learning module grounded in Wikipedia theoretical foundations,
+    mathematical formulas, step-by-step solved drills, and dynamic LLM MCQs.
+    """
+    module_data = AptitudeService.get_topic_learning_module(
+        db=db,
+        subject=subject,
+        topic=topic,
+        difficulty=difficulty,
+        count=count,
+    )
+    return ApiResponse(
+        success=True,
+        message="Aptitude topic learning module generated with Wikipedia grounding & LLM questions.",
+        data=module_data,
     )
 
 
