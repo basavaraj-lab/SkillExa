@@ -42,6 +42,7 @@ from backend.app.routers import (
     videos_router,
     aptitude_test_router,
     govt_jobs_router,
+    project_chat_router,
 )
 
 from backend.app.seed import seed_database
@@ -96,6 +97,7 @@ app.include_router(progress_router, prefix=settings.API_V1_STR)
 app.include_router(topics_router, prefix=settings.API_V1_STR)
 app.include_router(aptitude_test_router, prefix=settings.API_V1_STR)
 app.include_router(govt_jobs_router, prefix=settings.API_V1_STR)
+app.include_router(project_chat_router, prefix=settings.API_V1_STR)
 
 
 @app.get("/", tags=["Health"])

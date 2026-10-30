@@ -8,3 +8,6 @@ backend/uploads/
 .pytest_cache/
 *.mp3
 *.wav
+.env
+.env.*
+*.env

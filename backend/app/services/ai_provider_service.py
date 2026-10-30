@@ -5,6 +5,7 @@ import re
 from typing import Any, Dict, List, Optional
 import httpx
 from backend.app.config import settings
+from backend.app.services.gemini_service import GeminiService
 
 logger = logging.getLogger("skillexa.ai_provider")
 
@@ -99,40 +100,80 @@ class AIProviderService:
         return None
 
     @classmethod
+    def generate_conversational_text(
+        cls, system_prompt: str, user_prompt: str, max_tokens: int = 1200
+    ) -> Optional[str]:
+        """
+        Generate direct conversational academic response from configured provider.
+        Does not require strict JSON wrapping.
+        """
+        provider = cls.get_provider_name()
+        clean_user_prompt = sanitize_input_for_privacy(user_prompt)
+
+        # 1. Gemini via official google-genai SDK
+        if provider == "gemini" or GeminiService.is_configured():
+            res = GeminiService.generate_chat_response(
+                user_query=clean_user_prompt,
+                max_output_tokens=max_tokens,
+            )
+            if res:
+                return res[0]
+
+        # 2. OpenAI
+        if provider == "openai" or os.getenv("OPENAI_API_KEY"):
+            api_key = os.getenv("OPENAI_API_KEY", "")
+            if api_key:
+                model = os.getenv("OPENAI_MODEL", "gpt-4o-mini")
+                url = "https://api.openai.com/v1/chat/completions"
+                headers = {
+                    "Authorization": f"Bearer {api_key}",
+                    "Content-Type": "application/json",
+                }
+                payload = {
+                    "model": model,
+                    "messages": [
+                        {"role": "system", "content": system_prompt},
+                        {"role": "user", "content": clean_user_prompt},
+                    ],
+                    "temperature": 0.4,
+                    "max_tokens": max_tokens,
+                }
+                try:
+                    with httpx.Client(timeout=10.0) as client:
+                        res = client.post(url, headers=headers, json=payload)
+                        if res.status_code == 200:
+                            data = res.json()
+                            return data["choices"][0]["message"]["content"].strip()
+                except Exception as e:
+                    logger.warning("OpenAI conversational generation failed: %s", e)
+
+        return None
+
+    @classmethod
     def _call_gemini(cls, system_prompt: str, user_prompt: str, max_tokens: int) -> Optional[Dict[str, Any]]:
-        api_key = os.getenv("GEMINI_API_KEY", "")
-        if not api_key:
+        if not GeminiService.is_configured():
             return None
 
-        model = os.getenv("GEMINI_MODEL", "gemini-1.5-flash")
-        url = f"https://generativelanguage.googleapis.com/v1beta/models/{model}:generateContent?key={api_key}"
-
-        payload = {
-            "contents": [
-                {"role": "user", "parts": [{"text": f"{system_prompt}\n\nPlease output strict JSON only.\n\n{user_prompt}"}]}
-            ],
-            "generationConfig": {
-                "temperature": 0.2,
-                "maxOutputTokens": max_tokens,
-                "responseMimeType": "application/json",
-            },
-        }
-
         try:
-            with httpx.Client(timeout=8.0) as client:
-                res = client.post(url, json=payload)
-                if res.status_code == 200:
-                    data = res.json()
-                    candidates = data.get("candidates", [])
-                    if candidates:
-                        parts = candidates[0].get("content", {}).get("parts", [])
-                        if parts:
-                            raw_text = parts[0].get("text", "")
-                            return extract_json_from_response(raw_text)
-                else:
-                    logger.warning("Gemini API call returned status %s: %s", res.status_code, res.text[:200])
+            from google import genai
+            from google.genai import types
+            api_key = GeminiService.get_api_key()
+            client = genai.Client(api_key=api_key)
+            model = GeminiService.get_model_name()
+
+            res = client.models.generate_content(
+                model=model,
+                contents=f"{system_prompt}\n\nPlease output strict JSON only.\n\n{user_prompt}",
+                config=types.GenerateContentConfig(
+                    temperature=0.2,
+                    max_output_tokens=max_tokens,
+                    response_mime_type="application/json",
+                ),
+            )
+            if res and res.text:
+                return extract_json_from_response(res.text)
         except Exception as e:
-            logger.warning("Gemini API request failed: %s", e)
+            logger.warning("Gemini JSON call failed: %s", type(e).__name__)
         return None
 
     @classmethod

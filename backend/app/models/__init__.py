@@ -56,6 +56,12 @@ from backend.app.models.aptitude_test import (
     AptitudeDifficultyEnum,
     AptitudeAttemptStatusEnum,
 )
+from backend.app.models.project_chat import (
+    AIProject,
+    AIConversation,
+    AIMessage,
+    AIProjectMemory,
+)
 
 __all__ = [
     "User",
@@ -121,4 +127,8 @@ __all__ = [
     "AptitudeTestResponse",
     "AptitudeDifficultyEnum",
     "AptitudeAttemptStatusEnum",
+    "AIProject",
+    "AIConversation",
+    "AIMessage",
+    "AIProjectMemory",
 ]
