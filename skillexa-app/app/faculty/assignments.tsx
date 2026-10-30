@@ -7,6 +7,7 @@ import {
   StyleSheet,
   Text,
   TouchableOpacity,
+  useWindowDimensions,
   View,
 } from 'react-native';
 import { AppHeader } from '../../components/common/AppHeader';
@@ -15,6 +16,8 @@ import { FacultyQuiz, StudentQuizSubmission } from '../../data/curriculumSchema'
 import { FacultySystemStore } from '../../services/facultyStore';
 
 export default function AssignmentsScreen() {
+  const { width } = useWindowDimensions();
+  const isDesktop = width >= 768;
   const [quizzes, setQuizzes] = useState<FacultyQuiz[]>([]);
   const [submissions, setSubmissions] = useState<StudentQuizSubmission[]>([]);
 
@@ -91,20 +94,20 @@ export default function AssignmentsScreen() {
               </View>
 
               <View style={styles.subStatsRow}>
-                <View style={styles.subStatItem}>
-                  <Text style={styles.subStatLabel}>ACCURACY</Text>
+                <View style={[styles.subStatItem, { width: isDesktop ? 'calc(25% - 6px)' : 'calc(50% - 4px)' }]}>
+                  <Text style={styles.subStatLabel} numberOfLines={1}>ACCURACY</Text>
                   <Text style={[styles.subStatVal, { color: Palette.success }]}>{sub.accuracy}%</Text>
                 </View>
-                <View style={styles.subStatItem}>
-                  <Text style={styles.subStatLabel}>CORRECT</Text>
+                <View style={[styles.subStatItem, { width: isDesktop ? 'calc(25% - 6px)' : 'calc(50% - 4px)' }]}>
+                  <Text style={styles.subStatLabel} numberOfLines={1}>CORRECT</Text>
                   <Text style={styles.subStatVal}>{sub.correctAnswersCount}</Text>
                 </View>
-                <View style={styles.subStatItem}>
-                  <Text style={styles.subStatLabel}>WRONG</Text>
+                <View style={[styles.subStatItem, { width: isDesktop ? 'calc(25% - 6px)' : 'calc(50% - 4px)' }]}>
+                  <Text style={styles.subStatLabel} numberOfLines={1}>WRONG</Text>
                   <Text style={[styles.subStatVal, { color: Palette.danger }]}>{sub.wrongAnswersCount}</Text>
                 </View>
-                <View style={styles.subStatItem}>
-                  <Text style={styles.subStatLabel}>TIME</Text>
+                <View style={[styles.subStatItem, { width: isDesktop ? 'calc(25% - 6px)' : 'calc(50% - 4px)' }]}>
+                  <Text style={styles.subStatLabel} numberOfLines={1}>TIME</Text>
                   <Text style={styles.subStatVal}>{sub.timeSpent}</Text>
                 </View>
               </View>
@@ -118,7 +121,14 @@ export default function AssignmentsScreen() {
 
 const styles = StyleSheet.create({
   safeArea: { flex: 1, backgroundColor: Palette.background },
-  scrollContent: { paddingHorizontal: 16, paddingTop: 16, paddingBottom: 40 },
+  scrollContent: {
+    paddingHorizontal: 16,
+    paddingTop: 16,
+    paddingBottom: 110,
+    maxWidth: 960,
+    width: '100%',
+    alignSelf: 'center',
+  },
   banner: {
     backgroundColor: '#FFFFFF',
     borderRadius: Radii.card,
@@ -140,8 +150,7 @@ const styles = StyleSheet.create({
   sectionSubtitle: { fontSize: 12, color: Palette.textSecondary, marginTop: 2 },
   quizzesList: { gap: 10, marginBottom: 10 },
   quizCard: { backgroundColor: '#FFFFFF', borderRadius: Radii.card, padding: 14, borderWidth: 1, borderColor: Palette.border, ...Shadows.card },
-  quizTop: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 6 },
-  badge: { backgroundColor: Palette.primaryLight, paddingHorizontal: 8, paddingVertical: 2, borderRadius: 6 },
+    badge: { backgroundColor: Palette.primaryLight, paddingHorizontal: 8, paddingVertical: 2, borderRadius: 6 },
   badgeText: { fontSize: 10.5, fontWeight: '700', color: Palette.primary },
   durationText: { fontSize: 11.5, color: Palette.textSecondary, fontWeight: '600' },
   quizTitle: { fontSize: 15, fontWeight: '700', color: Palette.textTitle, marginBottom: 2 },
@@ -157,8 +166,44 @@ const styles = StyleSheet.create({
   scoreCircle: { width: 44, height: 44, borderRadius: 22, backgroundColor: Palette.primaryLight, alignItems: 'center', justifyContent: 'center' },
   scoreNum: { fontSize: 15, fontWeight: '900', color: Palette.primary },
   scoreDen: { fontSize: 9, fontWeight: '700', color: Palette.primary },
-  subStatsRow: { flexDirection: 'row', justifyContent: 'space-around', paddingTop: 8, borderTopWidth: 1, borderTopColor: Palette.borderSubtle },
-  subStatItem: { alignItems: 'center' },
-  subStatLabel: { fontSize: 9.5, fontWeight: '800', color: Palette.textSecondary, letterSpacing: 0.6 },
-  subStatVal: { fontSize: 13, fontWeight: '800', color: Palette.textTitle, marginTop: 2 },
+  quizTop: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    flexWrap: 'wrap',
+    gap: 6,
+    marginBottom: 6,
+  },
+  subStatsRow: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 8,
+    paddingTop: 10,
+    borderTopWidth: 1,
+    borderTopColor: Palette.borderSubtle,
+  },
+  subStatItem: {
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: '#F8FAFC',
+    borderWidth: 1,
+    borderColor: '#E2E8F0',
+    borderRadius: 6,
+    paddingVertical: 6,
+    paddingHorizontal: 6,
+  },
+  subStatLabel: {
+    fontSize: 9.5,
+    fontWeight: '800',
+    color: Palette.textSecondary,
+    letterSpacing: 0.6,
+    textAlign: 'center',
+    marginBottom: 2,
+  },
+  subStatVal: {
+    fontSize: 14,
+    fontWeight: '800',
+    color: Palette.textTitle,
+    textAlign: 'center',
+  },
 });

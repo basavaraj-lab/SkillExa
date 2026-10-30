@@ -13,6 +13,7 @@ import {
   Text,
   TextInput,
   TouchableOpacity,
+  useWindowDimensions,
   View,
 } from 'react-native';
 import { useAuth } from '../../components/auth-context';
@@ -102,6 +103,8 @@ function formatBytes(bytes?: number): string {
 
 export default function FacultyCompetitiveNotesScreen() {
   const { profile } = useAuth();
+  const { width } = useWindowDimensions();
+  const isDesktop = width >= 768;
 
   // Published notes state
   const [notes, setNotes] = useState<any[]>([]);
@@ -346,29 +349,34 @@ export default function FacultyCompetitiveNotesScreen() {
 
       <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
         {/* Banner with Live Competitive Portal Link */}
-        <View style={styles.banner}>
-          <View style={styles.bannerIconBox}>
-            <Feather name="award" size={26} color="#4F46E5" />
-          </View>
-          <View style={{ flex: 1 }}>
-            <View style={styles.badgeRow}>
-              <View style={styles.bannerBadge}>
-                <Text style={styles.bannerBadgeText}>COMPETITIVE EXAMS SUITE</Text>
-              </View>
-              <View style={styles.livePill}>
-                <View style={styles.liveDot} />
-                <Text style={styles.liveText}>AUTO-PUBLISH LIVE</Text>
-              </View>
+        <View style={[styles.banner, isDesktop ? styles.bannerDesktop : styles.bannerMobile]}>
+          <View style={[styles.bannerContentRow, !isDesktop && styles.bannerContentRowMobile]}>
+            <View style={[styles.bannerIconBox, !isDesktop && styles.bannerIconBoxMobile]}>
+              <Feather name="award" size={isDesktop ? 26 : 22} color="#4F46E5" />
             </View>
-            <Text style={styles.bannerTitle}>Upload Verified Competitive Study Notes</Text>
-            <Text style={styles.bannerDesc}>
-              Any notes uploaded here will immediately appear in the{' '}
-              <Text style={{ fontWeight: '700', color: '#111827' }}>Competitive Notes</Text> section
-              for students preparing for Campus Placements, Quantitative Aptitude, Banking, SSC, and Government Exams.
-            </Text>
+            <View style={styles.bannerInfoCol}>
+              <View style={styles.badgeRow}>
+                <View style={styles.bannerBadge}>
+                  <Text style={styles.bannerBadgeText}>COMPETITIVE EXAMS SUITE</Text>
+                </View>
+                <View style={styles.livePill}>
+                  <View style={styles.liveDot} />
+                  <Text style={styles.liveText}>AUTO-PUBLISH LIVE</Text>
+                </View>
+              </View>
+              <Text style={[styles.bannerTitle, !isDesktop && styles.bannerTitleMobile]}>
+                Upload Verified Competitive Study Notes
+              </Text>
+              <Text style={[styles.bannerDesc, !isDesktop && styles.bannerDescMobile]}>
+                Any notes uploaded here will immediately appear in the{' '}
+                <Text style={{ fontWeight: '700', color: '#111827' }}>Competitive Notes</Text> section
+                for students preparing for Campus Placements, Quantitative Aptitude, Banking, SSC, and Government Exams.
+              </Text>
+            </View>
           </View>
+
           <TouchableOpacity
-            style={styles.portalPreviewBtn}
+            style={[styles.portalPreviewBtn, !isDesktop && styles.portalPreviewBtnMobile]}
             onPress={handleOpenCompetitivePortal}
             activeOpacity={0.8}
           >
@@ -709,27 +717,43 @@ const styles = StyleSheet.create({
     backgroundColor: '#F8FAFC',
   },
   scrollContent: {
-    padding: 24,
-    paddingBottom: 60,
+    padding: 16,
+    paddingBottom: 110,
     maxWidth: 1100,
     alignSelf: 'center',
     width: '100%',
   },
   banner: {
-    flexDirection: 'row',
-    alignItems: 'center',
     backgroundColor: '#EEF2FF',
     borderRadius: Radii.lg,
-    padding: 20,
-    marginBottom: 24,
     borderWidth: 1,
     borderColor: '#C7D2FE',
+    marginBottom: 24,
+  },
+  bannerDesktop: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    padding: 22,
     gap: 16,
-    flexWrap: 'wrap',
+  },
+  bannerMobile: {
+    flexDirection: 'column',
+    padding: 16,
+    gap: 14,
+  },
+  bannerContentRow: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    gap: 14,
+    flex: 1,
+  },
+  bannerContentRowMobile: {
+    gap: 12,
   },
   bannerIconBox: {
-    width: 52,
-    height: 52,
+    width: 50,
+    height: 50,
     borderRadius: 14,
     backgroundColor: '#FFFFFF',
     alignItems: 'center',
@@ -737,11 +761,22 @@ const styles = StyleSheet.create({
     shadowColor: '#4F46E5',
     shadowOpacity: 0.1,
     shadowRadius: 8,
+    elevation: 2,
+  },
+  bannerIconBoxMobile: {
+    width: 42,
+    height: 42,
+    borderRadius: 10,
+  },
+  bannerInfoCol: {
+    flex: 1,
+    minWidth: 0,
   },
   badgeRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 8,
+    flexWrap: 'wrap',
+    gap: 6,
     marginBottom: 6,
   },
   bannerBadge: {
@@ -751,7 +786,7 @@ const styles = StyleSheet.create({
     borderRadius: 6,
   },
   bannerBadgeText: {
-    fontSize: 10.5,
+    fontSize: 10,
     fontWeight: '800',
     color: '#4F46E5',
     letterSpacing: 0.5,
@@ -780,22 +815,37 @@ const styles = StyleSheet.create({
     fontSize: 18,
     fontWeight: '800',
     color: '#111827',
-    marginBottom: 4,
+    marginBottom: 6,
+    lineHeight: 24,
+  },
+  bannerTitleMobile: {
+    fontSize: 16.5,
+    lineHeight: 22,
   },
   bannerDesc: {
-    fontSize: 13.5,
+    fontSize: 13,
     color: '#475569',
-    lineHeight: 20,
+    lineHeight: 19,
+  },
+  bannerDescMobile: {
+    fontSize: 12.5,
+    lineHeight: 18,
   },
   portalPreviewBtn: {
     flexDirection: 'row',
     alignItems: 'center',
+    justifyContent: 'center',
     gap: 6,
     backgroundColor: '#4F46E5',
     paddingHorizontal: 16,
     paddingVertical: 10,
     borderRadius: 8,
     alignSelf: 'center',
+  },
+  portalPreviewBtnMobile: {
+    width: '100%',
+    alignSelf: 'stretch',
+    marginTop: 4,
   },
   portalPreviewBtnText: {
     color: '#FFFFFF',
@@ -1139,12 +1189,13 @@ const styles = StyleSheet.create({
   noteCard: {
     backgroundColor: '#FFFFFF',
     borderRadius: 12,
-    padding: 18,
+    padding: 16,
     borderWidth: 1,
     borderColor: '#E2E8F0',
     flex: 1,
-    minWidth: 320,
-    maxWidth: 520,
+    minWidth: 260,
+    maxWidth: 540,
+    width: '100%',
     justifyContent: 'space-between',
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 1 },

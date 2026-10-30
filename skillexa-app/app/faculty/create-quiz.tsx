@@ -11,6 +11,7 @@ import {
   Text,
   TextInput,
   TouchableOpacity,
+  useWindowDimensions,
   View,
 } from 'react-native';
 import { TargetAudienceSelector } from '../../components/TargetAudienceSelector';
@@ -34,6 +35,8 @@ interface QuestionDraft {
 
 export default function CreateQuizScreen() {
   const { profile } = useAuth();
+  const { width } = useWindowDimensions();
+  const isDesktop = width >= 768;
   const [section, setSection] = useState<'Engineering' | 'Competitive Exams'>('Engineering');
   const [subject, setSubject] = useState('Embedded Systems');
   const [topic, setTopic] = useState('Microcontrollers');
@@ -387,14 +390,24 @@ export default function CreateQuizScreen() {
         )}
 
         {/* Banner with Action Buttons */}
-        <View style={styles.banner}>
-          <Feather name="plus-circle" size={24} color={Palette.success} />
-          <View style={{ flex: 1 }}>
-            <Text style={styles.bannerTitle}>Multi-Question Quiz Builder</Text>
-            <Text style={styles.bannerDesc}>Add 4-option MCQs with negative marking. Students take them directly in their College Workspace.</Text>
+        <View style={[styles.banner, isDesktop ? styles.bannerDesktop : styles.bannerMobile]}>
+          <View style={styles.bannerContentRow}>
+            <View style={styles.bannerIconBox}>
+              <Feather name="plus-circle" size={20} color={Palette.success} />
+            </View>
+            <View style={styles.bannerTextCol}>
+              <Text style={styles.bannerTitle}>Multi-Question Quiz Builder</Text>
+              <Text style={styles.bannerDesc}>
+                Add 4-option MCQs with negative marking. Students take them directly in their College Workspace.
+              </Text>
+            </View>
           </View>
-          <TouchableOpacity style={styles.newDraftBtn} onPress={resetForm} activeOpacity={0.8}>
-            <Feather name="plus" size={13} color="#FFFFFF" />
+          <TouchableOpacity
+            style={[styles.newDraftBtn, !isDesktop && styles.newDraftBtnMobile]}
+            onPress={resetForm}
+            activeOpacity={0.8}
+          >
+            <Feather name="plus" size={14} color="#FFFFFF" />
             <Text style={styles.newDraftBtnText}>Create Another Assessment</Text>
           </TouchableOpacity>
         </View>
@@ -626,7 +639,14 @@ export default function CreateQuizScreen() {
 
 const styles = StyleSheet.create({
   safeArea: { flex: 1, backgroundColor: Palette.background },
-  scrollContent: { paddingHorizontal: 16, paddingTop: 16, paddingBottom: 40 },
+  scrollContent: {
+    paddingHorizontal: 16,
+    paddingTop: 16,
+    paddingBottom: 110,
+    maxWidth: 960,
+    width: '100%',
+    alignSelf: 'center',
+  },
   successBannerCard: {
     backgroundColor: '#F0FDF4',
     borderRadius: Radii.card,
@@ -695,29 +715,74 @@ const styles = StyleSheet.create({
   banner: {
     backgroundColor: '#FFFFFF',
     borderRadius: Radii.card,
-    padding: 16,
     borderWidth: 1,
     borderColor: Palette.successBorder,
     borderLeftWidth: 4,
     borderLeftColor: Palette.success,
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 12,
     marginBottom: 18,
     ...Shadows.card,
   },
-  bannerTitle: { fontSize: 15, fontWeight: '800', color: Palette.textTitle },
-  bannerDesc: { fontSize: 12, color: Palette.textSecondary, marginTop: 2 },
+  bannerDesktop: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    padding: 16,
+    gap: 14,
+  },
+  bannerMobile: {
+    flexDirection: 'column',
+    padding: 14,
+    gap: 12,
+  },
+  bannerContentRow: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    gap: 12,
+    flex: 1,
+  },
+  bannerIconBox: {
+    width: 36,
+    height: 36,
+    borderRadius: 10,
+    backgroundColor: '#DCFCE7',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  bannerTextCol: {
+    flex: 1,
+    minWidth: 0,
+  },
+  bannerTitle: {
+    fontSize: 16,
+    fontWeight: '800',
+    color: Palette.textTitle,
+    lineHeight: 21,
+  },
+  bannerDesc: {
+    fontSize: 12.5,
+    color: Palette.textSecondary,
+    marginTop: 3,
+    lineHeight: 18,
+  },
   newDraftBtn: {
     backgroundColor: Palette.primary,
-    paddingHorizontal: 10,
-    paddingVertical: 7,
+    paddingHorizontal: 14,
+    paddingVertical: 8.5,
     borderRadius: Radii.button,
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 5,
+    justifyContent: 'center',
+    gap: 6,
   },
-  newDraftBtnText: { color: '#FFFFFF', fontSize: 11.5, fontWeight: '700' },
+  newDraftBtnMobile: {
+    width: '100%',
+    marginTop: 2,
+  },
+  newDraftBtnText: {
+    color: '#FFFFFF',
+    fontSize: 12,
+    fontWeight: '700',
+  },
   card: {
     backgroundColor: '#FFFFFF',
     borderRadius: Radii.card,

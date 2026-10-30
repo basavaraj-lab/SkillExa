@@ -7,6 +7,7 @@ import {
   StyleSheet,
   Text,
   TouchableOpacity,
+  useWindowDimensions,
   View,
 } from 'react-native';
 import { AppHeader } from '../../components/common/AppHeader';
@@ -17,6 +18,8 @@ import { ApiClient } from '../../services/api';
 import { FacultySystemStore } from '../../services/facultyStore';
 
 export default function StudentPerformanceScreen() {
+  const { width } = useWindowDimensions();
+  const isDesktop = width >= 768;
   const [students, setStudents] = useState<StudentTopicPerformance[]>([]);
   const [selectedStudent, setSelectedStudent] = useState<StudentTopicPerformance | null>(null);
 
@@ -125,25 +128,25 @@ export default function StudentPerformanceScreen() {
                 </View>
               </View>
 
-              {/* High-level metrics 4-grid */}
+              {/* High-level metrics 4-grid (2x2 on phone, 4 on laptop) */}
               <View style={styles.metricsGrid}>
-                <View style={styles.metricItem}>
-                  <Text style={styles.metricLabel}>QUIZ ACCURACY</Text>
+                <View style={[styles.metricItem, { width: isDesktop ? 'calc(25% - 8px)' : 'calc(50% - 6px)' }]}>
+                  <Text style={styles.metricLabel} numberOfLines={1}>QUIZ ACCURACY</Text>
                   <Text style={[styles.metricVal, { color: Palette.success }]}>{selectedStudent.quizAccuracy}%</Text>
                 </View>
 
-                <View style={styles.metricItem}>
-                  <Text style={styles.metricLabel}>NOTES READ</Text>
+                <View style={[styles.metricItem, { width: isDesktop ? 'calc(25% - 8px)' : 'calc(50% - 6px)' }]}>
+                  <Text style={styles.metricLabel} numberOfLines={1}>NOTES READ</Text>
                   <Text style={styles.metricVal}>{selectedStudent.notesCompletedCount}</Text>
                 </View>
 
-                <View style={styles.metricItem}>
-                  <Text style={styles.metricLabel}>CODING SOLVED</Text>
+                <View style={[styles.metricItem, { width: isDesktop ? 'calc(25% - 8px)' : 'calc(50% - 6px)' }]}>
+                  <Text style={styles.metricLabel} numberOfLines={1}>CODING SOLVED</Text>
                   <Text style={[styles.metricVal, { color: Palette.primary }]}>{selectedStudent.codingSolvedCount}</Text>
                 </View>
 
-                <View style={styles.metricItem}>
-                  <Text style={styles.metricLabel}>DSA PROGRESS</Text>
+                <View style={[styles.metricItem, { width: isDesktop ? 'calc(25% - 8px)' : 'calc(50% - 6px)' }]}>
+                  <Text style={styles.metricLabel} numberOfLines={1}>DSA PROGRESS</Text>
                   <Text style={[styles.metricVal, { color: Palette.aiPurple }]}>{selectedStudent.dsaProgressPct}%</Text>
                 </View>
               </View>
@@ -185,7 +188,14 @@ export default function StudentPerformanceScreen() {
 
 const styles = StyleSheet.create({
   safeArea: { flex: 1, backgroundColor: Palette.background },
-  scrollContent: { paddingHorizontal: 16, paddingTop: 16, paddingBottom: 40 },
+  scrollContent: {
+    paddingHorizontal: 16,
+    paddingTop: 16,
+    paddingBottom: 110,
+    maxWidth: 960,
+    width: '100%',
+    alignSelf: 'center',
+  },
   selectorSection: { marginBottom: 16 },
   sectionHeading: { fontSize: 10.5, fontWeight: '800', color: Palette.textTitle, letterSpacing: 0.8, marginBottom: 8 },
   studentChips: { gap: 10, paddingVertical: 2 },
@@ -217,10 +227,38 @@ const styles = StyleSheet.create({
   profileEmail: { fontSize: 12.5, color: Palette.textSecondary, marginTop: 1 },
   proBadge: { alignSelf: 'flex-start', backgroundColor: Palette.primaryLight, paddingHorizontal: 8, paddingVertical: 3, borderRadius: 6, marginTop: 6 },
   proBadgeText: { fontSize: 10.5, fontWeight: '700', color: Palette.primary },
-  metricsGrid: { flexDirection: 'row', justifyContent: 'space-between', paddingTop: 14, borderTopWidth: 1, borderTopColor: Palette.borderSubtle },
-  metricItem: { alignItems: 'center' },
-  metricLabel: { fontSize: 9.5, fontWeight: '800', color: Palette.textSecondary, letterSpacing: 0.6 },
-  metricVal: { fontSize: 16, fontWeight: '800', color: Palette.textTitle, marginTop: 2 },
+  metricsGrid: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 10,
+    paddingTop: 14,
+    borderTopWidth: 1,
+    borderTopColor: Palette.borderSubtle,
+  },
+  metricItem: {
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: '#F8FAFC',
+    borderWidth: 1,
+    borderColor: '#E2E8F0',
+    borderRadius: 8,
+    paddingVertical: 10,
+    paddingHorizontal: 6,
+  },
+  metricLabel: {
+    fontSize: 10,
+    fontWeight: '800',
+    color: Palette.textSecondary,
+    letterSpacing: 0.5,
+    textAlign: 'center',
+    marginBottom: 2,
+  },
+  metricVal: {
+    fontSize: 17,
+    fontWeight: '900',
+    color: Palette.textTitle,
+    textAlign: 'center',
+  },
   topicBreakdownCard: { backgroundColor: '#FFFFFF', borderRadius: Radii.card, padding: 18, borderWidth: 1, borderColor: Palette.border, ...Shadows.card },
   breakdownHeader: { flexDirection: 'row', alignItems: 'center', gap: 8, marginBottom: 14 },
   breakdownTitle: { fontSize: 15, fontWeight: '800', color: Palette.textTitle },

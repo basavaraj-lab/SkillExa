@@ -364,7 +364,7 @@ export default function RegisterLecturer() {
 
   return (
     <SafeAreaView style={styles.safeArea}>
-      <StatusBar barStyle="light-content" backgroundColor="#070B14" />
+      <StatusBar barStyle="dark-content" backgroundColor="#F8FAFC" />
 
       <View style={styles.ambientContainer} pointerEvents="none">
         <View style={styles.glowOrbTop} />
@@ -380,6 +380,7 @@ export default function RegisterLecturer() {
           keyboardShouldPersistTaps="handled"
           showsVerticalScrollIndicator={false}
         >
+          <View style={styles.contentWrapper}>
           {/* Header */}
           <View style={styles.header}>
             <TouchableOpacity
@@ -387,7 +388,7 @@ export default function RegisterLecturer() {
               onPress={() => router.back()}
               activeOpacity={0.8}
             >
-              <Feather name="arrow-left" size={20} color="#FFFFFF" />
+              <Feather name="arrow-left" size={20} color="#0F172A" />
             </TouchableOpacity>
             <View style={styles.headerTextGroup}>
               <Text style={styles.badge}>FACULTY REGISTRATION</Text>
@@ -398,6 +399,7 @@ export default function RegisterLecturer() {
           {/* Form Card */}
           <GlassCard
             style={styles.formCard}
+            contentStyle={styles.formCardContent}
             gradientColors={Gradients.darkGlass}
             borderColor={Palette.glassBorderPrimary}
             glow
@@ -420,7 +422,7 @@ export default function RegisterLecturer() {
 
             {/* Full Name */}
             <View style={styles.inputWrapper}>
-              <Feather name="user" size={18} color={Palette.purpleLight} style={styles.inputIcon} />
+              <Feather name="user" size={18} color="#8B5CF6" style={styles.inputIcon} />
               <TextInput
                 placeholder="Full Name (e.g. Dr. Alan Turing)"
                 placeholderTextColor={Palette.textMutedDark}
@@ -433,7 +435,7 @@ export default function RegisterLecturer() {
 
             {/* Email */}
             <View style={styles.inputWrapper}>
-              <Feather name="mail" size={18} color={Palette.purpleLight} style={styles.inputIcon} />
+              <Feather name="mail" size={18} color="#8B5CF6" style={styles.inputIcon} />
               <TextInput
                 placeholder="Institutional / Personal Email"
                 placeholderTextColor={Palette.textMutedDark}
@@ -448,7 +450,7 @@ export default function RegisterLecturer() {
 
             {/* Mobile Contact */}
             <View style={styles.inputWrapper}>
-              <Feather name="phone" size={18} color={Palette.purpleLight} style={styles.inputIcon} />
+              <Feather name="phone" size={18} color="#8B5CF6" style={styles.inputIcon} />
               <TextInput
                 placeholder="Mobile Contact"
                 placeholderTextColor={Palette.textMutedDark}
@@ -462,7 +464,7 @@ export default function RegisterLecturer() {
 
             {/* College Name */}
             <View style={styles.inputWrapper}>
-              <Feather name="book-open" size={18} color={Palette.purpleLight} style={styles.inputIcon} />
+              <Feather name="book-open" size={18} color="#8B5CF6" style={styles.inputIcon} />
               <TextInput
                 placeholder="Affiliated College / Institution"
                 placeholderTextColor={Palette.textMutedDark}
@@ -475,7 +477,7 @@ export default function RegisterLecturer() {
 
             {/* Department */}
             <View style={styles.inputWrapper}>
-              <Feather name="layers" size={18} color={Palette.purpleLight} style={styles.inputIcon} />
+              <Feather name="layers" size={18} color="#8B5CF6" style={styles.inputIcon} />
               <TextInput
                 placeholder="Department (e.g. ECE, CSE)"
                 placeholderTextColor={Palette.textMutedDark}
@@ -488,7 +490,7 @@ export default function RegisterLecturer() {
 
             {/* Qualification */}
             <View style={styles.inputWrapper}>
-              <Feather name="award" size={18} color={Palette.purpleLight} style={styles.inputIcon} />
+              <Feather name="award" size={18} color="#8B5CF6" style={styles.inputIcon} />
               <TextInput
                 placeholder="Highest Qualification (e.g. Ph.D, M.Tech)"
                 placeholderTextColor={Palette.textMutedDark}
@@ -501,7 +503,7 @@ export default function RegisterLecturer() {
 
             {/* Experience */}
             <View style={styles.inputWrapper}>
-              <Feather name="briefcase" size={18} color={Palette.purpleLight} style={styles.inputIcon} />
+              <Feather name="briefcase" size={18} color="#8B5CF6" style={styles.inputIcon} />
               <TextInput
                 placeholder="Teaching Experience (e.g. 5+ Years)"
                 placeholderTextColor={Palette.textMutedDark}
@@ -514,7 +516,7 @@ export default function RegisterLecturer() {
 
             {/* Core Domain / Skills */}
             <View style={styles.inputWrapper}>
-              <Feather name="code" size={18} color={Palette.purpleLight} style={styles.inputIcon} />
+              <Feather name="code" size={18} color="#8B5CF6" style={styles.inputIcon} />
               <TextInput
                 placeholder="Specializations (e.g. DSA, Cloud, OS)"
                 placeholderTextColor={Palette.textMutedDark}
@@ -527,7 +529,7 @@ export default function RegisterLecturer() {
 
             {/* Password */}
             <View style={styles.inputWrapper}>
-              <Feather name="lock" size={18} color={Palette.purpleLight} style={styles.inputIcon} />
+              <Feather name="lock" size={18} color="#8B5CF6" style={styles.inputIcon} />
               <TextInput
                 placeholder="Secure Password"
                 placeholderTextColor={Palette.textMutedDark}
@@ -551,7 +553,7 @@ export default function RegisterLecturer() {
 
             {/* Confirm Password Field */}
             <View style={styles.inputWrapper}>
-              <Feather name="lock" size={18} color={Palette.purpleLight} style={styles.inputIcon} />
+              <Feather name="lock" size={18} color="#8B5CF6" style={styles.inputIcon} />
               <TextInput
                 placeholder="Confirm Password"
                 placeholderTextColor={Palette.textMutedDark}
@@ -613,7 +615,7 @@ export default function RegisterLecturer() {
 
                 {/* 6-Digit OTP Input Field */}
                 <View style={[styles.inputWrapper, { borderColor: Palette.purpleLight, backgroundColor: "rgba(139, 92, 246, 0.1)" }]}>
-                  <Feather name="shield" size={18} color={Palette.purpleLight} style={styles.inputIcon} />
+                  <Feather name="shield" size={18} color="#8B5CF6" style={styles.inputIcon} />
                   <TextInput
                     placeholder="Enter 6-digit OTP"
                     placeholderTextColor={Palette.textMutedDark}
@@ -656,6 +658,7 @@ export default function RegisterLecturer() {
               </Text>
             </TouchableOpacity>
           </GlassCard>
+          </View>
         </ScrollView>
       </KeyboardAvoidingView>
     </SafeAreaView>
@@ -694,9 +697,14 @@ const styles = StyleSheet.create({
   },
   scrollContent: {
     flexGrow: 1,
-    paddingHorizontal: 22,
+    paddingHorizontal: 20,
     paddingTop: 16,
-    paddingBottom: 32,
+    paddingBottom: 40,
+  },
+  contentWrapper: {
+    width: "100%",
+    maxWidth: 500,
+    alignSelf: "center",
   },
   header: {
     flexDirection: "row",
@@ -707,12 +715,17 @@ const styles = StyleSheet.create({
     width: 42,
     height: 42,
     borderRadius: 21,
-    backgroundColor: "rgba(255, 255, 255, 0.08)",
+    backgroundColor: "#FFFFFF",
     borderWidth: 1,
-    borderColor: Palette.glassBorder,
+    borderColor: "#E2E8F0",
     alignItems: "center",
     justifyContent: "center",
     marginRight: 14,
+    shadowColor: "#0F172A",
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.05,
+    shadowRadius: 4,
+    elevation: 2,
   },
   headerTextGroup: {
     flex: 1,
@@ -720,24 +733,38 @@ const styles = StyleSheet.create({
   badge: {
     fontSize: 11,
     fontWeight: "800",
-    color: Palette.purpleLight,
+    color: "#8B5CF6",
     letterSpacing: 1.2,
     marginBottom: 2,
   },
   title: {
     fontSize: 22,
     fontWeight: "900",
-    color: "#FFFFFF",
+    color: "#0F172A",
   },
   formCard: {
     borderRadius: 24,
-    padding: 16,
+    padding: 0,
+    backgroundColor: "#FFFFFF",
+    borderWidth: 1,
+    borderColor: "#E2E8F0",
+    shadowColor: "#0F172A",
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.06,
+    shadowRadius: 16,
+    elevation: 3,
+  },
+  formCardContent: {
+    padding: 18,
+    borderRadius: 24,
   },
   googleRegBtn: {
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "center",
-    backgroundColor: "#FFFFFF",
+    backgroundColor: "#F8FAFC",
+    borderWidth: 1,
+    borderColor: "#E2E8F0",
     paddingVertical: 14,
     borderRadius: 14,
     gap: 10,
@@ -756,12 +783,12 @@ const styles = StyleSheet.create({
   dividerLine: {
     flex: 1,
     height: 1,
-    backgroundColor: "rgba(255, 255, 255, 0.12)",
+    backgroundColor: "#E2E8F0",
   },
   orText: {
     fontSize: 11,
     fontWeight: "700",
-    color: Palette.textMutedDark,
+    color: "#64748B",
     paddingHorizontal: 12,
     letterSpacing: 0.8,
   },
@@ -854,7 +881,7 @@ const styles = StyleSheet.create({
   otpHighlightLabel: {
     fontSize: 10,
     fontWeight: "800",
-    color: Palette.purpleLight,
+    color: "#8B5CF6",
     letterSpacing: 1.2,
     marginBottom: 4,
   },
@@ -882,7 +909,7 @@ const styles = StyleSheet.create({
   otpCardTitle: {
     fontSize: 14,
     fontWeight: "700",
-    color: "#FFFFFF",
+    color: "#0F172A",
     marginBottom: 4,
   },
   otpTimerText: {
@@ -891,6 +918,7 @@ const styles = StyleSheet.create({
   },
   timerHighlight: {
     fontWeight: "700",
+    color: "#8B5CF6",
   },
   otpInputHighlight: {
     borderColor: Palette.purpleLight,
@@ -906,7 +934,7 @@ const styles = StyleSheet.create({
     opacity: 0.5,
   },
   resendBtnText: {
-    color: Palette.purpleLight,
+    color: "#8B5CF6",
     fontSize: 12,
     fontWeight: "700",
   },
@@ -919,11 +947,11 @@ const styles = StyleSheet.create({
     paddingVertical: 6,
   },
   loginRedirectText: {
-    color: Palette.textSecondaryDark,
+    color: "#64748B",
     fontSize: 14,
   },
   loginHighlight: {
-    color: Palette.purpleLight,
+    color: "#8B5CF6",
     fontWeight: "700",
   },
 });

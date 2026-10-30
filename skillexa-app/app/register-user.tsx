@@ -366,7 +366,7 @@ export default function RegisterUser() {
 
   return (
     <SafeAreaView style={styles.safeArea}>
-      <StatusBar barStyle="light-content" backgroundColor="#070B14" />
+      <StatusBar barStyle="dark-content" backgroundColor="#F8FAFC" />
 
       <View style={styles.ambientContainer} pointerEvents="none">
         <View style={styles.glowOrbTop} />
@@ -382,6 +382,7 @@ export default function RegisterUser() {
           keyboardShouldPersistTaps="handled"
           showsVerticalScrollIndicator={false}
         >
+          <View style={styles.contentWrapper}>
           {/* Header */}
           <View style={styles.header}>
             <TouchableOpacity
@@ -389,7 +390,7 @@ export default function RegisterUser() {
               onPress={() => router.back()}
               activeOpacity={0.8}
             >
-              <Feather name="arrow-left" size={20} color="#FFFFFF" />
+              <Feather name="arrow-left" size={20} color="#0F172A" />
             </TouchableOpacity>
             <View style={styles.headerTextGroup}>
               <Text style={styles.badge}>STUDENT REGISTRATION</Text>
@@ -400,6 +401,7 @@ export default function RegisterUser() {
           {/* Form Card */}
           <GlassCard
             style={styles.formCard}
+            contentStyle={styles.formCardContent}
             gradientColors={Gradients.darkGlass}
             borderColor={Palette.glassBorderCyan}
             glow
@@ -646,6 +648,7 @@ export default function RegisterUser() {
               </Text>
             </TouchableOpacity>
           </GlassCard>
+          </View>
         </ScrollView>
       </KeyboardAvoidingView>
     </SafeAreaView>
@@ -684,10 +687,14 @@ const styles = StyleSheet.create({
   },
   scrollContent: {
     flexGrow: 1,
-    paddingHorizontal: 22,
+    paddingHorizontal: 20,
     paddingTop: 16,
-    paddingBottom: 32,
-    justifyContent: "center",
+    paddingBottom: 40,
+  },
+  contentWrapper: {
+    width: "100%",
+    maxWidth: 500,
+    alignSelf: "center",
   },
   header: {
     flexDirection: "row",
@@ -698,12 +705,17 @@ const styles = StyleSheet.create({
     width: 42,
     height: 42,
     borderRadius: 21,
-    backgroundColor: "rgba(255, 255, 255, 0.08)",
+    backgroundColor: "#FFFFFF",
     borderWidth: 1,
-    borderColor: Palette.glassBorder,
+    borderColor: "#E2E8F0",
     alignItems: "center",
     justifyContent: "center",
     marginRight: 14,
+    shadowColor: "#0F172A",
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.05,
+    shadowRadius: 4,
+    elevation: 2,
   },
   headerTextGroup: {
     flex: 1,
@@ -718,17 +730,31 @@ const styles = StyleSheet.create({
   title: {
     fontSize: 22,
     fontWeight: "900",
-    color: "#FFFFFF",
+    color: "#0F172A",
   },
   formCard: {
     borderRadius: 24,
-    padding: 16,
+    padding: 0,
+    backgroundColor: "#FFFFFF",
+    borderWidth: 1,
+    borderColor: "#E2E8F0",
+    shadowColor: "#0F172A",
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.06,
+    shadowRadius: 16,
+    elevation: 3,
+  },
+  formCardContent: {
+    padding: 18,
+    borderRadius: 24,
   },
   googleRegBtn: {
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "center",
-    backgroundColor: "#FFFFFF",
+    backgroundColor: "#F8FAFC",
+    borderWidth: 1,
+    borderColor: "#E2E8F0",
     paddingVertical: 14,
     borderRadius: 14,
     gap: 10,
@@ -747,12 +773,12 @@ const styles = StyleSheet.create({
   dividerLine: {
     flex: 1,
     height: 1,
-    backgroundColor: "rgba(255, 255, 255, 0.12)",
+    backgroundColor: "#E2E8F0",
   },
   orText: {
     fontSize: 11,
     fontWeight: "700",
-    color: Palette.textMutedDark,
+    color: "#64748B",
     paddingHorizontal: 12,
     letterSpacing: 0.8,
   },
@@ -878,7 +904,7 @@ const styles = StyleSheet.create({
   otpCardTitle: {
     fontSize: 13,
     fontWeight: "700",
-    color: "#FFFFFF",
+    color: "#0F172A",
   },
   otpTimerText: {
     fontSize: 12,
@@ -904,7 +930,7 @@ const styles = StyleSheet.create({
     backgroundColor: "rgba(255, 255, 255, 0.05)",
   },
   resendBtnText: {
-    color: Palette.cyanLight,
+    color: "#2563EB",
     fontSize: 12,
     fontWeight: "700",
   },
@@ -917,11 +943,11 @@ const styles = StyleSheet.create({
     paddingVertical: 6,
   },
   loginRedirectText: {
-    color: Palette.textSecondaryDark,
+    color: "#64748B",
     fontSize: 14,
   },
   loginHighlight: {
-    color: Palette.cyanLight,
+    color: "#2563EB",
     fontWeight: "700",
   },
 });
