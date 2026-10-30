@@ -130,6 +130,8 @@ export default function MockInterviewsPage() {
   const [selectedVoicePersona, setSelectedVoicePersona] = useState<string>('Aria (Clear Studio)');
   const [speechRate, setSpeechRate] = useState<number>(0.95);
   const audioElementRef = useRef<any>(null);
+  const currentSpeechTokenRef = useRef<number>(0);
+  const lastSpokenQuestionIdRef = useRef<string | null>(null);
   const [isRecording, setIsRecording] = useState<boolean>(false);
   const [speechRecognitionSupported, setSpeechRecognitionSupported] = useState<boolean>(false);
   const recognitionRef = useRef<any>(null);
@@ -227,7 +229,31 @@ export default function MockInterviewsPage() {
   // Text-To-Speech (TTS) Voice Converter for Asking Questions
   // Crystal Clear Studio Neural Audio (Edge-TTS Aria, Guy, Jenny, Neerja)
   // -------------------------------------------------------------
-  const fallbackWebSpeech = (text: string) => {
+  const stopCurrentSpeech = () => {
+    currentSpeechTokenRef.current += 1;
+    if (Platform.OS === 'web' && typeof window !== 'undefined' && window.speechSynthesis) {
+      try {
+        window.speechSynthesis.cancel();
+      } catch (e) {}
+    }
+    if (audioElementRef.current) {
+      try {
+        audioElementRef.current.pause();
+        audioElementRef.current.currentTime = 0;
+        audioElementRef.current.src = '';
+        audioElementRef.current.onplay = null;
+        audioElementRef.current.onended = null;
+        audioElementRef.current.onerror = null;
+      } catch (e) {}
+      audioElementRef.current = null;
+    }
+    setIsSpeakingQuestion(false);
+  };
+
+  const fallbackWebSpeech = (text: string, token?: number) => {
+    if (token !== undefined && token !== currentSpeechTokenRef.current) {
+      return;
+    }
     if (Platform.OS === 'web' && typeof window !== 'undefined' && window.speechSynthesis) {
       try {
         window.speechSynthesis.cancel();
@@ -254,9 +280,26 @@ export default function MockInterviewsPage() {
           }
         }
 
-        utterance.onstart = () => setIsSpeakingQuestion(true);
-        utterance.onend = () => setIsSpeakingQuestion(false);
-        utterance.onerror = () => setIsSpeakingQuestion(false);
+        utterance.onstart = () => {
+          if (token !== undefined && token !== currentSpeechTokenRef.current) {
+            try {
+              window.speechSynthesis.cancel();
+            } catch (e) {}
+            setIsSpeakingQuestion(false);
+            return;
+          }
+          setIsSpeakingQuestion(true);
+        };
+        utterance.onend = () => {
+          if (token === undefined || token === currentSpeechTokenRef.current) {
+            setIsSpeakingQuestion(false);
+          }
+        };
+        utterance.onerror = () => {
+          if (token === undefined || token === currentSpeechTokenRef.current) {
+            setIsSpeakingQuestion(false);
+          }
+        };
 
         setIsSpeakingQuestion(true);
         window.speechSynthesis.speak(utterance);
@@ -274,33 +317,18 @@ export default function MockInterviewsPage() {
 
     // Toggle stop if already playing and not an explicit replay command
     if (isSpeakingQuestion && !forceReplay) {
-      if (Platform.OS === 'web' && typeof window !== 'undefined' && window.speechSynthesis) {
-        window.speechSynthesis.cancel();
-      }
-      if (audioElementRef.current) {
-        try {
-          audioElementRef.current.pause();
-          audioElementRef.current.currentTime = 0;
-        } catch (e) {}
-      }
-      setIsSpeakingQuestion(false);
+      stopCurrentSpeech();
       return;
     }
+
+    // Stop any existing speech before starting new speech playback
+    stopCurrentSpeech();
+
+    const speechToken = ++currentSpeechTokenRef.current;
 
     const qNum = questionNumber ?? currentQuestion?.question_number;
     const spokenPrefix = qNum ? `Question ${qNum}. ` : '';
     const fullSpokenText = `${spokenPrefix}${textToSpeak}`;
-
-    // Clean up any previously playing speech/audio
-    if (Platform.OS === 'web' && typeof window !== 'undefined' && window.speechSynthesis) {
-      window.speechSynthesis.cancel();
-    }
-    if (audioElementRef.current) {
-      try {
-        audioElementRef.current.pause();
-        audioElementRef.current.currentTime = 0;
-      } catch (e) {}
-    }
 
     setIsSpeakingQuestion(true);
 
@@ -317,6 +345,11 @@ export default function MockInterviewsPage() {
     // High-Fidelity Python Edge Neural Voice Synthesis (Real human clarity)
     ApiClient.synthesizeTTS(fullSpokenText, voiceCode)
       .then((res) => {
+        // Discard stale response if a newer speech token exists
+        if (speechToken !== currentSpeechTokenRef.current) {
+          return;
+        }
+
         if (res.data?.audio_url && typeof Audio !== 'undefined') {
           const rawUrl = res.data.audio_url;
           const baseUrl = getApiBaseUrl().replace(/\/api\/?$/, '');
@@ -328,49 +361,66 @@ export default function MockInterviewsPage() {
           audio.playbackRate = speechRate;
           audioElementRef.current = audio;
 
-          audio.onplay = () => setIsSpeakingQuestion(true);
-          audio.onended = () => setIsSpeakingQuestion(false);
+          audio.onplay = () => {
+            if (speechToken === currentSpeechTokenRef.current) {
+              setIsSpeakingQuestion(true);
+            }
+          };
+          audio.onended = () => {
+            if (speechToken === currentSpeechTokenRef.current) {
+              setIsSpeakingQuestion(false);
+            }
+          };
           audio.onerror = (e) => {
+            if (speechToken !== currentSpeechTokenRef.current) return;
             console.warn('Neural audio playback failed, falling back to browser synthesis:', e);
-            fallbackWebSpeech(fullSpokenText);
+            fallbackWebSpeech(fullSpokenText, speechToken);
           };
 
           const playPromise = audio.play();
           if (playPromise !== undefined) {
             playPromise.catch((err) => {
+              if (speechToken !== currentSpeechTokenRef.current) return;
               console.warn('Audio play() rejected:', err);
-              fallbackWebSpeech(fullSpokenText);
+              fallbackWebSpeech(fullSpokenText, speechToken);
             });
           }
         } else {
-          fallbackWebSpeech(fullSpokenText);
+          fallbackWebSpeech(fullSpokenText, speechToken);
         }
       })
       .catch((err) => {
+        if (speechToken !== currentSpeechTokenRef.current) return;
         console.warn('Backend neural TTS call failed, using client fallback:', err);
-        fallbackWebSpeech(fullSpokenText);
+        fallbackWebSpeech(fullSpokenText, speechToken);
       });
   };
 
-  // Automatically ask the question using the voice converter when displayed
+  // Automatically ask the question using the voice converter exactly ONCE when displayed
   useEffect(() => {
-    if (currentView === 'interview' && currentQuestion?.question_text && autoAskQuestion) {
+    const questionKey = currentQuestion?.id || (currentQuestion?.question_text ? `${currentQuestion.question_number || 1}-${currentQuestion.question_text.slice(0, 40)}` : null);
+    if (currentView === 'interview' && questionKey && currentQuestion?.question_text && autoAskQuestion) {
+      // Prevent reading the same question twice if already asked
+      if (lastSpokenQuestionIdRef.current === questionKey) {
+        return;
+      }
+      const qText = currentQuestion.question_text;
+      const qNum = currentQuestion.question_number;
+
       const timer = setTimeout(() => {
-        playQuestionSpeech(currentQuestion.question_text, currentQuestion.question_number, true);
+        lastSpokenQuestionIdRef.current = questionKey;
+        playQuestionSpeech(qText, qNum, true);
       }, 450);
+
       return () => {
         clearTimeout(timer);
-        if (Platform.OS === 'web' && typeof window !== 'undefined' && window.speechSynthesis) {
-          window.speechSynthesis.cancel();
-        }
-        if (audioElementRef.current) {
-          try {
-            audioElementRef.current.pause();
-          } catch (e) {}
-        }
+        stopCurrentSpeech();
       };
+    } else if (currentView !== 'interview') {
+      stopCurrentSpeech();
+      lastSpokenQuestionIdRef.current = null;
     }
-  }, [currentQuestion?.id, currentView, autoAskQuestion]);
+  }, [currentQuestion?.id, currentQuestion?.question_text, currentView, autoAskQuestion]);
 
   // -------------------------------------------------------------
   // Speech-To-Text (STT) Recording Toggle
@@ -440,6 +490,7 @@ export default function MockInterviewsPage() {
         answerTextRef.current = '';
         setInCallFeedback(null);
         setElapsedSeconds(0);
+        lastSpokenQuestionIdRef.current = null;
         setCurrentView('interview');
       } else {
         Alert.alert('Interview Setup Failed', res.message || 'Could not initiate AI session. Please log in.');
@@ -467,10 +518,7 @@ export default function MockInterviewsPage() {
       } catch (e) {}
       setIsRecording(false);
     }
-    if (isSpeakingQuestion && Platform.OS === 'web' && window.speechSynthesis) {
-      window.speechSynthesis.cancel();
-      setIsSpeakingQuestion(false);
-    }
+    stopCurrentSpeech();
 
     setIsSubmitting(true);
     try {
@@ -488,9 +536,7 @@ export default function MockInterviewsPage() {
 
         if (evalData.is_interview_complete) {
           // All questions answered (e.g. 3 of 3)! Conclude interview and navigate to Total Accuracy Report
-          if (Platform.OS === 'web' && window.speechSynthesis) {
-            window.speechSynthesis.cancel();
-          }
+          stopCurrentSpeech();
           if (recognitionRef.current) {
             try {
               recognitionRef.current.abort();
@@ -549,12 +595,9 @@ export default function MockInterviewsPage() {
               cumulativeAccuracy: evalData.cumulative_accuracy,
             });
 
-            // Automatically speak / ask the next question via AI voice interviewer
-            if (autoAskQuestion) {
-              setTimeout(() => {
-                playQuestionSpeech(nextQ.question_text, nextQ.question_number, true);
-              }, 450);
-            }
+            // Note: The next question is automatically converted to voice and spoken
+            // exactly ONCE by the question change useEffect above when currentQuestion
+            // updates to nextQ. No duplicate timer is scheduled here.
           } else {
             handleEndInterviewDirectly();
           }
@@ -628,9 +671,7 @@ export default function MockInterviewsPage() {
   // End Interview Direct & Early (Camera & Audio Teardown)
   // -------------------------------------------------------------
   const handleEndInterviewDirectly = async () => {
-    if (Platform.OS === 'web' && window.speechSynthesis) {
-      window.speechSynthesis.cancel();
-    }
+    stopCurrentSpeech();
     if (recognitionRef.current) {
       try {
         recognitionRef.current.abort();
@@ -661,9 +702,7 @@ export default function MockInterviewsPage() {
         text: 'End & View Report',
         style: 'destructive',
         onPress: async () => {
-          if (Platform.OS === 'web' && window.speechSynthesis) {
-            window.speechSynthesis.cancel();
-          }
+          stopCurrentSpeech();
           if (recognitionRef.current) {
             try {
               recognitionRef.current.abort();
