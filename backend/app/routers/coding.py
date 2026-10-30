@@ -2,7 +2,7 @@ import json
 from typing import List, Optional
 from fastapi import APIRouter, Depends, HTTPException, Query, status
 from sqlalchemy.orm import Session
-from sqlalchemy import or_
+from sqlalchemy import or_, func, cast, String
 
 from backend.app.dependencies.auth import get_current_student, get_optional_student
 from backend.app.dependencies.db import get_db
@@ -63,61 +63,87 @@ def get_coding_problems(
     difficulty: Optional[str] = Query(None, description="Basic, Easy, Medium, Hard"),
     language: Optional[str] = Query(None, description="'c', 'cpp', 'java', 'python'"),
     solved_status: Optional[str] = Query(None, description="'all', 'solved', 'unsolved'"),
-    limit: int = Query(150, ge=1, le=300),
+    limit: int = Query(300, ge=1, le=500),
     db: Session = Depends(get_db),
     student: Optional[StudentProfile] = Depends(get_optional_student),
 ):
     query = db.query(CodingProblem)
 
-    if search and isinstance(search, str):
+    if search and isinstance(search, str) and search.strip():
+        term = search.strip()
         query = query.filter(
             or_(
-                CodingProblem.title.ilike(f"%{search}%"),
-                CodingProblem.description.ilike(f"%{search}%"),
+                CodingProblem.title.ilike(f"%{term}%"),
+                CodingProblem.description.ilike(f"%{term}%"),
+                CodingProblem.topic.ilike(f"%{term}%"),
+                CodingProblem.category.ilike(f"%{term}%"),
             )
         )
-    if category and isinstance(category, str) and category.lower() != "all":
+    if category and isinstance(category, str) and category.strip().lower() != "all":
+        cat_clean = category.strip()
+        cat_stem = cat_clean.rstrip("s") if len(cat_clean) > 4 else cat_clean
         query = query.filter(
             or_(
-                CodingProblem.category.ilike(f"%{category}%"),
-                CodingProblem.topic.ilike(f"%{category}%"),
+                CodingProblem.category.ilike(f"%{cat_clean}%"),
+                CodingProblem.category.ilike(f"%{cat_stem}%"),
+                CodingProblem.topic.ilike(f"%{cat_clean}%"),
+                CodingProblem.topic.ilike(f"%{cat_stem}%"),
             )
         )
-    if difficulty and isinstance(difficulty, str) and difficulty.lower() != "all":
-        query = query.filter(CodingProblem.difficulty == difficulty.lower())
-
-    if language and isinstance(language, str) and language.lower() != "all":
+    if difficulty and isinstance(difficulty, str) and difficulty.strip().lower() != "all":
+        diff_val = difficulty.strip().upper()
         query = query.filter(
             or_(
-                CodingProblem.language.ilike(f"%{language}%"),
-                CodingProblem.starter_code_map.has_key(language.lower()) if hasattr(CodingProblem.starter_code_map, "has_key") else True,
+                func.upper(cast(CodingProblem.difficulty, String)) == diff_val,
+                CodingProblem.difficulty.ilike(f"%{difficulty.strip()}%"),
             )
         )
 
-    problems = query.order_by(CodingProblem.problem_num, CodingProblem.created_at.desc()).limit(limit).all()
+    if language and isinstance(language, str) and language.strip().lower() != "all":
+        lang_clean = language.strip().lower()
+        lang_key = "cpp" if lang_clean in ("c++", "cpp") else lang_clean
+        query = query.filter(
+            or_(
+                CodingProblem.language.ilike(f"%{lang_key}%"),
+                cast(CodingProblem.starter_code_map, String).ilike(f'%"{lang_key}"%'),
+                cast(CodingProblem.solution_code, String).ilike(f'%"{lang_key}"%'),
+            )
+        )
 
-    # Calculate solved problems for student if authenticated, or default student
-    target_student = student or db.query(StudentProfile).first()
+    # Determine solved problem IDs for user or demo
+    target_student_id = student.id if student else None
     solved_problem_ids = set()
-    if target_student:
+    if target_student_id:
         passed_subs = (
             db.query(CodingSubmission.problem_id)
             .filter(
-                CodingSubmission.student_id == target_student.id,
+                CodingSubmission.student_id == target_student_id,
                 CodingSubmission.status == SubmissionStatusEnum.PASSED,
             )
             .distinct()
             .all()
         )
         solved_problem_ids = {s[0] for s in passed_subs}
+    else:
+        passed_subs = (
+            db.query(CodingSubmission.problem_id)
+            .filter(CodingSubmission.status == SubmissionStatusEnum.PASSED)
+            .distinct()
+            .all()
+        )
+        solved_problem_ids = {s[0] for s in passed_subs}
+
+    if solved_status and solved_status.strip().lower() == "solved":
+        query = query.filter(CodingProblem.id.in_(solved_problem_ids))
+    elif solved_status and solved_status.strip().lower() == "unsolved":
+        if solved_problem_ids:
+            query = query.filter(~CodingProblem.id.in_(solved_problem_ids))
+
+    problems = query.order_by(CodingProblem.problem_num, CodingProblem.created_at.desc()).limit(limit).all()
 
     results = []
     for p in problems:
         is_solved = p.id in solved_problem_ids
-        if solved_status == "solved" and not is_solved:
-            continue
-        if solved_status == "unsolved" and is_solved:
-            continue
 
         resp = CodingProblemResponse(
             id=p.id,
@@ -296,19 +322,27 @@ def get_dsa_progress(
     db: Session = Depends(get_db),
 ):
     """Get overall DSA progress metrics, category breakdowns, and user streak."""
-    target_student = student or db.query(StudentProfile).first()
+    target_student_id = student.id if student else None
     total_probs = db.query(CodingProblem).count()
     if total_probs == 0:
         total_probs = 1
 
     solved_ids = set()
-    if target_student:
+    if target_student_id:
         passed_subs = (
             db.query(CodingSubmission.problem_id)
             .filter(
-                CodingSubmission.student_id == target_student.id,
+                CodingSubmission.student_id == target_student_id,
                 CodingSubmission.status == SubmissionStatusEnum.PASSED,
             )
+            .distinct()
+            .all()
+        )
+        solved_ids = {s[0] for s in passed_subs}
+    else:
+        passed_subs = (
+            db.query(CodingSubmission.problem_id)
+            .filter(CodingSubmission.status == SubmissionStatusEnum.PASSED)
             .distinct()
             .all()
         )
@@ -326,19 +360,14 @@ def get_dsa_progress(
         ).count()
         if cat_total == 0:
             continue
-        cat_solved = 0
-        if target_student:
-            cat_solved = (
-                db.query(CodingSubmission.problem_id)
-                .join(CodingProblem, CodingSubmission.problem_id == CodingProblem.id)
-                .filter(
-                    CodingSubmission.student_id == target_student.id,
-                    CodingSubmission.status == SubmissionStatusEnum.PASSED,
-                    or_(CodingProblem.category.ilike(f"%{cat}%"), CodingProblem.topic.ilike(f"%{cat}%")),
-                )
-                .distinct()
-                .count()
+        cat_solved = (
+            db.query(CodingProblem.id)
+            .filter(
+                CodingProblem.id.in_(solved_ids),
+                or_(CodingProblem.category.ilike(f"%{cat}%"), CodingProblem.topic.ilike(f"%{cat}%")),
             )
+            .count()
+        ) if solved_ids else 0
         cat_progress.append(DsaCategoryProgress(category=cat, solved=cat_solved, total=cat_total))
 
     data = DsaProgressResponse(

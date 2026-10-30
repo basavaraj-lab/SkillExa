@@ -695,13 +695,14 @@ export const ApiClient = {
     }),
 
   // 10. DSA Practice & Problem Solving Module
-  getDsaProblems: (params?: { search?: string; category?: string; difficulty?: string; language?: string; solved_status?: string }) => {
+  getDsaProblems: (params?: { search?: string; category?: string; difficulty?: string; language?: string; solved_status?: string; limit?: number }) => {
     const query = new URLSearchParams();
     if (params?.search) query.append('search', params.search);
     if (params?.category) query.append('category', params.category);
     if (params?.difficulty) query.append('difficulty', params.difficulty);
     if (params?.language) query.append('language', params.language);
     if (params?.solved_status) query.append('solved_status', params.solved_status);
+    query.append('limit', String(params?.limit || 300));
     return request<any[]>(`/coding/problems?${query.toString()}`);
   },
 

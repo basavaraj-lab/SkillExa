@@ -54,7 +54,7 @@ export default function DsaPracticePage() {
 
   const fetchProblems = () => {
     setLoading(true);
-    const filterLang = selectedLang === 'All' ? undefined : selectedLang.toLowerCase();
+    const filterLang = selectedLang === 'All' ? undefined : (selectedLang === 'C++' ? 'cpp' : selectedLang.toLowerCase());
     const filterCat = selectedCategory === 'All' ? undefined : selectedCategory;
     const filterDiff = selectedDifficulty === 'All' ? undefined : selectedDifficulty.toLowerCase();
     const filterSol = selectedStatus === 'All' ? undefined : selectedStatus.toLowerCase();
@@ -65,6 +65,7 @@ export default function DsaPracticePage() {
       difficulty: filterDiff,
       language: filterLang,
       solved_status: filterSol,
+      limit: 300,
     }).then((res) => {
       if (res.success && res.data) {
         setProblems(res.data);
@@ -335,7 +336,22 @@ export default function DsaPracticePage() {
             <View style={styles.emptyCard}>
               <Feather name="inbox" size={36} color={Palette.textMuted} />
               <Text style={styles.emptyTitle}>No problems found matching criteria</Text>
-              <Text style={styles.emptySub}>Try clearing filters or search query to view all problems.</Text>
+              <Text style={styles.emptySub}>
+                No problems found for category "{selectedCategory}" and difficulty "{selectedDifficulty}".
+              </Text>
+              <TouchableOpacity
+                style={styles.resetFiltersBtn}
+                onPress={() => {
+                  setSelectedCategory('All');
+                  setSelectedDifficulty('All');
+                  setSelectedLang('All');
+                  setSelectedStatus('All');
+                  setSearchQuery('');
+                }}
+              >
+                <Feather name="rotate-ccw" size={14} color="#FFFFFF" style={{ marginRight: 6 }} />
+                <Text style={styles.resetFiltersBtnText}>Reset All Filters</Text>
+              </TouchableOpacity>
             </View>
           ) : (
             <View style={styles.problemsGrid}>
@@ -350,7 +366,10 @@ export default function DsaPracticePage() {
                     onPress={() =>
                       router.push({
                         pathname: '/dsa-solver',
-                        params: { id: prob.id },
+                        params: { 
+                          id: prob.id,
+                          language: selectedLang !== 'All' ? (selectedLang === 'C++' ? 'cpp' : selectedLang.toLowerCase()) : undefined,
+                        },
                       })
                     }
                     activeOpacity={0.8}
@@ -367,10 +386,13 @@ export default function DsaPracticePage() {
                       <View style={styles.problemTitleBox}>
                         <Text style={styles.problemItemTitle}>{prob.title}</Text>
                         <View style={styles.problemMetaRow}>
-                          <Text style={styles.categoryBadge}>{prob.category || 'Arrays'}</Text>
+                          <Text style={styles.categoryBadge}>{prob.category || prob.topic || 'Arrays'}</Text>
                           {prob.time_complexity ? (
                             <Text style={styles.metaSubText}>Time: {prob.time_complexity}</Text>
                           ) : null}
+                          <Text style={styles.langPillBadge}>
+                            {selectedLang !== 'All' ? selectedLang : 'Python • C • C++ • Java'}
+                          </Text>
                         </View>
                       </View>
                     </View>
@@ -433,6 +455,30 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.04,
     shadowRadius: 6,
     elevation: 2,
+  },
+  resetFiltersBtn: {
+    marginTop: 14,
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: Palette.primary,
+    paddingHorizontal: 16,
+    paddingVertical: 10,
+    borderRadius: 8,
+  },
+  resetFiltersBtnText: {
+    color: '#FFFFFF',
+    fontWeight: '700',
+    fontSize: 13,
+  },
+  langPillBadge: {
+    fontSize: 11,
+    color: '#4F46E5',
+    backgroundColor: '#EEF2FF',
+    paddingHorizontal: 6,
+    paddingVertical: 2,
+    borderRadius: 4,
+    fontWeight: '600',
+    marginLeft: 6,
   },
   progressTopRow: {
     flexDirection: 'row',
