@@ -63,8 +63,8 @@ def seed_dsa_problems():
         else:
             diff_enum = DifficultyEnum.MEDIUM
 
-        starter_map = prob.get("starter_code", {})
-        fallback_code = starter_map.get("python") or starter_map.get("c") or "def solution():\n    pass"
+        starter_map = prob.get("starter_code_map") if isinstance(prob.get("starter_code_map"), dict) else (prob.get("starter_code") if isinstance(prob.get("starter_code"), dict) else {})
+        fallback_code = prob.get("starter_code") if isinstance(prob.get("starter_code"), str) else (starter_map.get("python") or starter_map.get("c") or "def solution():\n    pass")
 
         if existing:
             existing.title = prob.get("title", existing.title)
@@ -78,6 +78,8 @@ def seed_dsa_problems():
             existing.examples = prob.get("examples", existing.examples)
             existing.starter_code = fallback_code
             existing.starter_code_map = starter_map
+            sol_val = prob.get("solution_code")
+            existing.solution_code = json.dumps(sol_val) if isinstance(sol_val, dict) else (sol_val if isinstance(sol_val, str) else None)
             existing.test_cases = prob.get("test_cases", existing.test_cases)
             existing.hidden_test_cases = prob.get("hidden_test_cases", existing.hidden_test_cases)
             updated += 1
@@ -97,6 +99,7 @@ def seed_dsa_problems():
                 examples=prob.get("examples", []),
                 starter_code=fallback_code,
                 starter_code_map=starter_map,
+                solution_code=json.dumps(prob.get("solution_code")) if isinstance(prob.get("solution_code"), dict) else prob.get("solution_code"),
                 test_cases=prob.get("test_cases", []),
                 hidden_test_cases=prob.get("hidden_test_cases", []),
                 points=10,

@@ -417,6 +417,13 @@ def seed_database():
         db.commit()
         print("Database seeded successfully with initial colleges, faculty, student, notes, quizzes, and coding problems!")
 
+        # 9. Seed curated DSA problems catalog
+        try:
+            from backend.app.seed_dsa import seed_dsa_problems
+            seed_dsa_problems()
+        except Exception as seed_err:
+            logger.warning(f"Could not auto-seed DSA problems: {seed_err}")
+
     except Exception as e:
         db.rollback()
         print(f"Error seeding database: {e}")

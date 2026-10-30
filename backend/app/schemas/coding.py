@@ -52,6 +52,8 @@ class CodingProblemResponse(BaseModel):
     examples: List[Dict[str, Any]] = []
     starter_code: str
     starter_code_map: Dict[str, str] = {}
+    solution_code: Optional[str] = None
+    solution_code_map: Dict[str, str] = {}
     test_cases: List[Dict[str, Any]] = []
     points: int = 10
     created_at: datetime
@@ -93,6 +95,7 @@ class SubmissionResultResponse(BaseModel):
     memory_kb: float
     output_logs: Optional[str] = None
     error_message: Optional[str] = None
+    solutions: Optional[Dict[str, str]] = None
     created_at: datetime
 
 

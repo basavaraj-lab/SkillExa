@@ -1,3 +1,4 @@
+import json
 from typing import List, Optional
 from fastapi import APIRouter, Depends, HTTPException, Query, status
 from sqlalchemy.orm import Session
@@ -19,6 +20,23 @@ from backend.app.schemas.coding import (
 )
 from backend.app.schemas.common import ApiResponse
 from backend.app.services.execution_service import SandboxedExecutionService
+
+
+def extract_solution_map(problem) -> dict:
+    raw = getattr(problem, "solution_code", None)
+    if not raw:
+        return {}
+    if isinstance(raw, dict):
+        return raw
+    if isinstance(raw, str):
+        try:
+            parsed = json.loads(raw)
+            if isinstance(parsed, dict):
+                return parsed
+            return {"python": str(parsed)}
+        except Exception:
+            return {"python": raw}
+    return {}
 
 router = APIRouter(prefix="/coding", tags=["Coding Problems & Execution"])
 
@@ -119,6 +137,8 @@ def get_coding_problems(
             examples=p.examples or [],
             starter_code=p.starter_code,
             starter_code_map=getattr(p, "starter_code_map", {}) or {},
+            solution_code=p.solution_code if isinstance(p.solution_code, str) else json.dumps(p.solution_code or {}),
+            solution_code_map=extract_solution_map(p),
             test_cases=p.test_cases or [],
             points=p.points or 10,
             created_at=p.created_at,
@@ -176,6 +196,8 @@ def get_coding_problem_by_id(
         examples=problem.examples or [],
         starter_code=problem.starter_code,
         starter_code_map=getattr(problem, "starter_code_map", {}) or {},
+        solution_code=problem.solution_code if isinstance(problem.solution_code, str) else json.dumps(problem.solution_code or {}),
+        solution_code_map=extract_solution_map(problem),
         test_cases=problem.test_cases or [],
         points=problem.points or 10,
         created_at=problem.created_at,
@@ -262,6 +284,7 @@ def submit_problem_code(
             memory_kb=submission.memory_kb or 0.0,
             output_logs=logs,
             error_message=None if status_res == SubmissionStatusEnum.PASSED else logs,
+            solutions=extract_solution_map(problem),
             created_at=submission.created_at,
         ),
     )
