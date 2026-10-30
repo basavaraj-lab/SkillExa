@@ -156,14 +156,14 @@ export default function DsaSolverPage() {
       }
     } else {
       setSubmitResult({
-        status: 'PASSED',
-        test_cases_passed: problem?.test_cases?.length || 2,
-        total_test_cases: problem?.test_cases?.length || 2,
-        runtime_ms: 12.4,
-        memory_kb: 4096.0,
-        output_logs: 'All test cases passed successfully!',
+        status: 'FAILED',
+        test_cases_passed: 0,
+        total_test_cases: problem?.test_cases?.length || 1,
+        runtime_ms: 0,
+        memory_kb: 0,
+        output_logs: res.message || 'Submission evaluation failed.',
+        error_message: res.message || 'Submission failed.',
       });
-      setProblem((prev: any) => (prev ? { ...prev, is_solved: true } : prev));
     }
     setIsSubmitting(false);
   };

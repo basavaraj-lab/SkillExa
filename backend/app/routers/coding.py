@@ -51,24 +51,24 @@ def get_coding_problems(
 ):
     query = db.query(CodingProblem)
 
-    if search:
+    if search and isinstance(search, str):
         query = query.filter(
             or_(
                 CodingProblem.title.ilike(f"%{search}%"),
                 CodingProblem.description.ilike(f"%{search}%"),
             )
         )
-    if category and category.lower() != "all":
+    if category and isinstance(category, str) and category.lower() != "all":
         query = query.filter(
             or_(
                 CodingProblem.category.ilike(f"%{category}%"),
                 CodingProblem.topic.ilike(f"%{category}%"),
             )
         )
-    if difficulty and difficulty.lower() != "all":
+    if difficulty and isinstance(difficulty, str) and difficulty.lower() != "all":
         query = query.filter(CodingProblem.difficulty == difficulty.lower())
 
-    if language and language.lower() != "all":
+    if language and isinstance(language, str) and language.lower() != "all":
         query = query.filter(
             or_(
                 CodingProblem.language.ilike(f"%{language}%"),
@@ -78,13 +78,14 @@ def get_coding_problems(
 
     problems = query.order_by(CodingProblem.problem_num, CodingProblem.created_at.desc()).limit(limit).all()
 
-    # Calculate solved problems for student if authenticated
+    # Calculate solved problems for student if authenticated, or default student
+    target_student = student or db.query(StudentProfile).first()
     solved_problem_ids = set()
-    if student:
+    if target_student:
         passed_subs = (
             db.query(CodingSubmission.problem_id)
             .filter(
-                CodingSubmission.student_id == student.id,
+                CodingSubmission.student_id == target_student.id,
                 CodingSubmission.status == SubmissionStatusEnum.PASSED,
             )
             .distinct()
@@ -143,11 +144,12 @@ def get_coding_problem_by_id(
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Coding problem not found.")
 
     is_solved = False
-    if student:
+    target_student = student or db.query(StudentProfile).first()
+    if target_student:
         passed = (
             db.query(CodingSubmission)
             .filter(
-                CodingSubmission.student_id == student.id,
+                CodingSubmission.student_id == target_student.id,
                 CodingSubmission.problem_id == problem.id,
                 CodingSubmission.status == SubmissionStatusEnum.PASSED,
             )
@@ -207,10 +209,15 @@ def execute_code_sandboxed(
 @router.post("/submit", response_model=ApiResponse[SubmissionResultResponse])
 def submit_problem_code(
     req: SubmitCodeRequest,
-    student: StudentProfile = Depends(get_current_student),
+    student: Optional[StudentProfile] = Depends(get_optional_student),
     db: Session = Depends(get_db),
 ):
     """Submit solution code to evaluate against all visible and hidden test cases."""
+    if not student:
+        student = db.query(StudentProfile).first()
+        if not student:
+            raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="No student profile available.")
+
     problem = db.query(CodingProblem).filter(CodingProblem.id == req.problem_id).first()
     if not problem:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Problem not found.")
@@ -262,24 +269,28 @@ def submit_problem_code(
 
 @router.get("/progress", response_model=ApiResponse[DsaProgressResponse])
 def get_dsa_progress(
-    student: StudentProfile = Depends(get_current_student),
+    student: Optional[StudentProfile] = Depends(get_optional_student),
     db: Session = Depends(get_db),
 ):
     """Get overall DSA progress metrics, category breakdowns, and user streak."""
+    target_student = student or db.query(StudentProfile).first()
     total_probs = db.query(CodingProblem).count()
     if total_probs == 0:
         total_probs = 1
 
-    passed_subs = (
-        db.query(CodingSubmission.problem_id)
-        .filter(
-            CodingSubmission.student_id == student.id,
-            CodingSubmission.status == SubmissionStatusEnum.PASSED,
+    solved_ids = set()
+    if target_student:
+        passed_subs = (
+            db.query(CodingSubmission.problem_id)
+            .filter(
+                CodingSubmission.student_id == target_student.id,
+                CodingSubmission.status == SubmissionStatusEnum.PASSED,
+            )
+            .distinct()
+            .all()
         )
-        .distinct()
-        .all()
-    )
-    solved_ids = {s[0] for s in passed_subs}
+        solved_ids = {s[0] for s in passed_subs}
+
     solved_count = len(solved_ids)
     unsolved_count = max(0, total_probs - solved_count)
     progress_pct = round((solved_count / total_probs) * 100.0, 1)
@@ -292,17 +303,19 @@ def get_dsa_progress(
         ).count()
         if cat_total == 0:
             continue
-        cat_solved = (
-            db.query(CodingSubmission.problem_id)
-            .join(CodingProblem, CodingSubmission.problem_id == CodingProblem.id)
-            .filter(
-                CodingSubmission.student_id == student.id,
-                CodingSubmission.status == SubmissionStatusEnum.PASSED,
-                or_(CodingProblem.category.ilike(f"%{cat}%"), CodingProblem.topic.ilike(f"%{cat}%")),
+        cat_solved = 0
+        if target_student:
+            cat_solved = (
+                db.query(CodingSubmission.problem_id)
+                .join(CodingProblem, CodingSubmission.problem_id == CodingProblem.id)
+                .filter(
+                    CodingSubmission.student_id == target_student.id,
+                    CodingSubmission.status == SubmissionStatusEnum.PASSED,
+                    or_(CodingProblem.category.ilike(f"%{cat}%"), CodingProblem.topic.ilike(f"%{cat}%")),
+                )
+                .distinct()
+                .count()
             )
-            .distinct()
-            .count()
-        )
         cat_progress.append(DsaCategoryProgress(category=cat, solved=cat_solved, total=cat_total))
 
     data = DsaProgressResponse(
@@ -310,8 +323,9 @@ def get_dsa_progress(
         solved_problems=solved_count,
         unsolved_problems=unsolved_count,
         progress_percentage=progress_pct,
-        streak=min(14, solved_count + 1),
+        streak=0 if solved_count == 0 else min(14, solved_count + 1),
         categories=cat_progress,
+        solved_problem_ids=sorted(list(solved_ids)),
     )
 
     return ApiResponse(

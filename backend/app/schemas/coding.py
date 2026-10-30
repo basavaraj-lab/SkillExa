@@ -109,4 +109,5 @@ class DsaProgressResponse(BaseModel):
     progress_percentage: float
     streak: int
     categories: List[DsaCategoryProgress]
+    solved_problem_ids: List[str] = []
 

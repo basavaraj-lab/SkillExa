@@ -18,13 +18,13 @@ export const getCustomApiBaseUrl = (): string | null => customBaseUrl;
 
 export const getApiBaseUrl = (): string => {
   if (customBaseUrl) return `${customBaseUrl}/api`;
-  if (process.env.EXPO_PUBLIC_API_URL) {
-    return `${process.env.EXPO_PUBLIC_API_URL.replace(/\/+$/, '')}/api`;
-  }
   if (Platform.OS === 'web' && typeof window !== 'undefined' && window.location?.hostname) {
     const host = window.location.hostname;
     const protocol = window.location.protocol || 'http:';
     return `${protocol}//${host}:8000/api`;
+  }
+  if (process.env.EXPO_PUBLIC_API_URL) {
+    return `${process.env.EXPO_PUBLIC_API_URL.replace(/\/+$/, '')}/api`;
   }
   return Platform.select({
     android: 'http://10.0.2.2:8000/api', // Android Emulator default

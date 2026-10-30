@@ -1,17 +1,1497 @@
 [
   {
-    "id": "dsa-1",
+    "id": "dsa-alternate-elements",
     "problem_num": 1,
+    "title": "Print Alternate Elements of an Array",
+    "category": "Arrays",
+    "topic": "Arrays",
+    "subtopic": "",
+    "difficulty": "BASIC",
+    "description": "Given an array of N integers, print all alternate elements starting from the first element (index 0).",
+    "input_format": "The first line contains an integer N representing the size of the array.\nThe second line contains N space-separated integers representing the elements of the array.",
+    "output_format": "Print the alternate elements starting from index 0 separated by a single space.",
+    "constraints": "1 <= N <= 10^5\n-10^6 <= arr[i] <= 10^6",
+    "time_complexity": "O(N)",
+    "space_complexity": "O(1)",
+    "company_tags": [
+      "TCS",
+      "Infosys",
+      "Wipro",
+      "Accenture",
+      "Cognizant"
+    ],
+    "examples": [
+      {
+        "input": "5\n10 20 30 40 50",
+        "output": "10 30 50",
+        "explanation": "Starting from index 0: arr[0]=10, arr[2]=30, arr[4]=50 are printed."
+      },
+      {
+        "input": "6\n1 2 3 4 5 6",
+        "output": "1 3 5",
+        "explanation": "Starting from index 0: arr[0]=1, arr[2]=3, arr[4]=5 are printed."
+      },
+      {
+        "input": "4\n7 14 21 28",
+        "output": "7 21",
+        "explanation": "Starting from index 0: arr[0]=7, arr[2]=21 are printed."
+      }
+    ],
+    "starter_code": "def getAlternates(arr):\n    # Your code here\n    pass\n\nif __name__ == '__main__':\n    n = int(input())\n    arr = list(map(int, input().split()))\n    result = getAlternates(arr)\n    print(*result)\n",
+    "starter_code_map": {
+      "python": "def getAlternates(arr):\n    # Your code here: Return list or print alternate elements\n    pass\n\nif __name__ == \"__main__\":\n    n = int(input())\n    arr = list(map(int, input().split()))\n    result = getAlternates(arr)\n    if result is not None:\n        print(*result)\n",
+      "c": "#include <stdio.h>\n\nvoid getAlternates(int arr[], int n) {\n    // Your code here: Print alternate elements separated by space\n    \n}\n\nint main() {\n    int n;\n    if (scanf(\"%d\", &n) != 1) return 0;\n    int arr[n];\n    for (int i = 0; i < n; i++) {\n        scanf(\"%d\", &arr[i]);\n    }\n    getAlternates(arr, n);\n    return 0;\n}\n",
+      "cpp": "#include <iostream>\n#include <vector>\n\nusing namespace std;\n\nvoid getAlternates(const vector<int>& arr) {\n    // Your code here: Print alternate elements separated by space\n    \n}\n\nint main() {\n    ios_base::sync_with_stdio(false);\n    cin.tie(NULL);\n    int n;\n    if (!(cin >> n)) return 0;\n    vector<int> arr(n);\n    for (int i = 0; i < n; i++) {\n        cin >> arr[i];\n    }\n    getAlternates(arr);\n    return 0;\n}\n",
+      "java": "import java.util.Scanner;\n\npublic class Main {\n    public static void getAlternates(int[] arr, int n) {\n        // Your code here: Print alternate elements separated by space\n        \n    }\n\n    public static void main(String[] args) {\n        Scanner sc = new Scanner(System.in);\n        if (!sc.hasNextInt()) return;\n        int n = sc.nextInt();\n        int[] arr = new int[n];\n        for (int i = 0; i < n; i++) {\n            arr[i] = sc.nextInt();\n        }\n        getAlternates(arr, n);\n    }\n}\n"
+    },
+    "solution_code": "{\"python\": \"def getAlternates(arr):\\n    result = []\\n    for i in range(0, len(arr), 2):\\n        result.append(arr[i])\\n    return result\\n\\nif __name__ == \\\"__main__\\\":\\n    n = int(input())\\n    arr = list(map(int, input().split()))\\n    result = getAlternates(arr)\\n    print(*result)\\n\", \"c\": \"#include <stdio.h>\\n\\nvoid getAlternates(int arr[], int n) {\\n    for (int i = 0; i < n; i += 2) {\\n        if (i > 0) printf(\\\" \\\");\\n        printf(\\\"%d\\\", arr[i]);\\n    }\\n    printf(\\\"\\\\n\\\");\\n}\\n\\nint main() {\\n    int n;\\n    if (scanf(\\\"%d\\\", &n) != 1) return 0;\\n    int arr[n];\\n    for (int i = 0; i < n; i++) {\\n        scanf(\\\"%d\\\", &arr[i]);\\n    }\\n    getAlternates(arr, n);\\n    return 0;\\n}\\n\", \"cpp\": \"#include <iostream>\\n#include <vector>\\n\\nusing namespace std;\\n\\nvoid getAlternates(const vector<int>& arr) {\\n    for (size_t i = 0; i < arr.size(); i += 2) {\\n        if (i > 0) cout << \\\" \\\";\\n        cout << arr[i];\\n    }\\n    cout << \\\"\\\\n\\\";\\n}\\n\\nint main() {\\n    ios_base::sync_with_stdio(false);\\n    cin.tie(NULL);\\n    int n;\\n    if (!(cin >> n)) return 0;\\n    vector<int> arr(n);\\n    for (int i = 0; i < n; i++) {\\n        cin >> arr[i];\\n    }\\n    getAlternates(arr);\\n    return 0;\\n}\\n\", \"java\": \"import java.util.Scanner;\\n\\npublic class Main {\\n    public static void getAlternates(int[] arr, int n) {\\n        StringBuilder sb = new StringBuilder();\\n        for (int i = 0; i < n; i += 2) {\\n            if (sb.length() > 0) sb.append(\\\" \\\");\\n            sb.append(arr[i]);\\n        }\\n        System.out.println(sb.toString());\\n    }\\n\\n    public static void main(String[] args) {\\n        Scanner sc = new Scanner(System.in);\\n        if (!sc.hasNextInt()) return;\\n        int n = sc.nextInt();\\n        int[] arr = new int[n];\\n        for (int i = 0; i < n; i++) {\\n            arr[i] = sc.nextInt();\\n        }\\n        getAlternates(arr, n);\\n    }\\n}\\n\"}",
+    "test_cases": [
+      {
+        "input": "5\n10 20 30 40 50",
+        "expected": "10 30 50",
+        "is_hidden": false
+      },
+      {
+        "input": "6\n1 2 3 4 5 6",
+        "expected": "1 3 5",
+        "is_hidden": false
+      },
+      {
+        "input": "4\n7 14 21 28",
+        "expected": "7 21",
+        "is_hidden": false
+      }
+    ],
+    "hidden_test_cases": [
+      {
+        "input": "1\n99",
+        "expected": "99",
+        "is_hidden": true
+      },
+      {
+        "input": "7\n2 4 6 8 10 12 14",
+        "expected": "2 6 10 14",
+        "is_hidden": true
+      }
+    ],
+    "points": 10
+  },
+  {
+    "id": "dsa-leaders-in-array",
+    "problem_num": 2,
+    "title": "Leaders in an Array",
+    "category": "Arrays",
+    "topic": "Arrays",
+    "subtopic": "",
+    "difficulty": "EASY",
+    "description": "Given an array of N integers, find all the leaders in the array. An element is called a leader if it is greater than or equal to all the elements to its right. The rightmost element is always considered a leader because there are no elements to its right.",
+    "input_format": "The first line contains an integer N representing the size of the array.\\nThe second line contains N space-separated integers representing the elements of the array.",
+    "output_format": "Print all the leaders in the order of their appearance from left to right separated by space.",
+    "constraints": "1 <= N <= 10^5\\n-10^6 <= arr[i] <= 10^6",
+    "time_complexity": "O(N)",
+    "space_complexity": "O(N)",
+    "company_tags": [
+      "Amazon",
+      "Microsoft",
+      "Paytm",
+      "Adobe"
+    ],
+    "examples": [
+      {
+        "input": "6\\n16 17 4 3 5 2",
+        "output": "17 5 2",
+        "explanation": "17 is greater than [4, 3, 5, 2]. 5 is greater than [2]. 2 is the rightmost element."
+      },
+      {
+        "input": "5\\n10 9 8 7 6",
+        "output": "10 9 8 7 6",
+        "explanation": "Every element is greater than all elements to its right."
+      },
+      {
+        "input": "5\\n1 2 3 4 5",
+        "output": "5",
+        "explanation": "Only 5 has no elements greater than it to its right."
+      }
+    ],
+    "starter_code": "def leaders(arr):\n    # Your code here: Return list of leaders in original order\n    pass\n\nif __name__ == \"__main__\":\n    n = int(input())\n    arr = list(map(int, input().split()))\n    result = leaders(arr)\n    if result is not None:\n        print(*result)\n",
+    "starter_code_map": {
+      "python": "def leaders(arr):\n    # Your code here: Return list of leaders in original order\n    pass\n\nif __name__ == \"__main__\":\n    n = int(input())\n    arr = list(map(int, input().split()))\n    result = leaders(arr)\n    if result is not None:\n        print(*result)\n",
+      "c": "#include <stdio.h>\n#include <stdlib.h>\n\nvoid leaders(int arr[], int n) {\n    // Your code here: Print leaders from left to right separated by space\n}\n\nint main() {\n    int n;\n    if (scanf(\"%d\", &n) != 1) return 0;\n    int arr[n];\n    for (int i = 0; i < n; i++) scanf(\"%d\", &arr[i]);\n    leaders(arr, n);\n    return 0;\n}\n",
+      "cpp": "#include <iostream>\n#include <vector>\n#include <algorithm>\nusing namespace std;\n\nvoid leaders(const vector<int>& arr) {\n    // Your code here: Print leaders from left to right separated by space\n}\n\nint main() {\n    ios_base::sync_with_stdio(false);\n    cin.tie(NULL);\n    int n;\n    if (!(cin >> n)) return 0;\n    vector<int> arr(n);\n    for (int i = 0; i < n; i++) cin >> arr[i];\n    leaders(arr);\n    return 0;\n}\n",
+      "java": "import java.util.Scanner;\nimport java.util.ArrayList;\nimport java.util.Collections;\n\npublic class Main {\n    public static void leaders(int[] arr, int n) {\n        // Your code here: Print leaders from left to right separated by space\n    }\n\n    public static void main(String[] args) {\n        Scanner sc = new Scanner(System.in);\n        if (!sc.hasNextInt()) return;\n        int n = sc.nextInt();\n        int[] arr = new int[n];\n        for (int i = 0; i < n; i++) arr[i] = sc.nextInt();\n        leaders(arr, n);\n    }\n}\n"
+    },
+    "solution_code": "{\"python\": \"def leaders(arr):\\n    result = []\\n    n = len(arr)\\n    max_right = -10**9\\n    for i in range(n - 1, -1, -1):\\n        if arr[i] >= max_right:\\n            result.append(arr[i])\\n            max_right = arr[i]\\n    result.reverse()\\n    return result\\n\\nif __name__ == \\\"__main__\\\":\\n    n = int(input())\\n    arr = list(map(int, input().split()))\\n    print(*leaders(arr))\\n\", \"c\": \"#include <stdio.h>\\n#include <stdlib.h>\\n\\nvoid leaders(int arr[], int n) {\\n    int* res = (int*)malloc(n * sizeof(int));\\n    int count = 0;\\n    int max_right = -1000000000;\\n    for (int i = n - 1; i >= 0; i--) {\\n        if (arr[i] >= max_right) {\\n            res[count++] = arr[i];\\n            max_right = arr[i];\\n        }\\n    }\\n    for (int i = count - 1; i >= 0; i--) {\\n        if (i < count - 1) printf(\\\" \\\");\\n        printf(\\\"%d\\\", res[i]);\\n    }\\n    printf(\\\"\\\\n\\\");\\n    free(res);\\n}\\n\\nint main() {\\n    int n;\\n    if (scanf(\\\"%d\\\", &n) != 1) return 0;\\n    int arr[n];\\n    for (int i = 0; i < n; i++) scanf(\\\"%d\\\", &arr[i]);\\n    leaders(arr, n);\\n    return 0;\\n}\\n\", \"cpp\": \"#include <iostream>\\n#include <vector>\\n#include <algorithm>\\nusing namespace std;\\n\\nvoid leaders(const vector<int>& arr) {\\n    vector<int> res;\\n    int n = arr.size();\\n    int max_right = -1000000000;\\n    for (int i = n - 1; i >= 0; i--) {\\n        if (arr[i] >= max_right) {\\n            res.push_back(arr[i]);\\n            max_right = arr[i];\\n        }\\n    }\\n    reverse(res.begin(), res.end());\\n    for (size_t i = 0; i < res.size(); i++) {\\n        if (i > 0) cout << \\\" \\\";\\n        cout << res[i];\\n    }\\n    cout << \\\"\\\\n\\\";\\n}\\n\\nint main() {\\n    int n;\\n    if (!(cin >> n)) return 0;\\n    vector<int> arr(n);\\n    for (int i = 0; i < n; i++) cin >> arr[i];\\n    leaders(arr);\\n    return 0;\\n}\\n\", \"java\": \"import java.util.Scanner;\\nimport java.util.ArrayList;\\nimport java.util.Collections;\\n\\npublic class Main {\\n    public static void leaders(int[] arr, int n) {\\n        ArrayList<Integer> res = new ArrayList<>();\\n        int maxFromRight = Integer.MIN_VALUE;\\n        for (int i = n - 1; i >= 0; i--) {\\n            if (arr[i] >= maxFromRight) {\\n                res.add(arr[i]);\\n                maxFromRight = arr[i];\\n            }\\n        }\\n        Collections.reverse(res);\\n        StringBuilder sb = new StringBuilder();\\n        for (int i = 0; i < res.size(); i++) {\\n            if (i > 0) sb.append(\\\" \\\");\\n            sb.append(res.get(i));\\n        }\\n        System.out.println(sb.toString());\\n    }\\n\\n    public static void main(String[] args) {\\n        Scanner sc = new Scanner(System.in);\\n        if (!sc.hasNextInt()) return;\\n        int n = sc.nextInt();\\n        int[] arr = new int[n];\\n        for (int i = 0; i < n; i++) arr[i] = sc.nextInt();\\n        leaders(arr, n);\\n    }\\n}\\n\"}",
+    "test_cases": [
+      {
+        "input": "6\\n16 17 4 3 5 2",
+        "expected": "17 5 2",
+        "is_hidden": false
+      },
+      {
+        "input": "5\\n10 9 8 7 6",
+        "expected": "10 9 8 7 6",
+        "is_hidden": false
+      },
+      {
+        "input": "5\\n1 2 3 4 5",
+        "expected": "5",
+        "is_hidden": false
+      }
+    ],
+    "hidden_test_cases": [
+      {
+        "input": "1\\n100",
+        "expected": "100",
+        "is_hidden": true
+      },
+      {
+        "input": "4\\n4 4 4 4",
+        "expected": "4 4 4 4",
+        "is_hidden": true
+      }
+    ],
+    "points": 10
+  },
+  {
+    "id": "dsa-remove-duplicates",
+    "problem_num": 3,
+    "title": "Remove Duplicates and Return Sorted Array",
+    "category": "Arrays",
+    "topic": "Arrays",
+    "subtopic": "",
+    "difficulty": "EASY",
+    "description": "Given an array of N integers, remove all duplicate elements and return an array containing only unique elements in sorted order. Each element should appear only once in the resulting array.",
+    "input_format": "The first line contains an integer N representing the size of the array.\\nThe second line contains N space-separated integers representing the elements of the array.",
+    "output_format": "Print unique elements in ascending sorted order separated by space.",
+    "constraints": "1 <= N <= 10^5\\n-10^6 <= arr[i] <= 10^6",
+    "time_complexity": "O(N log N)",
+    "space_complexity": "O(N)",
+    "company_tags": [
+      "Google",
+      "Microsoft",
+      "Wipro",
+      "TCS"
+    ],
+    "examples": [
+      {
+        "input": "9\\n1 2 2 3 4 4 4 5 5",
+        "output": "1 2 3 4 5",
+        "explanation": "Duplicates 2, 4, 5 are removed and unique numbers [1, 2, 3, 4, 5] are printed in ascending order."
+      },
+      {
+        "input": "6\\n10 10 20 20 30 30",
+        "output": "10 20 30",
+        "explanation": "Unique values [10, 20, 30] printed."
+      },
+      {
+        "input": "5\\n5 4 3 2 1",
+        "output": "1 2 3 4 5",
+        "explanation": "Sorted in ascending order."
+      }
+    ],
+    "starter_code": "def removeDuplicates(arr):\n    # Your code here: Return list of unique sorted elements\n    pass\n\nif __name__ == \"__main__\":\n    n = int(input())\n    arr = list(map(int, input().split()))\n    result = removeDuplicates(arr)\n    if result is not None:\n        print(*result)\n",
+    "starter_code_map": {
+      "python": "def removeDuplicates(arr):\n    # Your code here: Return list of unique sorted elements\n    pass\n\nif __name__ == \"__main__\":\n    n = int(input())\n    arr = list(map(int, input().split()))\n    result = removeDuplicates(arr)\n    if result is not None:\n        print(*result)\n",
+      "c": "#include <stdio.h>\n#include <stdlib.h>\n\nvoid removeDuplicates(int arr[], int n) {\n    // Your code here: Print unique sorted elements separated by space\n}\n\nint main() {\n    int n;\n    if (scanf(\"%d\", &n) != 1) return 0;\n    int arr[n];\n    for (int i = 0; i < n; i++) scanf(\"%d\", &arr[i]);\n    removeDuplicates(arr, n);\n    return 0;\n}\n",
+      "cpp": "#include <iostream>\n#include <vector>\n#include <set>\nusing namespace std;\n\nvoid removeDuplicates(const vector<int>& arr) {\n    // Your code here: Print unique sorted elements separated by space\n}\n\nint main() {\n    ios_base::sync_with_stdio(false);\n    cin.tie(NULL);\n    int n;\n    if (!(cin >> n)) return 0;\n    vector<int> arr(n);\n    for (int i = 0; i < n; i++) cin >> arr[i];\n    removeDuplicates(arr);\n    return 0;\n}\n",
+      "java": "import java.util.Scanner;\nimport java.util.TreeSet;\n\npublic class Main {\n    public static void removeDuplicates(int[] arr, int n) {\n        // Your code here: Print unique sorted elements separated by space\n    }\n\n    public static void main(String[] args) {\n        Scanner sc = new Scanner(System.in);\n        if (!sc.hasNextInt()) return;\n        int n = sc.nextInt();\n        int[] arr = new int[n];\n        for (int i = 0; i < n; i++) arr[i] = sc.nextInt();\n        removeDuplicates(arr, n);\n    }\n}\n"
+    },
+    "solution_code": "{\"python\": \"def removeDuplicates(arr):\\n    return sorted(list(set(arr)))\\n\\nif __name__ == \\\"__main__\\\":\\n    n = int(input())\\n    arr = list(map(int, input().split()))\\n    print(*removeDuplicates(arr))\\n\", \"c\": \"#include <stdio.h>\\n#include <stdlib.h>\\n\\nint cmp(const void* a, const void* b) {\\n    int x = *(const int*)a;\\n    int y = *(const int*)b;\\n    return (x > y) - (x < y);\\n}\\n\\nvoid removeDuplicates(int arr[], int n) {\\n    if (n == 0) return;\\n    qsort(arr, n, sizeof(int), cmp);\\n    int first = 1;\\n    for (int i = 0; i < n; i++) {\\n        if (i == 0 || arr[i] != arr[i - 1]) {\\n            if (!first) printf(\\\" \\\");\\n            printf(\\\"%d\\\", arr[i]);\\n            first = 0;\\n        }\\n    }\\n    printf(\\\"\\\\n\\\");\\n}\\n\\nint main() {\\n    int n;\\n    if (scanf(\\\"%d\\\", &n) != 1) return 0;\\n    int arr[n];\\n    for (int i = 0; i < n; i++) scanf(\\\"%d\\\", &arr[i]);\\n    removeDuplicates(arr, n);\\n    return 0;\\n}\\n\", \"cpp\": \"#include <iostream>\\n#include <vector>\\n#include <set>\\nusing namespace std;\\n\\nvoid removeDuplicates(const vector<int>& arr) {\\n    set<int> st(arr.begin(), arr.end());\\n    bool first = true;\\n    for (int x : st) {\\n        if (!first) cout << \\\" \\\";\\n        cout << x;\\n        first = false;\\n    }\\n    cout << \\\"\\\\n\\\";\\n}\\n\\nint main() {\\n    int n;\\n    if (!(cin >> n)) return 0;\\n    vector<int> arr(n);\\n    for (int i = 0; i < n; i++) cin >> arr[i];\\n    removeDuplicates(arr);\\n    return 0;\\n}\\n\", \"java\": \"import java.util.Scanner;\\nimport java.util.TreeSet;\\n\\npublic class Main {\\n    public static void removeDuplicates(int[] arr, int n) {\\n        TreeSet<Integer> set = new TreeSet<>();\\n        for (int i = 0; i < n; i++) {\\n            set.add(arr[i]);\\n        }\\n        StringBuilder sb = new StringBuilder();\\n        for (int val : set) {\\n            if (sb.length() > 0) sb.append(\\\" \\\");\\n            sb.append(val);\\n        }\\n        System.out.println(sb.toString());\\n    }\\n\\n    public static void main(String[] args) {\\n        Scanner sc = new Scanner(System.in);\\n        if (!sc.hasNextInt()) return;\\n        int n = sc.nextInt();\\n        int[] arr = new int[n];\\n        for (int i = 0; i < n; i++) arr[i] = sc.nextInt();\\n        removeDuplicates(arr, n);\\n    }\\n}\\n\"}",
+    "test_cases": [
+      {
+        "input": "9\\n1 2 2 3 4 4 4 5 5",
+        "expected": "1 2 3 4 5",
+        "is_hidden": false
+      },
+      {
+        "input": "6\\n10 10 20 20 30 30",
+        "expected": "10 20 30",
+        "is_hidden": false
+      },
+      {
+        "input": "5\\n5 4 3 2 1",
+        "expected": "1 2 3 4 5",
+        "is_hidden": false
+      }
+    ],
+    "hidden_test_cases": [
+      {
+        "input": "4\\n-5 0 -5 10",
+        "expected": "-5 0 10",
+        "is_hidden": true
+      },
+      {
+        "input": "1\\n42",
+        "expected": "42",
+        "is_hidden": true
+      }
+    ],
+    "points": 10
+  },
+  {
+    "id": "dsa-reverse-array",
+    "problem_num": 4,
+    "title": "Reverse an Array",
+    "category": "Arrays",
+    "topic": "Arrays",
+    "subtopic": "",
+    "difficulty": "BASIC",
+    "description": "Given an array of N integers, reverse the order of its elements. The first element should become the last element, the second element should become the second-last element, and so on.",
+    "input_format": "The first line contains an integer N representing the size of the array.\\nThe second line contains N space-separated integers representing the elements of the array.",
+    "output_format": "Print the reversed array separated by space.",
+    "constraints": "1 <= N <= 10^5\\n-10^6 <= arr[i] <= 10^6",
+    "time_complexity": "O(N)",
+    "space_complexity": "O(1)",
+    "company_tags": [
+      "Amazon",
+      "Microsoft",
+      "TCS",
+      "Infosys",
+      "Cognizant"
+    ],
+    "examples": [
+      {
+        "input": "6\\n1 4 3 2 6 5",
+        "output": "5 6 2 3 4 1",
+        "explanation": "Reversing [1, 4, 3, 2, 6, 5] gives [5, 6, 2, 3, 4, 1]."
+      },
+      {
+        "input": "5\\n10 20 30 40 50",
+        "output": "50 40 30 20 10",
+        "explanation": "First element 10 becomes last, 50 becomes first."
+      },
+      {
+        "input": "4\\n7 7 2 1",
+        "output": "1 2 7 7",
+        "explanation": "Reversed array."
+      }
+    ],
+    "starter_code": "def reverseArray(arr):\n    # Your code here: Reverse array in-place or return reversed list\n    pass\n\nif __name__ == \"__main__\":\n    n = int(input())\n    arr = list(map(int, input().split()))\n    reverseArray(arr)\n    print(*arr)\n",
+    "starter_code_map": {
+      "python": "def reverseArray(arr):\n    # Your code here: Reverse array in-place or return reversed list\n    pass\n\nif __name__ == \"__main__\":\n    n = int(input())\n    arr = list(map(int, input().split()))\n    reverseArray(arr)\n    print(*arr)\n",
+      "c": "#include <stdio.h>\n\nvoid reverseArray(int arr[], int n) {\n    // Your code here: Reverse array in-place\n}\n\nint main() {\n    int n;\n    if (scanf(\"%d\", &n) != 1) return 0;\n    int arr[n];\n    for (int i = 0; i < n; i++) scanf(\"%d\", &arr[i]);\n    reverseArray(arr, n);\n    return 0;\n}\n",
+      "cpp": "#include <iostream>\n#include <vector>\n#include <algorithm>\nusing namespace std;\n\nvoid reverseArray(vector<int>& arr) {\n    // Your code here: Reverse array in-place\n}\n\nint main() {\n    ios_base::sync_with_stdio(false);\n    cin.tie(NULL);\n    int n;\n    if (!(cin >> n)) return 0;\n    vector<int> arr(n);\n    for (int i = 0; i < n; i++) cin >> arr[i];\n    reverseArray(arr);\n    return 0;\n}\n",
+      "java": "import java.util.Scanner;\n\npublic class Main {\n    public static void reverseArray(int[] arr, int n) {\n        // Your code here: Reverse array in-place\n    }\n\n    public static void main(String[] args) {\n        Scanner sc = new Scanner(System.in);\n        if (!sc.hasNextInt()) return;\n        int n = sc.nextInt();\n        int[] arr = new int[n];\n        for (int i = 0; i < n; i++) arr[i] = sc.nextInt();\n        reverseArray(arr, n);\n    }\n}\n"
+    },
+    "solution_code": "{\"python\": \"def reverseArray(arr):\\n    arr.reverse()\\n\\nif __name__ == \\\"__main__\\\":\\n    n = int(input())\\n    arr = list(map(int, input().split()))\\n    reverseArray(arr)\\n    print(*arr)\\n\", \"c\": \"#include <stdio.h>\\n\\nvoid reverseArray(int arr[], int n) {\\n    int l = 0, r = n - 1;\\n    while (l < r) {\\n        int t = arr[l]; arr[l] = arr[r]; arr[r] = t;\\n        l++; r--;\\n    }\\n    for (int i = 0; i < n; i++) {\\n        if (i > 0) printf(\\\" \\\");\\n        printf(\\\"%d\\\", arr[i]);\\n    }\\n    printf(\\\"\\\\n\\\");\\n}\\n\\nint main() {\\n    int n;\\n    if (scanf(\\\"%d\\\", &n) != 1) return 0;\\n    int arr[n];\\n    for (int i = 0; i < n; i++) scanf(\\\"%d\\\", &arr[i]);\\n    reverseArray(arr, n);\\n    return 0;\\n}\\n\", \"cpp\": \"#include <iostream>\\n#include <vector>\\n#include <algorithm>\\nusing namespace std;\\n\\nvoid reverseArray(vector<int>& arr) {\\n    reverse(arr.begin(), arr.end());\\n    for (size_t i = 0; i < arr.size(); i++) {\\n        if (i > 0) cout << \\\" \\\";\\n        cout << arr[i];\\n    }\\n    cout << \\\"\\\\n\\\";\\n}\\n\\nint main() {\\n    int n;\\n    if (!(cin >> n)) return 0;\\n    vector<int> arr(n);\\n    for (int i = 0; i < n; i++) cin >> arr[i];\\n    reverseArray(arr);\\n    return 0;\\n}\\n\", \"java\": \"import java.util.Scanner;\\n\\npublic class Main {\\n    public static void reverseArray(int[] arr, int n) {\\n        int left = 0, right = n - 1;\\n        while (left < right) {\\n            int temp = arr[left];\\n            arr[left] = arr[right];\\n            arr[right] = temp;\\n            left++;\\n            right--;\\n        }\\n        StringBuilder sb = new StringBuilder();\\n        for (int i = 0; i < n; i++) {\\n            if (i > 0) sb.append(\\\" \\\");\\n            sb.append(arr[i]);\\n        }\\n        System.out.println(sb.toString());\\n    }\\n\\n    public static void main(String[] args) {\\n        Scanner sc = new Scanner(System.in);\\n        if (!sc.hasNextInt()) return;\\n        int n = sc.nextInt();\\n        int[] arr = new int[n];\\n        for (int i = 0; i < n; i++) arr[i] = sc.nextInt();\\n        reverseArray(arr, n);\\n    }\\n}\\n\"}",
+    "test_cases": [
+      {
+        "input": "6\\n1 4 3 2 6 5",
+        "expected": "5 6 2 3 4 1",
+        "is_hidden": false
+      },
+      {
+        "input": "5\\n10 20 30 40 50",
+        "expected": "50 40 30 20 10",
+        "is_hidden": false
+      },
+      {
+        "input": "4\\n7 7 2 1",
+        "expected": "1 2 7 7",
+        "is_hidden": false
+      }
+    ],
+    "hidden_test_cases": [
+      {
+        "input": "1\\n999",
+        "expected": "999",
+        "is_hidden": true
+      },
+      {
+        "input": "7\\n1 2 3 4 5 6 7",
+        "expected": "7 6 5 4 3 2 1",
+        "is_hidden": true
+      }
+    ],
+    "points": 10
+  },
+  {
+    "id": "dsa-move-zeros",
+    "problem_num": 5,
+    "title": "Move All Zeros to the End of an Array",
+    "category": "Arrays",
+    "topic": "Arrays",
+    "subtopic": "",
+    "difficulty": "EASY",
+    "description": "Given an array of N integers, move all zeros to the end of the array while maintaining the relative order of all non-zero elements.",
+    "input_format": "The first line contains an integer N representing the size of the array.\\nThe second line contains N space-separated integers.",
+    "output_format": "Print the modified array separated by space.",
+    "constraints": "1 <= N <= 10^5\\n-10^6 <= arr[i] <= 10^6",
+    "time_complexity": "O(N)",
+    "space_complexity": "O(1)",
+    "company_tags": [
+      "Paytm",
+      "Amazon",
+      "Microsoft",
+      "Samsung"
+    ],
+    "examples": [
+      {
+        "input": "8\\n1 2 0 4 3 0 5 0",
+        "output": "1 2 4 3 5 0 0 0",
+        "explanation": "Non-zero elements (1, 2, 4, 3, 5) keep relative order; zeros shifted to end."
+      },
+      {
+        "input": "5\\n0 0 1 2 3",
+        "output": "1 2 3 0 0",
+        "explanation": "Zeros at the start are moved to the end."
+      },
+      {
+        "input": "6\\n1 2 3 4 5 6",
+        "output": "1 2 3 4 5 6",
+        "explanation": "No zeros present, array remains unchanged."
+      }
+    ],
+    "starter_code": "def pushZerosToEnd(arr):\n    # Your code here: Move all zeros to end in-place\n    pass\n\nif __name__ == \"__main__\":\n    n = int(input())\n    arr = list(map(int, input().split()))\n    pushZerosToEnd(arr)\n    print(*arr)\n",
+    "starter_code_map": {
+      "python": "def pushZerosToEnd(arr):\n    # Your code here: Move all zeros to end in-place\n    pass\n\nif __name__ == \"__main__\":\n    n = int(input())\n    arr = list(map(int, input().split()))\n    pushZerosToEnd(arr)\n    print(*arr)\n",
+      "c": "#include <stdio.h>\n\nvoid pushZerosToEnd(int arr[], int n) {\n    // Your code here: Move zeros to end in-place\n}\n\nint main() {\n    int n;\n    if (scanf(\"%d\", &n) != 1) return 0;\n    int arr[n];\n    for (int i = 0; i < n; i++) scanf(\"%d\", &arr[i]);\n    pushZerosToEnd(arr, n);\n    return 0;\n}\n",
+      "cpp": "#include <iostream>\n#include <vector>\nusing namespace std;\n\nvoid pushZerosToEnd(vector<int>& arr) {\n    // Your code here: Move zeros to end in-place\n}\n\nint main() {\n    ios_base::sync_with_stdio(false);\n    cin.tie(NULL);\n    int n;\n    if (!(cin >> n)) return 0;\n    vector<int> arr(n);\n    for (int i = 0; i < n; i++) cin >> arr[i];\n    pushZerosToEnd(arr);\n    return 0;\n}\n",
+      "java": "import java.util.Scanner;\n\npublic class Main {\n    public static void pushZerosToEnd(int[] arr, int n) {\n        // Your code here: Move zeros to end in-place\n    }\n\n    public static void main(String[] args) {\n        Scanner sc = new Scanner(System.in);\n        if (!sc.hasNextInt()) return;\n        int n = sc.nextInt();\n        int[] arr = new int[n];\n        for (int i = 0; i < n; i++) arr[i] = sc.nextInt();\n        pushZerosToEnd(arr, n);\n    }\n}\n"
+    },
+    "solution_code": "{\"python\": \"def pushZerosToEnd(arr):\\n    count = 0\\n    for i in range(len(arr)):\\n        if arr[i] != 0:\\n            arr[count], arr[i] = arr[i], arr[count]\\n            count += 1\\n\\nif __name__ == \\\"__main__\\\":\\n    n = int(input())\\n    arr = list(map(int, input().split()))\\n    pushZerosToEnd(arr)\\n    print(*arr)\\n\", \"c\": \"#include <stdio.h>\\n\\nvoid pushZerosToEnd(int arr[], int n) {\\n    int count = 0;\\n    for (int i = 0; i < n; i++) {\\n        if (arr[i] != 0) {\\n            int t = arr[count]; arr[count] = arr[i]; arr[i] = t;\\n            count++;\\n        }\\n    }\\n    for (int i = 0; i < n; i++) {\\n        if (i > 0) printf(\\\" \\\");\\n        printf(\\\"%d\\\", arr[i]);\\n    }\\n    printf(\\\"\\\\n\\\");\\n}\\n\\nint main() {\\n    int n;\\n    if (scanf(\\\"%d\\\", &n) != 1) return 0;\\n    int arr[n];\\n    for (int i = 0; i < n; i++) scanf(\\\"%d\\\", &arr[i]);\\n    pushZerosToEnd(arr, n);\\n    return 0;\\n}\\n\", \"cpp\": \"#include <iostream>\\n#include <vector>\\nusing namespace std;\\n\\nvoid pushZerosToEnd(vector<int>& arr) {\\n    int count = 0;\\n    for (size_t i = 0; i < arr.size(); i++) {\\n        if (arr[i] != 0) {\\n            swap(arr[count++], arr[i]);\\n        }\\n    }\\n    for (size_t i = 0; i < arr.size(); i++) {\\n        if (i > 0) cout << \\\" \\\";\\n        cout << arr[i];\\n    }\\n    cout << \\\"\\\\n\\\";\\n}\\n\\nint main() {\\n    int n;\\n    if (!(cin >> n)) return 0;\\n    vector<int> arr(n);\\n    for (int i = 0; i < n; i++) cin >> arr[i];\\n    pushZerosToEnd(arr);\\n    return 0;\\n}\\n\", \"java\": \"import java.util.Scanner;\\n\\npublic class Main {\\n    public static void pushZerosToEnd(int[] arr, int n) {\\n        int count = 0;\\n        for (int i = 0; i < n; i++) {\\n            if (arr[i] != 0) {\\n                int temp = arr[count];\\n                arr[count] = arr[i];\\n                arr[i] = temp;\\n                count++;\\n            }\\n        }\\n        StringBuilder sb = new StringBuilder();\\n        for (int i = 0; i < n; i++) {\\n            if (i > 0) sb.append(\\\" \\\");\\n            sb.append(arr[i]);\\n        }\\n        System.out.println(sb.toString());\\n    }\\n\\n    public static void main(String[] args) {\\n        Scanner sc = new Scanner(System.in);\\n        if (!sc.hasNextInt()) return;\\n        int n = sc.nextInt();\\n        int[] arr = new int[n];\\n        for (int i = 0; i < n; i++) arr[i] = sc.nextInt();\\n        pushZerosToEnd(arr, n);\\n    }\\n}\\n\"}",
+    "test_cases": [
+      {
+        "input": "8\\n1 2 0 4 3 0 5 0",
+        "expected": "1 2 4 3 5 0 0 0",
+        "is_hidden": false
+      },
+      {
+        "input": "5\\n0 0 1 2 3",
+        "expected": "1 2 3 0 0",
+        "is_hidden": false
+      },
+      {
+        "input": "6\\n1 2 3 4 5 6",
+        "expected": "1 2 3 4 5 6",
+        "is_hidden": false
+      }
+    ],
+    "hidden_test_cases": [
+      {
+        "input": "4\\n0 0 0 0",
+        "expected": "0 0 0 0",
+        "is_hidden": true
+      },
+      {
+        "input": "1\\n0",
+        "expected": "0",
+        "is_hidden": true
+      }
+    ],
+    "points": 10
+  },
+  {
+    "id": "dsa-largest-element",
+    "problem_num": 6,
+    "title": "Find the Largest Element in an Array",
+    "category": "Arrays",
+    "topic": "Arrays",
+    "subtopic": "",
+    "difficulty": "BASIC",
+    "description": "Given an array of N integers, find and print the largest element in the array.",
+    "input_format": "The first line contains an integer N representing the size of the array.\\nThe second line contains N space-separated integers.",
+    "output_format": "Print the largest element in the array.",
+    "constraints": "1 <= N <= 10^5\\n-10^6 <= arr[i] <= 10^6",
+    "time_complexity": "O(N)",
+    "space_complexity": "O(1)",
+    "company_tags": [
+      "TCS",
+      "Infosys",
+      "Accenture",
+      "Wipro"
+    ],
+    "examples": [
+      {
+        "input": "5\\n10 25 7 45 30",
+        "output": "45",
+        "explanation": "45 is the maximum element in the array."
+      },
+      {
+        "input": "6\\n12 56 34 89 23 67",
+        "output": "89",
+        "explanation": "89 is the maximum value."
+      },
+      {
+        "input": "5\\n-10 -5 -30 -2 -15",
+        "output": "-2",
+        "explanation": "-2 is the largest negative number."
+      }
+    ],
+    "starter_code": "def largestElement(arr):\n    # Your code here: Return the largest element\n    pass\n\nif __name__ == \"__main__\":\n    n = int(input())\n    arr = list(map(int, input().split()))\n    result = largestElement(arr)\n    print(result)\n",
+    "starter_code_map": {
+      "python": "def largestElement(arr):\n    # Your code here: Return the largest element\n    pass\n\nif __name__ == \"__main__\":\n    n = int(input())\n    arr = list(map(int, input().split()))\n    result = largestElement(arr)\n    print(result)\n",
+      "c": "#include <stdio.h>\n\nint largestElement(int arr[], int n) {\n    // Your code here: Return largest element\n    return 0;\n}\n\nint main() {\n    int n;\n    if (scanf(\"%d\", &n) != 1) return 0;\n    int arr[n];\n    for (int i = 0; i < n; i++) scanf(\"%d\", &arr[i]);\n    printf(\"%d\\n\", largestElement(arr, n));\n    return 0;\n}\n",
+      "cpp": "#include <iostream>\n#include <vector>\nusing namespace std;\n\nint largestElement(const vector<int>& arr) {\n    // Your code here: Return largest element\n    return 0;\n}\n\nint main() {\n    ios_base::sync_with_stdio(false);\n    cin.tie(NULL);\n    int n;\n    if (!(cin >> n)) return 0;\n    vector<int> arr(n);\n    for (int i = 0; i < n; i++) cin >> arr[i];\n    cout << largestElement(arr) << \"\\n\";\n    return 0;\n}\n",
+      "java": "import java.util.Scanner;\n\npublic class Main {\n    public static int largestElement(int[] arr, int n) {\n        // Your code here: Return largest element\n        return 0;\n    }\n\n    public static void main(String[] args) {\n        Scanner sc = new Scanner(System.in);\n        if (!sc.hasNextInt()) return;\n        int n = sc.nextInt();\n        int[] arr = new int[n];\n        for (int i = 0; i < n; i++) arr[i] = sc.nextInt();\n        System.out.println(largestElement(arr, n));\n    }\n}\n"
+    },
+    "solution_code": "{\"python\": \"def largestElement(arr):\\n    largest = arr[0]\\n    for i in range(1, len(arr)):\\n        if arr[i] > largest:\\n            largest = arr[i]\\n    return largest\\n\\nif __name__ == \\\"__main__\\\":\\n    n = int(input())\\n    arr = list(map(int, input().split()))\\n    print(largestElement(arr))\\n\", \"c\": \"#include <stdio.h>\\n\\nint largestElement(int arr[], int n) {\\n    int largest = arr[0];\\n    for (int i = 1; i < n; i++) {\\n        if (arr[i] > largest) largest = arr[i];\\n    }\\n    return largest;\\n}\\n\\nint main() {\\n    int n;\\n    if (scanf(\\\"%d\\\", &n) != 1) return 0;\\n    int arr[n];\\n    for (int i = 0; i < n; i++) scanf(\\\"%d\\\", &arr[i]);\\n    printf(\\\"%d\\\\n\\\", largestElement(arr, n));\\n    return 0;\\n}\\n\", \"cpp\": \"#include <iostream>\\n#include <vector>\\nusing namespace std;\\n\\nint largestElement(const vector<int>& arr) {\\n    int largest = arr[0];\\n    for (size_t i = 1; i < arr.size(); i++) {\\n        if (arr[i] > largest) largest = arr[i];\\n    }\\n    return largest;\\n}\\n\\nint main() {\\n    int n;\\n    if (!(cin >> n)) return 0;\\n    vector<int> arr(n);\\n    for (int i = 0; i < n; i++) cin >> arr[i];\\n    cout << largestElement(arr) << \\\"\\\\n\\\";\\n    return 0;\\n}\\n\", \"java\": \"import java.util.Scanner;\\n\\npublic class Main {\\n    public static int largestElement(int[] arr, int n) {\\n        int largest = arr[0];\\n        for (int i = 1; i < n; i++) {\\n            if (arr[i] > largest) largest = arr[i];\\n        }\\n        return largest;\\n    }\\n\\n    public static void main(String[] args) {\\n        Scanner sc = new Scanner(System.in);\\n        if (!sc.hasNextInt()) return;\\n        int n = sc.nextInt();\\n        int[] arr = new int[n];\\n        for (int i = 0; i < n; i++) arr[i] = sc.nextInt();\\n        System.out.println(largestElement(arr, n));\\n    }\\n}\\n\"}",
+    "test_cases": [
+      {
+        "input": "5\\n10 25 7 45 30",
+        "expected": "45",
+        "is_hidden": false
+      },
+      {
+        "input": "6\\n12 56 34 89 23 67",
+        "expected": "89",
+        "is_hidden": false
+      },
+      {
+        "input": "5\\n-10 -5 -30 -2 -15",
+        "expected": "-2",
+        "is_hidden": false
+      }
+    ],
+    "hidden_test_cases": [
+      {
+        "input": "1\\n100",
+        "expected": "100",
+        "is_hidden": true
+      },
+      {
+        "input": "4\\n-1 -1 -1 -1",
+        "expected": "-1",
+        "is_hidden": true
+      }
+    ],
+    "points": 10
+  },
+  {
+    "id": "dsa-sum-of-elements",
+    "problem_num": 7,
+    "title": "Sum of All Elements in an Array",
+    "category": "Arrays",
+    "topic": "Arrays",
+    "subtopic": "",
+    "difficulty": "BASIC",
+    "description": "Given an array of N integers, calculate and print the sum of all elements in the array.",
+    "input_format": "The first line contains an integer N representing the size of the array.\\nThe second line contains N space-separated integers.",
+    "output_format": "Print the sum of all elements.",
+    "constraints": "1 <= N <= 10^5\\n-10^6 <= arr[i] <= 10^6",
+    "time_complexity": "O(N)",
+    "space_complexity": "O(1)",
+    "company_tags": [
+      "TCS",
+      "Cognizant",
+      "Capgemini",
+      "Wipro"
+    ],
+    "examples": [
+      {
+        "input": "5\\n10 20 30 40 50",
+        "output": "150",
+        "explanation": "10 + 20 + 30 + 40 + 50 = 150."
+      },
+      {
+        "input": "4\\n5 10 15 20",
+        "output": "50",
+        "explanation": "5 + 10 + 15 + 20 = 50."
+      },
+      {
+        "input": "5\\n-10 20 -5 15 30",
+        "output": "50",
+        "explanation": "(-10) + 20 + (-5) + 15 + 30 = 50."
+      }
+    ],
+    "starter_code": "def sumOfElements(arr):\n    # Your code here: Return sum of elements\n    pass\n\nif __name__ == \"__main__\":\n    n = int(input())\n    arr = list(map(int, input().split()))\n    result = sumOfElements(arr)\n    print(result)\n",
+    "starter_code_map": {
+      "python": "def sumOfElements(arr):\n    # Your code here: Return sum of elements\n    pass\n\nif __name__ == \"__main__\":\n    n = int(input())\n    arr = list(map(int, input().split()))\n    result = sumOfElements(arr)\n    print(result)\n",
+      "c": "#include <stdio.h>\n\nlong long sumOfElements(int arr[], int n) {\n    // Your code here: Return sum of elements\n    return 0;\n}\n\nint main() {\n    int n;\n    if (scanf(\"%d\", &n) != 1) return 0;\n    int arr[n];\n    for (int i = 0; i < n; i++) scanf(\"%d\", &arr[i]);\n    printf(\"%lld\\n\", sumOfElements(arr, n));\n    return 0;\n}\n",
+      "cpp": "#include <iostream>\n#include <vector>\nusing namespace std;\n\nlong long sumOfElements(const vector<int>& arr) {\n    // Your code here: Return sum of elements\n    return 0;\n}\n\nint main() {\n    ios_base::sync_with_stdio(false);\n    cin.tie(NULL);\n    int n;\n    if (!(cin >> n)) return 0;\n    vector<int> arr(n);\n    for (int i = 0; i < n; i++) cin >> arr[i];\n    cout << sumOfElements(arr) << \"\\n\";\n    return 0;\n}\n",
+      "java": "import java.util.Scanner;\n\npublic class Main {\n    public static long sumOfElements(int[] arr, int n) {\n        // Your code here: Return sum of elements\n        return 0;\n    }\n\n    public static void main(String[] args) {\n        Scanner sc = new Scanner(System.in);\n        if (!sc.hasNextInt()) return;\n        int n = sc.nextInt();\n        int[] arr = new int[n];\n        for (int i = 0; i < n; i++) arr[i] = sc.nextInt();\n        System.out.println(sumOfElements(arr, n));\n    }\n}\n"
+    },
+    "solution_code": "{\"python\": \"def sumOfElements(arr):\\n    return sum(arr)\\n\\nif __name__ == \\\"__main__\\\":\\n    n = int(input())\\n    arr = list(map(int, input().split()))\\n    print(sumOfElements(arr))\\n\", \"c\": \"#include <stdio.h>\\n\\nlong long sumOfElements(int arr[], int n) {\\n    long long total = 0;\\n    for (int i = 0; i < n; i++) total += arr[i];\\n    return total;\\n}\\n\\nint main() {\\n    int n;\\n    if (scanf(\\\"%d\\\", &n) != 1) return 0;\\n    int arr[n];\\n    for (int i = 0; i < n; i++) scanf(\\\"%d\\\", &arr[i]);\\n    printf(\\\"%lld\\\\n\\\", sumOfElements(arr, n));\\n    return 0;\\n}\\n\", \"cpp\": \"#include <iostream>\\n#include <vector>\\nusing namespace std;\\n\\nlong long sumOfElements(const vector<int>& arr) {\\n    long long total = 0;\\n    for (int x : arr) total += x;\\n    return total;\\n}\\n\\nint main() {\\n    int n;\\n    if (!(cin >> n)) return 0;\\n    vector<int> arr(n);\\n    for (int i = 0; i < n; i++) cin >> arr[i];\\n    cout << sumOfElements(arr) << \\\"\\\\n\\\";\\n    return 0;\\n}\\n\", \"java\": \"import java.util.Scanner;\\n\\npublic class Main {\\n    public static long sumOfElements(int[] arr, int n) {\\n        long total = 0;\\n        for (int i = 0; i < n; i++) total += arr[i];\\n        return total;\\n    }\\n\\n    public static void main(String[] args) {\\n        Scanner sc = new Scanner(System.in);\\n        if (!sc.hasNextInt()) return;\\n        int n = sc.nextInt();\\n        int[] arr = new int[n];\\n        for (int i = 0; i < n; i++) arr[i] = sc.nextInt();\\n        System.out.println(sumOfElements(arr, n));\\n    }\\n}\\n\"}",
+    "test_cases": [
+      {
+        "input": "5\\n10 20 30 40 50",
+        "expected": "150",
+        "is_hidden": false
+      },
+      {
+        "input": "4\\n5 10 15 20",
+        "expected": "50",
+        "is_hidden": false
+      },
+      {
+        "input": "5\\n-10 20 -5 15 30",
+        "expected": "50",
+        "is_hidden": false
+      }
+    ],
+    "hidden_test_cases": [
+      {
+        "input": "1\\n-99",
+        "expected": "-99",
+        "is_hidden": true
+      },
+      {
+        "input": "3\\n1000000 1000000 1000000",
+        "expected": "3000000",
+        "is_hidden": true
+      }
+    ],
+    "points": 10
+  },
+  {
+    "id": "dsa-search-element",
+    "problem_num": 8,
+    "title": "Search an Element in an Array",
+    "category": "Searching",
+    "topic": "Searching",
+    "subtopic": "",
+    "difficulty": "BASIC",
+    "description": "Given an array of N integers and a target element K, check whether the target element exists in the array. If the element is present, print true. If the element is not present, print false.",
+    "input_format": "The first line contains an integer N representing the size of the array.\\nThe second line contains N space-separated integers.\\nThe third line contains an integer K representing the element to search.",
+    "output_format": "Print true if found, otherwise false.",
+    "constraints": "1 <= N <= 10^5\\n-10^6 <= arr[i], K <= 10^6",
+    "time_complexity": "O(N)",
+    "space_complexity": "O(1)",
+    "company_tags": [
+      "Amazon",
+      "Adobe",
+      "Cognizant",
+      "TCS"
+    ],
+    "examples": [
+      {
+        "input": "5\\n10 20 30 40 50\\n30",
+        "output": "true",
+        "explanation": "Element 30 is present at index 2."
+      },
+      {
+        "input": "5\\n1 2 3 4 5\\n8",
+        "output": "false",
+        "explanation": "Element 8 is not present in the array."
+      },
+      {
+        "input": "6\\n10 25 35 45 55 65\\n10",
+        "output": "true",
+        "explanation": "Element 10 is present at index 0."
+      }
+    ],
+    "starter_code": "def searchElement(arr, k):\n    # Your code here: Return True if k is in arr, else False\n    pass\n\nif __name__ == \"__main__\":\n    n = int(input())\n    arr = list(map(int, input().split()))\n    k = int(input())\n    result = searchElement(arr, k)\n    print(\"true\" if result else \"false\")\n",
+    "starter_code_map": {
+      "python": "def searchElement(arr, k):\n    # Your code here: Return True if k is in arr, else False\n    pass\n\nif __name__ == \"__main__\":\n    n = int(input())\n    arr = list(map(int, input().split()))\n    k = int(input())\n    result = searchElement(arr, k)\n    print(\"true\" if result else \"false\")\n",
+      "c": "#include <stdio.h>\n#include <stdbool.h>\n\nbool searchElement(int arr[], int n, int k) {\n    // Your code here: Return true if k in arr, else false\n    return false;\n}\n\nint main() {\n    int n;\n    if (scanf(\"%d\", &n) != 1) return 0;\n    int arr[n];\n    for (int i = 0; i < n; i++) scanf(\"%d\", &arr[i]);\n    int k;\n    if (scanf(\"%d\", &k) != 1) return 0;\n    printf(\"%s\\n\", searchElement(arr, n, k) ? \"true\" : \"false\");\n    return 0;\n}\n",
+      "cpp": "#include <iostream>\n#include <vector>\nusing namespace std;\n\nbool searchElement(const vector<int>& arr, int k) {\n    // Your code here: Return true if k in arr, else false\n    return false;\n}\n\nint main() {\n    ios_base::sync_with_stdio(false);\n    cin.tie(NULL);\n    int n;\n    if (!(cin >> n)) return 0;\n    vector<int> arr(n);\n    for (int i = 0; i < n; i++) cin >> arr[i];\n    int k;\n    if (!(cin >> k)) return 0;\n    cout << (searchElement(arr, k) ? \"true\" : \"false\") << \"\\n\";\n    return 0;\n}\n",
+      "java": "import java.util.Scanner;\n\npublic class Main {\n    public static boolean searchElement(int[] arr, int n, int k) {\n        // Your code here: Return true if k in arr, else false\n        return false;\n    }\n\n    public static void main(String[] args) {\n        Scanner sc = new Scanner(System.in);\n        if (!sc.hasNextInt()) return;\n        int n = sc.nextInt();\n        int[] arr = new int[n];\n        for (int i = 0; i < n; i++) arr[i] = sc.nextInt();\n        if (!sc.hasNextInt()) return;\n        int k = sc.nextInt();\n        System.out.println(searchElement(arr, n, k) ? \"true\" : \"false\");\n    }\n}\n"
+    },
+    "solution_code": "{\"python\": \"def searchElement(arr, k):\\n    for x in arr:\\n        if x == k:\\n            return True\\n    return False\\n\\nif __name__ == \\\"__main__\\\":\\n    n = int(input())\\n    arr = list(map(int, input().split()))\\n    k = int(input())\\n    print(\\\"true\\\" if searchElement(arr, k) else \\\"false\\\")\\n\", \"c\": \"#include <stdio.h>\\n#include <stdbool.h>\\n\\nbool searchElement(int arr[], int n, int k) {\\n    for (int i = 0; i < n; i++) {\\n        if (arr[i] == k) return true;\\n    }\\n    return false;\\n}\\n\\nint main() {\\n    int n;\\n    if (scanf(\\\"%d\\\", &n) != 1) return 0;\\n    int arr[n];\\n    for (int i = 0; i < n; i++) scanf(\\\"%d\\\", &arr[i]);\\n    int k;\\n    if (scanf(\\\"%d\\\", &k) != 1) return 0;\\n    printf(\\\"%s\\\\n\\\", searchElement(arr, n, k) ? \\\"true\\\" : \\\"false\\\");\\n    return 0;\\n}\\n\", \"cpp\": \"#include <iostream>\\n#include <vector>\\nusing namespace std;\\n\\nbool searchElement(const vector<int>& arr, int k) {\\n    for (int x : arr) {\\n        if (x == k) return true;\\n    }\\n    return false;\\n}\\n\\nint main() {\\n    int n;\\n    if (!(cin >> n)) return 0;\\n    vector<int> arr(n);\\n    for (int i = 0; i < n; i++) cin >> arr[i];\\n    int k;\\n    if (!(cin >> k)) return 0;\\n    cout << (searchElement(arr, k) ? \\\"true\\\" : \\\"false\\\") << \\\"\\\\n\\\";\\n    return 0;\\n}\\n\", \"java\": \"import java.util.Scanner;\\n\\npublic class Main {\\n    public static boolean searchElement(int[] arr, int n, int k) {\\n        for (int i = 0; i < n; i++) {\\n            if (arr[i] == k) return true;\\n        }\\n        return false;\\n    }\\n\\n    public static void main(String[] args) {\\n        Scanner sc = new Scanner(System.in);\\n        if (!sc.hasNextInt()) return;\\n        int n = sc.nextInt();\\n        int[] arr = new int[n];\\n        for (int i = 0; i < n; i++) arr[i] = sc.nextInt();\\n        if (!sc.hasNextInt()) return;\\n        int k = sc.nextInt();\\n        System.out.println(searchElement(arr, n, k) ? \\\"true\\\" : \\\"false\\\");\\n    }\\n}\\n\"}",
+    "test_cases": [
+      {
+        "input": "5\\n10 20 30 40 50\\n30",
+        "expected": "true",
+        "is_hidden": false
+      },
+      {
+        "input": "5\\n1 2 3 4 5\\n8",
+        "expected": "false",
+        "is_hidden": false
+      },
+      {
+        "input": "6\\n10 25 35 45 55 65\\n10",
+        "expected": "true",
+        "is_hidden": false
+      }
+    ],
+    "hidden_test_cases": [
+      {
+        "input": "1\\n50\\n50",
+        "expected": "true",
+        "is_hidden": true
+      },
+      {
+        "input": "4\\n-10 -20 -30 -40\\n-50",
+        "expected": "false",
+        "is_hidden": true
+      }
+    ],
+    "points": 10
+  },
+  {
+    "id": "dsa-rearrange-by-index",
+    "problem_num": 9,
+    "title": "Rearrange Array Elements by Index",
+    "category": "Arrays",
+    "topic": "Arrays",
+    "subtopic": "Array Rearrangement",
+    "difficulty": "MEDIUM",
+    "description": "Given an array of size N containing integers in the range 0 to N-1 and -1, rearrange the array so that each element i is placed at index i. If an index value is not present in the array, place -1 at that index.",
+    "input_format": "The first line contains an integer N.\\nThe second line contains N space-separated integers.",
+    "output_format": "Print the rearranged array with elements separated by spaces.",
+    "constraints": "1 <= N <= 10^5\\n-1 <= arr[i] <= N - 1",
+    "time_complexity": "O(N)",
+    "space_complexity": "O(N)",
+    "company_tags": [
+      "Amazon",
+      "Microsoft",
+      "Adobe"
+    ],
+    "examples": [
+      {
+        "input": "10\n-1 -1 6 1 9 3 2 -1 4 -1",
+        "output": "-1 1 2 3 4 -1 6 -1 -1 9",
+        "explanation": "Indices 0, 5, 7, 8 are not present in the array, so they receive -1. Elements 1, 2, 3, 4, 6, 9 are placed at their matching indices."
+      },
+      {
+        "input": "5\n4 3 2 1 0",
+        "output": "0 1 2 3 4",
+        "explanation": "All integers from 0 to 4 are present and are rearranged to index 0, 1, 2, 3, 4."
+      },
+      {
+        "input": "6\n-1 2 -1 0 4 -1",
+        "output": "0 -1 2 -1 4 -1",
+        "explanation": "Only 0, 2, and 4 are present and placed at their respective indices; remaining indices receive -1."
+      }
+    ],
+    "starter_code": "def modifyArray(arr):\n    # Your code here\n    pass\n\nif __name__ == \"__main__\":\n    n = int(input())\n    arr = list(map(int, input().split()))\n    modifyArray(arr)\n    print(*arr)\n",
+    "starter_code_map": {
+      "python": "def modifyArray(arr):\n    # Your code here\n    pass\n\nif __name__ == \"__main__\":\n    n = int(input())\n    arr = list(map(int, input().split()))\n    modifyArray(arr)\n    print(*arr)\n",
+      "c": "#include <stdio.h>\n#include <stdlib.h>\n\nvoid modifyArray(int arr[], int n) {\n    // Your code here\n}\n\nint main() {\n    int n;\n    if (scanf(\"%d\", &n) != 1) return 0;\n    int arr[n];\n    for (int i = 0; i < n; i++) scanf(\"%d\", &arr[i]);\n    modifyArray(arr, n);\n    for (int i = 0; i < n; i++) {\n        if (i > 0) printf(\" \");\n        printf(\"%d\", arr[i]);\n    }\n    printf(\"\\n\");\n    return 0;\n}\n",
+      "cpp": "#include <iostream>\n#include <vector>\n\nusing namespace std;\n\nvoid modifyArray(vector<int>& arr) {\n    // Your code here\n}\n\nint main() {\n    ios_base::sync_with_stdio(false);\n    cin.tie(NULL);\n    int n;\n    if (!(cin >> n)) return 0;\n    vector<int> arr(n);\n    for (int i = 0; i < n; i++) cin >> arr[i];\n    modifyArray(arr);\n    for (int i = 0; i < n; i++) {\n        if (i > 0) cout << \" \";\n        cout << arr[i];\n    }\n    cout << \"\\n\";\n    return 0;\n}\n",
+      "java": "import java.util.Scanner;\n\npublic class Main {\n    public static void modifyArray(int[] arr) {\n        // Your code here\n    }\n\n    public static void main(String[] args) {\n        Scanner sc = new Scanner(System.in);\n        if (!sc.hasNextInt()) return;\n        int n = sc.nextInt();\n        int[] arr = new int[n];\n        for (int i = 0; i < n; i++) {\n            arr[i] = sc.nextInt();\n        }\n        modifyArray(arr);\n        StringBuilder sb = new StringBuilder();\n        for (int i = 0; i < n; i++) {\n            if (i > 0) sb.append(\" \");\n            sb.append(arr[i]);\n        }\n        System.out.println(sb.toString());\n    }\n}\n"
+    },
+    "solution_code": "def modifyArray(arr):\n    n = len(arr)\n    s = set(arr)\n    for i in range(n):\n        arr[i] = i if i in s else -1\n\nif __name__ == \"__main__\":\n    n = int(input())\n    arr = list(map(int, input().split()))\n    modifyArray(arr)\n    print(*arr)\n",
+    "test_cases": [
+      {
+        "input": "10\n-1 -1 6 1 9 3 2 -1 4 -1",
+        "expected": "-1 1 2 3 4 -1 6 -1 -1 9",
+        "is_hidden": false
+      },
+      {
+        "input": "5\n4 3 2 1 0",
+        "expected": "0 1 2 3 4",
+        "is_hidden": false
+      },
+      {
+        "input": "6\n-1 2 -1 0 4 -1",
+        "expected": "0 -1 2 -1 4 -1",
+        "is_hidden": false
+      }
+    ],
+    "hidden_test_cases": [
+      {
+        "input": "1\n-1",
+        "expected": "-1",
+        "is_hidden": true
+      },
+      {
+        "input": "3\n0 1 2",
+        "expected": "0 1 2",
+        "is_hidden": true
+      },
+      {
+        "input": "4\n-1 -1 -1 -1",
+        "expected": "-1 -1 -1 -1",
+        "is_hidden": true
+      }
+    ],
+    "points": 50
+  },
+  {
+    "id": "dsa-max-circular-sum",
+    "problem_num": 10,
+    "title": "Maximum Circular Subarray Sum",
+    "category": "Arrays",
+    "topic": "Arrays",
+    "subtopic": "Kadane Algorithm / Circular Arrays",
+    "difficulty": "MEDIUM",
+    "description": "Given an array of N integers arranged in a circular manner, find the maximum possible sum of a non-empty contiguous subarray. In a circular array, the last element connects to the first element.",
+    "input_format": "The first line contains an integer N.\\nThe second line contains N space-separated integers.",
+    "output_format": "Print the maximum circular subarray sum.",
+    "constraints": "1 <= N <= 10^5\\n-10^4 <= arr[i] <= 10^4",
+    "time_complexity": "O(N)",
+    "space_complexity": "O(1)",
+    "company_tags": [
+      "Amazon",
+      "Microsoft",
+      "Google",
+      "Goldman Sachs"
+    ],
+    "examples": [
+      {
+        "input": "7\n8 -8 9 -9 10 -11 12",
+        "output": "22",
+        "explanation": "The circular subarray [12, 8, -8, 9, -9, 10] has the maximum sum: 12 + 8 - 8 + 9 - 9 + 10 = 22."
+      },
+      {
+        "input": "4\n5 -2 3 4",
+        "output": "12",
+        "explanation": "The circular subarray [3, 4, 5] yields 3 + 4 + 5 = 12."
+      },
+      {
+        "input": "5\n-3 -2 -5 -1 -4",
+        "output": "-1",
+        "explanation": "All elements are negative. The maximum non-empty subarray sum is the maximum single element -1."
+      }
+    ],
+    "starter_code": "def maxCircularSum(arr):\n    # Your code here\n    pass\n\nif __name__ == \"__main__\":\n    n = int(input())\n    arr = list(map(int, input().split()))\n    print(maxCircularSum(arr))\n",
+    "starter_code_map": {
+      "python": "def maxCircularSum(arr):\n    # Your code here\n    pass\n\nif __name__ == \"__main__\":\n    n = int(input())\n    arr = list(map(int, input().split()))\n    print(maxCircularSum(arr))\n",
+      "c": "#include <stdio.h>\n\nlong long maxCircularSum(int arr[], int n) {\n    // Your code here\n    return 0;\n}\n\nint main() {\n    int n;\n    if (scanf(\"%d\", &n) != 1) return 0;\n    int arr[n];\n    for (int i = 0; i < n; i++) scanf(\"%d\", &arr[i]);\n    printf(\"%lld\\n\", maxCircularSum(arr, n));\n    return 0;\n}\n",
+      "cpp": "#include <iostream>\n#include <vector>\n\nusing namespace std;\n\nlong long maxCircularSum(const vector<int>& arr) {\n    // Your code here\n    return 0;\n}\n\nint main() {\n    ios_base::sync_with_stdio(false);\n    cin.tie(NULL);\n    int n;\n    if (!(cin >> n)) return 0;\n    vector<int> arr(n);\n    for (int i = 0; i < n; i++) cin >> arr[i];\n    cout << maxCircularSum(arr) << \"\\n\";\n    return 0;\n}\n",
+      "java": "import java.util.Scanner;\n\npublic class Main {\n    public static long maxCircularSum(int[] arr) {\n        // Your code here\n        return 0;\n    }\n\n    public static void main(String[] args) {\n        Scanner sc = new Scanner(System.in);\n        if (!sc.hasNextInt()) return;\n        int n = sc.nextInt();\n        int[] arr = new int[n];\n        for (int i = 0; i < n; i++) arr[i] = sc.nextInt();\n        System.out.println(maxCircularSum(arr));\n    }\n}\n"
+    },
+    "solution_code": "def maxCircularSum(arr):\n    n = len(arr)\n    max_kadane = arr[0]\n    curr_max = arr[0]\n    min_kadane = arr[0]\n    curr_min = arr[0]\n    total = arr[0]\n    for i in range(1, n):\n        total += arr[i]\n        curr_max = max(arr[i], curr_max + arr[i])\n        max_kadane = max(max_kadane, curr_max)\n        curr_min = min(arr[i], curr_min + arr[i])\n        min_kadane = min(min_kadane, curr_min)\n    if max_kadane < 0:\n        return max_kadane\n    return max(max_kadane, total - min_kadane)\n\nif __name__ == \"__main__\":\n    n = int(input())\n    arr = list(map(int, input().split()))\n    print(maxCircularSum(arr))\n",
+    "test_cases": [
+      {
+        "input": "7\n8 -8 9 -9 10 -11 12",
+        "expected": "22",
+        "is_hidden": false
+      },
+      {
+        "input": "4\n5 -2 3 4",
+        "expected": "12",
+        "is_hidden": false
+      },
+      {
+        "input": "5\n-3 -2 -5 -1 -4",
+        "expected": "-1",
+        "is_hidden": false
+      }
+    ],
+    "hidden_test_cases": [
+      {
+        "input": "1\n15",
+        "expected": "15",
+        "is_hidden": true
+      },
+      {
+        "input": "3\n-1 -2 -3",
+        "expected": "-1",
+        "is_hidden": true
+      },
+      {
+        "input": "6\n10 -3 -4 7 6 5",
+        "expected": "28",
+        "is_hidden": true
+      }
+    ],
+    "points": 50
+  },
+  {
+    "id": "dsa-kth-largest-subarray-sum",
+    "problem_num": 11,
+    "title": "Kth Largest Sum of Contiguous Subarrays",
+    "category": "Arrays",
+    "topic": "Arrays",
+    "subtopic": "Subarrays & Sorting",
+    "difficulty": "MEDIUM",
+    "description": "Given an array of N integers and an integer K, find the Kth largest sum among all possible contiguous subarrays. If multiple subarrays have the same sum, count each sum separately.",
+    "input_format": "The first line contains integer N.\\nThe second line contains N space-separated integers.\\nThe third line contains integer K.",
+    "output_format": "Print the Kth largest contiguous subarray sum.",
+    "constraints": "1 <= N <= 2000\\n1 <= K <= N*(N+1)/2\\n-10^5 <= arr[i] <= 10^5",
+    "time_complexity": "O(N^2 log K)",
+    "space_complexity": "O(N^2)",
+    "company_tags": [
+      "Amazon",
+      "Microsoft",
+      "Flipkart"
+    ],
+    "examples": [
+      {
+        "input": "3\n20 -5 -1\n3",
+        "output": "14",
+        "explanation": "All subarray sums: [20, 15, 14, -1, -5, -6]. The 3rd largest sum is 14."
+      },
+      {
+        "input": "3\n10 2 -1\n2",
+        "output": "11",
+        "explanation": "Subarray sums sorted: [12, 11, 10, 2, 1, -1]. The 2nd largest sum is 11."
+      },
+      {
+        "input": "4\n1 2 3 4\n4",
+        "output": "6",
+        "explanation": "The top subarray sums are 10, 9, 7, 6. The 4th largest sum is 6."
+      }
+    ],
+    "starter_code": "def kthLargest(arr, k):\n    # Your code here\n    pass\n\nif __name__ == \"__main__\":\n    n = int(input())\n    arr = list(map(int, input().split()))\n    k = int(input())\n    print(kthLargest(arr, k))\n",
+    "starter_code_map": {
+      "python": "def kthLargest(arr, k):\n    # Your code here\n    pass\n\nif __name__ == \"__main__\":\n    n = int(input())\n    arr = list(map(int, input().split()))\n    k = int(input())\n    print(kthLargest(arr, k))\n",
+      "c": "#include <stdio.h>\n#include <stdlib.h>\n\nlong long kthLargest(int arr[], int n, int k) {\n    // Your code here\n    return 0;\n}\n\nint main() {\n    int n;\n    if (scanf(\"%d\", &n) != 1) return 0;\n    int arr[n];\n    for (int i = 0; i < n; i++) scanf(\"%d\", &arr[i]);\n    int k;\n    if (scanf(\"%d\", &k) != 1) return 0;\n    printf(\"%lld\\n\", kthLargest(arr, n, k));\n    return 0;\n}\n",
+      "cpp": "#include <iostream>\n#include <vector>\n\nusing namespace std;\n\nlong long kthLargest(const vector<int>& arr, int k) {\n    // Your code here\n    return 0;\n}\n\nint main() {\n    ios_base::sync_with_stdio(false);\n    cin.tie(NULL);\n    int n;\n    if (!(cin >> n)) return 0;\n    vector<int> arr(n);\n    for (int i = 0; i < n; i++) cin >> arr[i];\n    int k;\n    if (!(cin >> k)) return 0;\n    cout << kthLargest(arr, k) << \"\\n\";\n    return 0;\n}\n",
+      "java": "import java.util.Scanner;\n\npublic class Main {\n    public static long kthLargest(int[] arr, int k) {\n        // Your code here\n        return 0;\n    }\n\n    public static void main(String[] args) {\n        Scanner sc = new Scanner(System.in);\n        if (!sc.hasNextInt()) return;\n        int n = sc.nextInt();\n        int[] arr = new int[n];\n        for (int i = 0; i < n; i++) arr[i] = sc.nextInt();\n        int k = sc.nextInt();\n        System.out.println(kthLargest(arr, k));\n    }\n}\n"
+    },
+    "solution_code": "def kthLargest(arr, k):\n    sums = []\n    n = len(arr)\n    for i in range(n):\n        s = 0\n        for j in range(i, n):\n            s += arr[j]\n            sums.append(s)\n    sums.sort(reverse=True)\n    return sums[k - 1]\n\nif __name__ == \"__main__\":\n    n = int(input())\n    arr = list(map(int, input().split()))\n    k = int(input())\n    print(kthLargest(arr, k))\n",
+    "test_cases": [
+      {
+        "input": "3\n20 -5 -1\n3",
+        "expected": "14",
+        "is_hidden": false
+      },
+      {
+        "input": "3\n10 2 -1\n2",
+        "expected": "11",
+        "is_hidden": false
+      },
+      {
+        "input": "4\n1 2 3 4\n4",
+        "expected": "6",
+        "is_hidden": false
+      }
+    ],
+    "hidden_test_cases": [
+      {
+        "input": "1\n5\n1",
+        "expected": "5",
+        "is_hidden": true
+      },
+      {
+        "input": "3\n-1 -2 -3\n1",
+        "expected": "-1",
+        "is_hidden": true
+      },
+      {
+        "input": "3\n1 2 3\n6",
+        "expected": "1",
+        "is_hidden": true
+      }
+    ],
+    "points": 50
+  },
+  {
+    "id": "dsa-construct-from-pair-sums",
+    "problem_num": 12,
+    "title": "Construct Original Array from Pair Sums",
+    "category": "Arrays",
+    "topic": "Arrays",
+    "subtopic": "Array Mathematics",
+    "difficulty": "MEDIUM",
+    "description": "You are given an array containing the pair sums of an original array. Each element in the given array represents the sum of a pair of elements from the original array. Reconstruct and print the original array.",
+    "input_format": "The first line contains integer M (number of pair sums).\\nThe second line contains M space-separated integers.",
+    "output_format": "Print the reconstructed array of N integers separated by spaces.",
+    "constraints": "1 <= M <= 10^5\\nPair sums are integers.",
+    "time_complexity": "O(N) where N = O(sqrt(M))",
+    "space_complexity": "O(N)",
+    "company_tags": [
+      "Amazon",
+      "Directi",
+      "Google"
+    ],
+    "examples": [
+      {
+        "input": "3\n4 5 3",
+        "output": "3 1 2",
+        "explanation": "N=3. arr[0]+arr[1]=4, arr[0]+arr[2]=5, arr[1]+arr[2]=3. arr[0] = (4+5-3)/2 = 3. Then arr[1]=4-3=1, arr[2]=5-3=2."
+      },
+      {
+        "input": "3\n6 8 10",
+        "output": "2 4 6",
+        "explanation": "arr[0] = (6+8-10)/2 = 2. Then arr[1]=6-2=4, arr[2]=8-2=6."
+      },
+      {
+        "input": "6\n4 6 8 8 10 12",
+        "output": "1 3 5 7",
+        "explanation": "N=4. arr[0] = (4+6-8)/2 = 1. arr[1]=4-1=3, arr[2]=6-1=5, arr[3]=8-1=7."
+      }
+    ],
+    "starter_code": "import math\n\ndef constructArr(arr):\n    # Your code here\n    pass\n\nif __name__ == \"__main__\":\n    m = int(input())\n    arr = list(map(int, input().split()))\n    print(*constructArr(arr))\n",
+    "starter_code_map": {
+      "python": "import math\n\ndef constructArr(arr):\n    # Your code here\n    pass\n\nif __name__ == \"__main__\":\n    m = int(input())\n    arr = list(map(int, input().split()))\n    print(*constructArr(arr))\n",
+      "c": "#include <stdio.h>\n#include <stdlib.h>\n#include <math.h>\n\nvoid constructArr(int arr[], int m) {\n    // Your code here\n}\n\nint main() {\n    int m;\n    if (scanf(\"%d\", &m) != 1) return 0;\n    int arr[m];\n    for (int i = 0; i < m; i++) scanf(\"%d\", &arr[i]);\n    constructArr(arr, m);\n    return 0;\n}\n",
+      "cpp": "#include <iostream>\n#include <vector>\n#include <cmath>\n\nusing namespace std;\n\nvector<int> constructArr(const vector<int>& arr) {\n    // Your code here\n    return {};\n}\n\nint main() {\n    ios_base::sync_with_stdio(false);\n    cin.tie(NULL);\n    int m;\n    if (!(cin >> m)) return 0;\n    vector<int> arr(m);\n    for (int i = 0; i < m; i++) cin >> arr[i];\n    vector<int> res = constructArr(arr);\n    for (int i = 0; i < (int)res.size(); i++) {\n        if (i > 0) cout << \" \";\n        cout << res[i];\n    }\n    cout << \"\\n\";\n    return 0;\n}\n",
+      "java": "import java.util.Scanner;\n\npublic class Main {\n    public static int[] constructArr(int[] arr) {\n        // Your code here\n        return new int[0];\n    }\n\n    public static void main(String[] args) {\n        Scanner sc = new Scanner(System.in);\n        if (!sc.hasNextInt()) return;\n        int m = sc.nextInt();\n        int[] arr = new int[m];\n        for (int i = 0; i < m; i++) arr[i] = sc.nextInt();\n        int[] res = constructArr(arr);\n        StringBuilder sb = new StringBuilder();\n        for (int i = 0; i < res.length; i++) {\n            if (i > 0) sb.append(\" \");\n            sb.append(res[i]);\n        }\n        System.out.println(sb.toString());\n    }\n}\n"
+    },
+    "solution_code": "import math\n\ndef constructArr(arr):\n    if len(arr) == 1:\n        return [1, arr[0] - 1]\n    n = (1 + math.isqrt(1 + 8 * len(arr))) // 2\n    res = [0] * n\n    res[0] = (arr[0] + arr[1] - arr[n - 1]) // 2\n    for i in range(1, n):\n        res[i] = arr[i - 1] - res[0]\n    return res\n\nif __name__ == \"__main__\":\n    m = int(input())\n    arr = list(map(int, input().split()))\n    print(*constructArr(arr))\n",
+    "test_cases": [
+      {
+        "input": "3\n4 5 3",
+        "expected": "3 1 2",
+        "is_hidden": false
+      },
+      {
+        "input": "3\n6 8 10",
+        "expected": "2 4 6",
+        "is_hidden": false
+      },
+      {
+        "input": "6\n4 6 8 8 10 12",
+        "expected": "1 3 5 7",
+        "is_hidden": false
+      }
+    ],
+    "hidden_test_cases": [
+      {
+        "input": "1\n5",
+        "expected": "1 4",
+        "is_hidden": true
+      },
+      {
+        "input": "3\n10 12 14",
+        "expected": "4 6 8",
+        "is_hidden": true
+      }
+    ],
+    "points": 50
+  },
+  {
+    "id": "dsa-count-surpassers",
+    "problem_num": 13,
+    "title": "Count Surpassers in an Array",
+    "category": "Arrays",
+    "topic": "Arrays",
+    "subtopic": "Inversions & Surpassers",
+    "difficulty": "HARD",
+    "description": "Given an array of N integers, find the number of surpassers for each element. An element arr[j] is called a surpasser of arr[i] if j > i (it appears to the right of the current element) and arr[j] > arr[i] (its value is greater than the current element).",
+    "input_format": "The first line contains an integer N.\\nThe second line contains N space-separated integers.",
+    "output_format": "Print the number of surpassers for each element separated by spaces.",
+    "constraints": "1 <= N <= 10^5\\n-10^6 <= arr[i] <= 10^6",
+    "time_complexity": "O(N log N)",
+    "space_complexity": "O(N)",
+    "company_tags": [
+      "Amazon",
+      "Microsoft",
+      "Adobe"
+    ],
+    "examples": [
+      {
+        "input": "6\n2 7 5 3 8 1",
+        "output": "4 1 1 1 0 0",
+        "explanation": "For 2: elements greater to its right are 7, 5, 3, 8 (4). For 7: 8 (1). For 5: 8 (1). For 3: 8 (1). For 8: 0. For 1: 0."
+      },
+      {
+        "input": "5\n1 2 3 4 5",
+        "output": "4 3 2 1 0",
+        "explanation": "In an ascending sorted array, each element has all subsequent elements as surpassers."
+      },
+      {
+        "input": "5\n9 7 5 3 1",
+        "output": "0 0 0 0 0",
+        "explanation": "In a descending sorted array, no element has a greater element to its right."
+      }
+    ],
+    "starter_code": "def findSurpasser(arr):\n    # Your code here\n    pass\n\nif __name__ == \"__main__\":\n    n = int(input())\n    arr = list(map(int, input().split()))\n    result = findSurpasser(arr)\n    print(*result)\n",
+    "starter_code_map": {
+      "python": "def findSurpasser(arr):\n    # Your code here\n    pass\n\nif __name__ == \"__main__\":\n    n = int(input())\n    arr = list(map(int, input().split()))\n    result = findSurpasser(arr)\n    print(*result)\n",
+      "c": "#include <stdio.h>\n#include <stdlib.h>\n\nvoid findSurpasser(int arr[], int n) {\n    // Your code here\n}\n\nint main() {\n    int n;\n    if (scanf(\"%d\", &n) != 1) return 0;\n    int* arr = (int*)malloc(n * sizeof(int));\n    for (int i = 0; i < n; i++) scanf(\"%d\", &arr[i]);\n    findSurpasser(arr, n);\n    free(arr);\n    return 0;\n}\n",
+      "cpp": "#include <iostream>\n#include <vector>\n\nusing namespace std;\n\nvoid findSurpasser(const vector<int>& arr) {\n    // Your code here\n}\n\nint main() {\n    ios_base::sync_with_stdio(false);\n    cin.tie(NULL);\n    int n;\n    if (!(cin >> n)) return 0;\n    vector<int> arr(n);\n    for (int i = 0; i < n; i++) cin >> arr[i];\n    findSurpasser(arr);\n    return 0;\n}\n",
+      "java": "import java.util.Scanner;\n\npublic class Main {\n    public static void findSurpasser(int[] arr) {\n        // Your code here\n    }\n\n    public static void main(String[] args) {\n        Scanner sc = new Scanner(System.in);\n        if (!sc.hasNextInt()) return;\n        int n = sc.nextInt();\n        int[] arr = new int[n];\n        for (int i = 0; i < n; i++) arr[i] = sc.nextInt();\n        findSurpasser(arr);\n    }\n}\n"
+    },
+    "solution_code": "def findSurpasser(arr):\n    n = len(arr)\n    res = [0] * n\n    for i in range(n):\n        c = 0\n        for j in range(i + 1, n):\n            if arr[j] > arr[i]:\n                c += 1\n        res[i] = c\n    return res\n\nif __name__ == \"__main__\":\n    n = int(input())\n    arr = list(map(int, input().split()))\n    print(*findSurpasser(arr))\n",
+    "test_cases": [
+      {
+        "input": "6\n2 7 5 3 8 1",
+        "expected": "4 1 1 1 0 0",
+        "is_hidden": false
+      },
+      {
+        "input": "5\n1 2 3 4 5",
+        "expected": "4 3 2 1 0",
+        "is_hidden": false
+      },
+      {
+        "input": "5\n9 7 5 3 1",
+        "expected": "0 0 0 0 0",
+        "is_hidden": false
+      }
+    ],
+    "hidden_test_cases": [
+      {
+        "input": "1\n100",
+        "expected": "0",
+        "is_hidden": true
+      },
+      {
+        "input": "4\n5 5 5 5",
+        "expected": "0 0 0 0",
+        "is_hidden": true
+      },
+      {
+        "input": "4\n1 4 2 3",
+        "expected": "3 0 1 0",
+        "is_hidden": true
+      }
+    ],
+    "points": 100
+  },
+  {
+    "id": "dsa-top-k-frequent",
+    "problem_num": 14,
+    "title": "Top K Frequent Elements in an Array",
+    "category": "Arrays",
+    "topic": "Arrays",
+    "subtopic": "Hashing & Sorting",
+    "difficulty": "HARD",
+    "description": "Given an array of N integers and an integer K, find the K most frequently occurring elements in the array. If two elements have the same frequency, the larger element should come first. Return the elements in descending order of frequency, and by value descending if frequencies are equal.",
+    "input_format": "The first line contains integer N.\\nThe second line contains N space-separated integers.\\nThe third line contains integer K.",
+    "output_format": "Print the list of top K frequent elements in the format [x1, x2, ...].",
+    "constraints": "1 <= N <= 10^5\\n1 <= K <= number of unique elements\\n-10^5 <= arr[i] <= 10^5",
+    "time_complexity": "O(N log N)",
+    "space_complexity": "O(N)",
+    "company_tags": [
+      "Amazon",
+      "Microsoft",
+      "Google",
+      "Facebook"
+    ],
+    "examples": [
+      {
+        "input": "8\n3 1 4 4 5 2 6 1\n2",
+        "output": "[4, 1]",
+        "explanation": "4 and 1 both appear 2 times (highest frequency). Since 4 > 1, 4 appears first. The top 2 elements are [4, 1]."
+      },
+      {
+        "input": "7\n1 1 1 2 2 3 3\n2",
+        "output": "[1, 3]",
+        "explanation": "1 appears 3 times. 2 and 3 appear 2 times; 3 > 2 so 3 comes before 2. The top 2 are [1, 3]."
+      },
+      {
+        "input": "10\n5 5 4 4 3 3 2 2 1 1\n3",
+        "output": "[5, 4, 3]",
+        "explanation": "All elements appear 2 times. Sorted by value descending: [5, 4, 3]."
+      }
+    ],
+    "starter_code": "def topKFreq(arr, k):\n    # Your code here\n    pass\n\nif __name__ == \"__main__\":\n    n = int(input())\n    arr = list(map(int, input().split()))\n    k = int(input())\n    print(topKFreq(arr, k))\n",
+    "starter_code_map": {
+      "python": "def topKFreq(arr, k):\n    # Your code here\n    pass\n\nif __name__ == \"__main__\":\n    n = int(input())\n    arr = list(map(int, input().split()))\n    k = int(input())\n    print(topKFreq(arr, k))\n",
+      "c": "#include <stdio.h>\n#include <stdlib.h>\n\nvoid topKFreq(int arr[], int n, int k) {\n    // Your code here\n}\n\nint main() {\n    int n;\n    if (scanf(\"%d\", &n) != 1) return 0;\n    int* arr = (int*)malloc(n * sizeof(int));\n    for (int i = 0; i < n; i++) scanf(\"%d\", &arr[i]);\n    int k;\n    if (scanf(\"%d\", &k) != 1) return 0;\n    topKFreq(arr, n, k);\n    free(arr);\n    return 0;\n}\n",
+      "cpp": "#include <iostream>\n#include <vector>\n\nusing namespace std;\n\nvoid topKFreq(const vector<int>& arr, int k) {\n    // Your code here\n}\n\nint main() {\n    ios_base::sync_with_stdio(false);\n    cin.tie(NULL);\n    int n;\n    if (!(cin >> n)) return 0;\n    vector<int> arr(n);\n    for (int i = 0; i < n; i++) cin >> arr[i];\n    int k;\n    if (!(cin >> k)) return 0;\n    topKFreq(arr, k);\n    return 0;\n}\n",
+      "java": "import java.util.Scanner;\n\npublic class Main {\n    public static void topKFreq(int[] arr, int k) {\n        // Your code here\n    }\n\n    public static void main(String[] args) {\n        Scanner sc = new Scanner(System.in);\n        if (!sc.hasNextInt()) return;\n        int n = sc.nextInt();\n        int[] arr = new int[n];\n        for (int i = 0; i < n; i++) arr[i] = sc.nextInt();\n        int k = sc.nextInt();\n        topKFreq(arr, k);\n    }\n}\n"
+    },
+    "solution_code": "from collections import Counter\n\ndef topKFreq(arr, k):\n    mp = Counter(arr)\n    freq = list(mp.items())\n    freq.sort(key=lambda x: (x[1], x[0]), reverse=True)\n    res = [freq[i][0] for i in range(k)]\n    return res\n\nif __name__ == \"__main__\":\n    n = int(input())\n    arr = list(map(int, input().split()))\n    k = int(input())\n    print(topKFreq(arr, k))\n",
+    "test_cases": [
+      {
+        "input": "8\n3 1 4 4 5 2 6 1\n2",
+        "expected": "[4, 1]",
+        "is_hidden": false
+      },
+      {
+        "input": "7\n1 1 1 2 2 3 3\n2",
+        "expected": "[1, 3]",
+        "is_hidden": false
+      },
+      {
+        "input": "10\n5 5 4 4 3 3 2 2 1 1\n3",
+        "expected": "[5, 4, 3]",
+        "is_hidden": false
+      }
+    ],
+    "hidden_test_cases": [
+      {
+        "input": "5\n10 10 10 10 10\n1",
+        "expected": "[10]",
+        "is_hidden": true
+      },
+      {
+        "input": "4\n1 2 3 4\n2",
+        "expected": "[4, 3]",
+        "is_hidden": true
+      },
+      {
+        "input": "6\n7 7 8 8 9 9\n3",
+        "expected": "[9, 8, 7]",
+        "is_hidden": true
+      }
+    ],
+    "points": 100
+  },
+  {
+    "id": "dsa-trapping-rain-water",
+    "problem_num": 15,
+    "title": "Trapping Rain Water",
+    "category": "Arrays",
+    "topic": "Arrays",
+    "subtopic": "Two Pointers / Elevation Map",
+    "difficulty": "HARD",
+    "description": "Given an array of N non-negative integers representing the heights of bars in an elevation map, calculate the total amount of rainwater that can be trapped between the bars after rainfall. Each bar has a width of 1 unit.",
+    "input_format": "The first line contains integer N.\\nThe second line contains N space-separated non-negative integers.",
+    "output_format": "Print the total trapped rainwater.",
+    "constraints": "1 <= N <= 10^5\\n0 <= arr[i] <= 10^5",
+    "time_complexity": "O(N)",
+    "space_complexity": "O(1)",
+    "company_tags": [
+      "Google",
+      "Amazon",
+      "Microsoft",
+      "Apple",
+      "Bloomberg"
+    ],
+    "examples": [
+      {
+        "input": "7\n2 1 5 3 1 0 4",
+        "output": "9",
+        "explanation": "Trapped units of water: index 1 traps 1, index 3 traps 1, index 4 traps 3, index 5 traps 4. Total = 1 + 1 + 3 + 4 = 9."
+      },
+      {
+        "input": "6\n3 0 2 0 4 0",
+        "output": "7",
+        "explanation": "Trapped units: 3 at index 1, 1 at index 2, 3 at index 3. Total = 7."
+      },
+      {
+        "input": "5\n1 2 3 4 5",
+        "output": "0",
+        "explanation": "Strictly ascending elevation cannot trap any water."
+      }
+    ],
+    "starter_code": "def maxWater(arr):\n    # Your code here\n    pass\n\nif __name__ == \"__main__\":\n    n = int(input())\n    arr = list(map(int, input().split()))\n    print(maxWater(arr))\n",
+    "starter_code_map": {
+      "python": "def maxWater(arr):\n    # Your code here\n    pass\n\nif __name__ == \"__main__\":\n    n = int(input())\n    arr = list(map(int, input().split()))\n    print(maxWater(arr))\n",
+      "c": "#include <stdio.h>\n#include <stdlib.h>\n\nlong long maxWater(int arr[], int n) {\n    // Your code here\n    return 0;\n}\n\nint main() {\n    int n;\n    if (scanf(\"%d\", &n) != 1) return 0;\n    int* arr = (int*)malloc(n * sizeof(int));\n    for (int i = 0; i < n; i++) scanf(\"%d\", &arr[i]);\n    printf(\"%lld\\n\", maxWater(arr, n));\n    free(arr);\n    return 0;\n}\n",
+      "cpp": "#include <iostream>\n#include <vector>\n\nusing namespace std;\n\nlong long maxWater(const vector<int>& arr) {\n    // Your code here\n    return 0;\n}\n\nint main() {\n    ios_base::sync_with_stdio(false);\n    cin.tie(NULL);\n    int n;\n    if (!(cin >> n)) return 0;\n    vector<int> arr(n);\n    for (int i = 0; i < n; i++) cin >> arr[i];\n    cout << maxWater(arr) << \"\\n\";\n    return 0;\n}\n",
+      "java": "import java.util.Scanner;\n\npublic class Main {\n    public static long maxWater(int[] arr) {\n        // Your code here\n        return 0;\n    }\n\n    public static void main(String[] args) {\n        Scanner sc = new Scanner(System.in);\n        if (!sc.hasNextInt()) return;\n        int n = sc.nextInt();\n        int[] arr = new int[n];\n        for (int i = 0; i < n; i++) arr[i] = sc.nextInt();\n        System.out.println(maxWater(arr));\n    }\n}\n"
+    },
+    "solution_code": "def maxWater(arr):\n    n = len(arr)\n    if n <= 2: return 0\n    left, right = 0, n - 1\n    left_max, right_max = 0, 0\n    res = 0\n    while left < right:\n        if arr[left] < arr[right]:\n            if arr[left] >= left_max:\n                left_max = arr[left]\n            else:\n                res += left_max - arr[left]\n            left += 1\n        else:\n            if arr[right] >= right_max:\n                right_max = arr[right]\n            else:\n                res += right_max - arr[right]\n            right -= 1\n    return res\n\nif __name__ == \"__main__\":\n    n = int(input())\n    arr = list(map(int, input().split()))\n    print(maxWater(arr))\n",
+    "test_cases": [
+      {
+        "input": "7\n2 1 5 3 1 0 4",
+        "expected": "9",
+        "is_hidden": false
+      },
+      {
+        "input": "6\n3 0 2 0 4 0",
+        "expected": "7",
+        "is_hidden": false
+      },
+      {
+        "input": "5\n1 2 3 4 5",
+        "expected": "0",
+        "is_hidden": false
+      }
+    ],
+    "hidden_test_cases": [
+      {
+        "input": "3\n2 0 2",
+        "expected": "2",
+        "is_hidden": true
+      },
+      {
+        "input": "6\n5 4 3 2 1 0",
+        "expected": "0",
+        "is_hidden": true
+      },
+      {
+        "input": "12\n0 1 0 2 1 0 1 3 2 1 2 1",
+        "expected": "6",
+        "is_hidden": true
+      }
+    ],
+    "points": 100
+  },
+  {
+    "id": "dsa-kth-missing-positive",
+    "problem_num": 16,
+    "title": "Find the Kth Missing Positive Number",
+    "category": "Arrays",
+    "topic": "Arrays",
+    "subtopic": "Binary Search & Missing Numbers",
+    "difficulty": "HARD",
+    "description": "Given a sorted array of distinct positive integers and an integer K, find the Kth missing positive integer that is not present in the array. The missing numbers should be counted starting from 1.",
+    "input_format": "The first line contains integer N.\\nThe second line contains N space-separated integers.\\nThe third line contains integer K.",
+    "output_format": "Print the Kth missing positive integer.",
+    "constraints": "1 <= N <= 10^5\\n1 <= arr[i] <= 10^6\\n1 <= K <= 10^5",
+    "time_complexity": "O(log N)",
+    "space_complexity": "O(1)",
+    "company_tags": [
+      "Facebook",
+      "Amazon",
+      "Google"
+    ],
+    "examples": [
+      {
+        "input": "5\n2 3 4 7 11\n5",
+        "output": "9",
+        "explanation": "Missing positive integers are 1, 5, 6, 8, 9, 10, ... The 5th missing number is 9."
+      },
+      {
+        "input": "5\n1 2 3 4 5\n3",
+        "output": "8",
+        "explanation": "All integers from 1 to 5 are present. The missing numbers starting after 5 are 6, 7, 8... The 3rd missing is 8."
+      },
+      {
+        "input": "4\n2 3 5 6\n4",
+        "output": "8",
+        "explanation": "Missing numbers: 1, 4, 7, 8... The 4th missing number is 8."
+      }
+    ],
+    "starter_code": "def kthMissing(arr, k):\n    # Your code here\n    pass\n\nif __name__ == \"__main__\":\n    n = int(input())\n    arr = list(map(int, input().split()))\n    k = int(input())\n    print(kthMissing(arr, k))\n",
+    "starter_code_map": {
+      "python": "def kthMissing(arr, k):\n    # Your code here\n    pass\n\nif __name__ == \"__main__\":\n    n = int(input())\n    arr = list(map(int, input().split()))\n    k = int(input())\n    print(kthMissing(arr, k))\n",
+      "c": "#include <stdio.h>\n#include <stdlib.h>\n\nint kthMissing(int arr[], int n, int k) {\n    // Your code here\n    return 0;\n}\n\nint main() {\n    int n;\n    if (scanf(\"%d\", &n) != 1) return 0;\n    int* arr = (int*)malloc(n * sizeof(int));\n    for (int i = 0; i < n; i++) scanf(\"%d\", &arr[i]);\n    int k;\n    if (scanf(\"%d\", &k) != 1) return 0;\n    printf(\"%d\\n\", kthMissing(arr, n, k));\n    free(arr);\n    return 0;\n}\n",
+      "cpp": "#include <iostream>\n#include <vector>\n\nusing namespace std;\n\nint kthMissing(const vector<int>& arr, int k) {\n    // Your code here\n    return 0;\n}\n\nint main() {\n    ios_base::sync_with_stdio(false);\n    cin.tie(NULL);\n    int n;\n    if (!(cin >> n)) return 0;\n    vector<int> arr(n);\n    for (int i = 0; i < n; i++) cin >> arr[i];\n    int k;\n    if (!(cin >> k)) return 0;\n    cout << kthMissing(arr, k) << \"\\n\";\n    return 0;\n}\n",
+      "java": "import java.util.Scanner;\n\npublic class Main {\n    public static int kthMissing(int[] arr, int k) {\n        // Your code here\n        return 0;\n    }\n\n    public static void main(String[] args) {\n        Scanner sc = new Scanner(System.in);\n        if (!sc.hasNextInt()) return;\n        int n = sc.nextInt();\n        int[] arr = new int[n];\n        for (int i = 0; i < n; i++) arr[i] = sc.nextInt();\n        int k = sc.nextInt();\n        System.out.println(kthMissing(arr, k));\n    }\n}\n"
+    },
+    "solution_code": "def kthMissing(arr, k):\n    n = len(arr)\n    for i in range(n):\n        if arr[i] > (k + i):\n            return k + i\n    return k + n\n\nif __name__ == \"__main__\":\n    n = int(input())\n    arr = list(map(int, input().split()))\n    k = int(input())\n    print(kthMissing(arr, k))\n",
+    "test_cases": [
+      {
+        "input": "5\n2 3 4 7 11\n5",
+        "expected": "9",
+        "is_hidden": false
+      },
+      {
+        "input": "5\n1 2 3 4 5\n3",
+        "expected": "8",
+        "is_hidden": false
+      },
+      {
+        "input": "4\n2 3 5 6\n4",
+        "expected": "8",
+        "is_hidden": false
+      }
+    ],
+    "hidden_test_cases": [
+      {
+        "input": "1\n2\n1",
+        "expected": "1",
+        "is_hidden": true
+      },
+      {
+        "input": "3\n1 10 20\n5",
+        "expected": "6",
+        "is_hidden": true
+      },
+      {
+        "input": "2\n3 4\n2",
+        "expected": "2",
+        "is_hidden": true
+      }
+    ],
+    "points": 100
+  },
+  {
+    "id": "dsa-max-profit-k-transactions",
+    "problem_num": 17,
+    "title": "Maximum Profit from Stock Trading with at Most K Transactions",
+    "category": "Arrays",
+    "topic": "Arrays",
+    "subtopic": "Dynamic Programming / Stock Trading",
+    "difficulty": "HARD",
+    "description": "Given an array prices where prices[i] represents the stock price on the i-th day, and an integer K representing the maximum number of transactions allowed, find the maximum profit you can earn. A transaction consists of buying one stock and selling that stock later. You must sell before buying again.",
+    "input_format": "The first line contains integer N.\\nThe second line contains N space-separated integers.\\nThe third line contains integer K.",
+    "output_format": "Print the maximum profit achievable.",
+    "constraints": "1 <= N <= 1000\\n0 <= prices[i] <= 10^5\\n1 <= K <= 100",
+    "time_complexity": "O(K * N)",
+    "space_complexity": "O(K * N)",
+    "company_tags": [
+      "Amazon",
+      "Microsoft",
+      "Google",
+      "Flipkart"
+    ],
+    "examples": [
+      {
+        "input": "4\n10 22 5 80\n2",
+        "output": "87",
+        "explanation": "Transaction 1: Buy on day 1 (10) and sell on day 2 (22), profit = 12. Transaction 2: Buy on day 3 (5) and sell on day 4 (80), profit = 75. Total = 87."
+      },
+      {
+        "input": "6\n10 20 30 40 50 60\n2",
+        "output": "50",
+        "explanation": "Buy on day 1 (10) and sell on day 6 (60) for a profit of 50."
+      },
+      {
+        "input": "5\n50 40 30 20 10\n2",
+        "output": "0",
+        "explanation": "Prices decrease each day, so 0 transactions are executed and max profit is 0."
+      }
+    ],
+    "starter_code": "def maxProfit(prices, k):\n    # Your code here\n    pass\n\nif __name__ == \"__main__\":\n    n = int(input())\n    prices = list(map(int, input().split()))\n    k = int(input())\n    print(maxProfit(prices, k))\n",
+    "starter_code_map": {
+      "python": "def maxProfit(prices, k):\n    # Your code here\n    pass\n\nif __name__ == \"__main__\":\n    n = int(input())\n    prices = list(map(int, input().split()))\n    k = int(input())\n    print(maxProfit(prices, k))\n",
+      "c": "#include <stdio.h>\n#include <stdlib.h>\n\nlong long maxProfit(int prices[], int n, int k) {\n    // Your code here\n    return 0;\n}\n\nint main() {\n    int n;\n    if (scanf(\"%d\", &n) != 1) return 0;\n    int* prices = (int*)malloc(n * sizeof(int));\n    for (int i = 0; i < n; i++) scanf(\"%d\", &prices[i]);\n    int k;\n    if (scanf(\"%d\", &k) != 1) return 0;\n    printf(\"%lld\\n\", maxProfit(prices, n, k));\n    free(prices);\n    return 0;\n}\n",
+      "cpp": "#include <iostream>\n#include <vector>\n\nusing namespace std;\n\nlong long maxProfit(const vector<int>& prices, int k) {\n    // Your code here\n    return 0;\n}\n\nint main() {\n    ios_base::sync_with_stdio(false);\n    cin.tie(NULL);\n    int n;\n    if (!(cin >> n)) return 0;\n    vector<int> prices(n);\n    for (int i = 0; i < n; i++) cin >> prices[i];\n    int k;\n    if (!(cin >> k)) return 0;\n    cout << maxProfit(prices, k) << \"\\n\";\n    return 0;\n}\n",
+      "java": "import java.util.Scanner;\n\npublic class Main {\n    public static long maxProfit(int[] prices, int k) {\n        // Your code here\n        return 0;\n    }\n\n    public static void main(String[] args) {\n        Scanner sc = new Scanner(System.in);\n        if (!sc.hasNextInt()) return;\n        int n = sc.nextInt();\n        int[] prices = new int[n];\n        for (int i = 0; i < n; i++) prices[i] = sc.nextInt();\n        int k = sc.nextInt();\n        System.out.println(maxProfit(prices, k));\n    }\n}\n"
+    },
+    "solution_code": "def maxProfit(prices, k):\n    n = len(prices)\n    if n == 0 or k == 0:\n        return 0\n    if k >= n // 2:\n        return sum(max(prices[i+1] - prices[i], 0) for i in range(n - 1))\n    dp = [[0] * n for _ in range(k + 1)]\n    for t in range(1, k + 1):\n        max_diff = -prices[0]\n        for d in range(1, n):\n            dp[t][d] = max(dp[t][d - 1], prices[d] + max_diff)\n            max_diff = max(max_diff, dp[t - 1][d] - prices[d])\n    return dp[k][n - 1]\n\nif __name__ == \"__main__\":\n    n = int(input())\n    prices = list(map(int, input().split()))\n    k = int(input())\n    print(maxProfit(prices, k))\n",
+    "test_cases": [
+      {
+        "input": "4\n10 22 5 80\n2",
+        "expected": "87",
+        "is_hidden": false
+      },
+      {
+        "input": "6\n10 20 30 40 50 60\n2",
+        "expected": "50",
+        "is_hidden": false
+      },
+      {
+        "input": "5\n50 40 30 20 10\n2",
+        "expected": "0",
+        "is_hidden": false
+      }
+    ],
+    "hidden_test_cases": [
+      {
+        "input": "3\n1 2 4\n1",
+        "expected": "3",
+        "is_hidden": true
+      },
+      {
+        "input": "5\n3 2 6 5 0 3\n2",
+        "expected": "7",
+        "is_hidden": true
+      },
+      {
+        "input": "1\n10\n2",
+        "expected": "0",
+        "is_hidden": true
+      }
+    ],
+    "points": 100
+  },
+  {
+    "id": "44427e76-bb1e-4575-946a-2f211ec8f654",
+    "problem_num": 18,
+    "title": "Two Sum \u2014 Target Sum Finder",
+    "category": "Arrays",
+    "topic": "Arrays",
+    "subtopic": "",
+    "difficulty": "EASY",
+    "description": "Given an array of integers `nums` and an integer `target`, return indices of the two numbers such that they add up to target.",
+    "input_format": null,
+    "output_format": null,
+    "constraints": null,
+    "time_complexity": null,
+    "space_complexity": null,
+    "company_tags": [],
+    "examples": [],
+    "starter_code": "def two_sum(nums, target):\n    # Write your solution here\n    pass\n",
+    "starter_code_map": {},
+    "solution_code": null,
+    "test_cases": [
+      {
+        "input": "[2, 7, 11, 15]\n9",
+        "expected": "[0, 1]"
+      },
+      {
+        "input": "[3, 2, 4]\n6",
+        "expected": "[1, 2]"
+      }
+    ],
+    "hidden_test_cases": [],
+    "points": 10
+  },
+  {
+    "id": "f8ef834f-53fb-4c00-82c5-70e4b8e411cb",
+    "problem_num": 19,
+    "title": "Reverse Linked List in C",
+    "category": "Arrays",
+    "topic": "Linked List",
+    "subtopic": "",
+    "difficulty": "MEDIUM",
+    "description": "Given the pointer to the head node of a singly linked list, reverse the list in-place in O(N) time and O(1) space.",
+    "input_format": null,
+    "output_format": null,
+    "constraints": null,
+    "time_complexity": null,
+    "space_complexity": null,
+    "company_tags": [],
+    "examples": [],
+    "starter_code": "#include <stdio.h>\n#include <stdlib.h>\n\nstruct Node {\n    int data;\n    struct Node* next;\n};\n",
+    "starter_code_map": {},
+    "solution_code": null,
+    "test_cases": [
+      {
+        "input": "1->2->3->4->5",
+        "expected": "5->4->3->2->1"
+      }
+    ],
+    "hidden_test_cases": [],
+    "points": 20
+  },
+  {
+    "id": "3e457dde-4e26-4e37-9b51-da3233e2a253",
+    "problem_num": 20,
+    "title": "Binary Search in C++",
+    "category": "Arrays",
+    "topic": "Binary Search",
+    "subtopic": "",
+    "difficulty": "EASY",
+    "description": "Implement binary search algorithm to find target value in sorted vector `nums` in O(log N) time.",
+    "input_format": null,
+    "output_format": null,
+    "constraints": null,
+    "time_complexity": null,
+    "space_complexity": null,
+    "company_tags": [],
+    "examples": [],
+    "starter_code": "#include <iostream>\n#include <vector>\nusing namespace std;\n\nint binarySearch(const vector<int>& nums, int target) {\n    // Write solution\n    return -1;\n}\n",
+    "starter_code_map": {},
+    "solution_code": null,
+    "test_cases": [
+      {
+        "input": "nums=[1,3,5,7,9], target=7",
+        "expected": "3"
+      }
+    ],
+    "hidden_test_cases": [],
+    "points": 15
+  },
+  {
+    "id": "fcdd4f95-cfb1-44fc-9b75-f5ab4f552f9b",
+    "problem_num": 21,
+    "title": "Valid Parentheses in Java",
+    "category": "Arrays",
+    "topic": "Stacks",
+    "subtopic": "",
+    "difficulty": "EASY",
+    "description": "Given a string `s` containing just parentheses `()`, `{}` and `[]`, determine if input string is valid.",
+    "input_format": null,
+    "output_format": null,
+    "constraints": null,
+    "time_complexity": null,
+    "space_complexity": null,
+    "company_tags": [],
+    "examples": [],
+    "starter_code": "import java.util.Stack;\n\npublic class Solution {\n    public static boolean isValid(String s) {\n        // Write solution\n        return true;\n    }\n}\n",
+    "starter_code_map": {},
+    "solution_code": null,
+    "test_cases": [
+      {
+        "input": "()[]{}",
+        "expected": "true"
+      }
+    ],
+    "hidden_test_cases": [],
+    "points": 15
+  },
+  {
+    "id": "de60c870-5978-4439-a8b4-4268c208921a",
+    "problem_num": 22,
+    "title": "Palindrome String Check in JS",
+    "category": "Arrays",
+    "topic": "Strings",
+    "subtopic": "",
+    "difficulty": "EASY",
+    "description": "Check if a string is a palindrome ignoring non-alphanumeric characters and case.",
+    "input_format": null,
+    "output_format": null,
+    "constraints": null,
+    "time_complexity": null,
+    "space_complexity": null,
+    "company_tags": [],
+    "examples": [],
+    "starter_code": "function isPalindrome(str) {\n  // Write solution\n  return true;\n}\n",
+    "starter_code_map": {},
+    "solution_code": null,
+    "test_cases": [
+      {
+        "input": "race a car",
+        "expected": "false"
+      }
+    ],
+    "hidden_test_cases": [],
+    "points": 10
+  },
+  {
+    "id": "dsa-1",
+    "problem_num": 23,
     "title": "Largest in Array",
     "category": "Arrays",
-    "difficulty": "Basic",
+    "topic": "Arrays",
+    "subtopic": "",
+    "difficulty": "BASIC",
     "description": "Given an array arr[]. The task is to find the largest element and return it.",
-    "input_format": "An integer array arr[]",
-    "output_format": "Return the maximum element in the array",
+    "input_format": null,
+    "output_format": null,
     "constraints": "1 <= arr.size() <= 10^6\n0 <= arr[i] <= 10^6",
     "time_complexity": "O(n)",
     "space_complexity": "O(1)",
-    "company_tags": ["Amazon", "Microsoft", "Google"],
+    "company_tags": [
+      "Amazon",
+      "Microsoft",
+      "Google"
+    ],
     "examples": [
       {
         "input": "[1, 8, 7, 56, 90]",
@@ -29,34 +1509,58 @@
         "explanation": "There is only one element which is the largest."
       }
     ],
-    "starter_code": {
+    "starter_code": "def largest(arr):\n    # Code Here\n    pass",
+    "starter_code_map": {
       "c": "int largest(int arr[], int n) {\n    // Code Here\n}",
       "cpp": "int largest(vector<int>& arr) {\n    // Code Here\n}",
       "java": "static int largest(int[] arr) {\n    // Code Here\n}",
       "python": "def largest(arr):\n    # Code Here\n    pass"
     },
+    "solution_code": null,
     "test_cases": [
-      { "input": "1 8 7 56 90", "expected": "90", "is_hidden": false },
-      { "input": "5 5 5 5", "expected": "5", "is_hidden": false }
+      {
+        "input": "1 8 7 56 90",
+        "expected": "90",
+        "is_hidden": false
+      },
+      {
+        "input": "5 5 5 5",
+        "expected": "5",
+        "is_hidden": false
+      }
     ],
     "hidden_test_cases": [
-      { "input": "10", "expected": "10", "is_hidden": true },
-      { "input": "100 200 50 400 300", "expected": "400", "is_hidden": true }
-    ]
+      {
+        "input": "10",
+        "expected": "10",
+        "is_hidden": true
+      },
+      {
+        "input": "100 200 50 400 300",
+        "expected": "400",
+        "is_hidden": true
+      }
+    ],
+    "points": 10
   },
   {
     "id": "dsa-2",
-    "problem_num": 2,
+    "problem_num": 24,
     "title": "Reverse a String",
     "category": "Strings",
-    "difficulty": "Easy",
+    "topic": "Strings",
+    "subtopic": "",
+    "difficulty": "EASY",
     "description": "You are given a string s. You need to reverse the string and return the reversed result.",
-    "input_format": "A single string s",
-    "output_format": "Reversed string",
+    "input_format": null,
+    "output_format": null,
     "constraints": "1 <= |s| <= 10^5",
     "time_complexity": "O(n)",
     "space_complexity": "O(1)",
-    "company_tags": ["Flipkart", "Adobe"],
+    "company_tags": [
+      "Flipkart",
+      "Adobe"
+    ],
     "examples": [
       {
         "input": "Geeks",
@@ -64,32 +1568,49 @@
         "explanation": "The reverse of Geeks is skeeG."
       }
     ],
-    "starter_code": {
+    "starter_code": "def reverse_string(s):\n    # Code Here\n    pass",
+    "starter_code_map": {
       "c": "void reverseString(char* s) {\n    // Code Here\n}",
       "cpp": "string reverseString(string s) {\n    // Code Here\n}",
       "java": "static String reverseString(String s) {\n    // Code Here\n}",
       "python": "def reverse_string(s):\n    # Code Here\n    pass"
     },
+    "solution_code": null,
     "test_cases": [
-      { "input": "Geeks", "expected": "skeeG", "is_hidden": false }
+      {
+        "input": "Geeks",
+        "expected": "skeeG",
+        "is_hidden": false
+      }
     ],
     "hidden_test_cases": [
-      { "input": "SkillExa", "expected": "axEllikS", "is_hidden": true }
-    ]
+      {
+        "input": "SkillExa",
+        "expected": "axEllikS",
+        "is_hidden": true
+      }
+    ],
+    "points": 10
   },
   {
     "id": "dsa-3",
-    "problem_num": 3,
+    "problem_num": 25,
     "title": "Binary Search",
     "category": "Searching",
-    "difficulty": "Basic",
+    "topic": "Searching",
+    "subtopic": "",
+    "difficulty": "BASIC",
     "description": "Given a sorted array arr[] and an integer k, return the index of k if present in the array. Otherwise, return -1.",
-    "input_format": "Sorted integer array arr[] and target key k",
-    "output_format": "Index of k (0-based) or -1",
+    "input_format": null,
+    "output_format": null,
     "constraints": "1 <= arr.size() <= 10^5\n1 <= k <= 10^6",
     "time_complexity": "O(log n)",
     "space_complexity": "O(1)",
-    "company_tags": ["TCS", "Infosys", "Wipro"],
+    "company_tags": [
+      "TCS",
+      "Infosys",
+      "Wipro"
+    ],
     "examples": [
       {
         "input": "arr = [1, 2, 3, 4, 5], k = 4",
@@ -97,32 +1618,48 @@
         "explanation": "4 is present at index 3."
       }
     ],
-    "starter_code": {
+    "starter_code": "def binary_search(arr, k):\n    # Code Here\n    pass",
+    "starter_code_map": {
       "c": "int binarySearch(int arr[], int n, int k) {\n    // Code Here\n}",
       "cpp": "int binarySearch(vector<int>& arr, int k) {\n    // Code Here\n}",
       "java": "static int binarySearch(int[] arr, int k) {\n    // Code Here\n}",
       "python": "def binary_search(arr, k):\n    # Code Here\n    pass"
     },
+    "solution_code": null,
     "test_cases": [
-      { "input": "1 2 3 4 5\n4", "expected": "3", "is_hidden": false }
+      {
+        "input": "1 2 3 4 5\n4",
+        "expected": "3",
+        "is_hidden": false
+      }
     ],
     "hidden_test_cases": [
-      { "input": "10 20 30 40 50\n25", "expected": "-1", "is_hidden": true }
-    ]
+      {
+        "input": "10 20 30 40 50\n25",
+        "expected": "-1",
+        "is_hidden": true
+      }
+    ],
+    "points": 10
   },
   {
     "id": "dsa-4",
-    "problem_num": 4,
+    "problem_num": 26,
     "title": "Check for Palindrome String",
     "category": "Strings",
-    "difficulty": "Basic",
+    "topic": "Strings",
+    "subtopic": "",
+    "difficulty": "BASIC",
     "description": "Given a string S, check if it is a palindrome or not. Return 1 if palindrome, 0 otherwise.",
-    "input_format": "String S",
-    "output_format": "1 or 0",
+    "input_format": null,
+    "output_format": null,
     "constraints": "1 <= |S| <= 10^5",
     "time_complexity": "O(n)",
     "space_complexity": "O(1)",
-    "company_tags": ["Paytm", "Zoho"],
+    "company_tags": [
+      "Paytm",
+      "Zoho"
+    ],
     "examples": [
       {
         "input": "abba",
@@ -130,32 +1667,48 @@
         "explanation": "abba is a palindrome."
       }
     ],
-    "starter_code": {
+    "starter_code": "def is_palindrome(s):\n    # Code Here\n    pass",
+    "starter_code_map": {
       "c": "int isPalindrome(char s[]) {\n    // Code Here\n}",
       "cpp": "int isPalindrome(string S) {\n    // Code Here\n}",
       "java": "static int isPalindrome(String S) {\n    // Code Here\n}",
       "python": "def is_palindrome(s):\n    # Code Here\n    pass"
     },
+    "solution_code": null,
     "test_cases": [
-      { "input": "abba", "expected": "1", "is_hidden": false }
+      {
+        "input": "abba",
+        "expected": "1",
+        "is_hidden": false
+      }
     ],
     "hidden_test_cases": [
-      { "input": "abc", "expected": "0", "is_hidden": true }
-    ]
+      {
+        "input": "abc",
+        "expected": "0",
+        "is_hidden": true
+      }
+    ],
+    "points": 10
   },
   {
     "id": "dsa-5",
-    "problem_num": 5,
+    "problem_num": 27,
     "title": "Bubble Sort",
     "category": "Sorting",
-    "difficulty": "Easy",
+    "topic": "Sorting",
+    "subtopic": "",
+    "difficulty": "EASY",
     "description": "Given an array arr[] of size N, sort the array in ascending order using Bubble Sort algorithm.",
-    "input_format": "Array arr[] and size N",
-    "output_format": "Sorted array elements separated by space",
+    "input_format": null,
+    "output_format": null,
     "constraints": "1 <= N <= 10^4",
     "time_complexity": "O(n^2)",
     "space_complexity": "O(1)",
-    "company_tags": ["HCL", "Cognizant"],
+    "company_tags": [
+      "HCL",
+      "Cognizant"
+    ],
     "examples": [
       {
         "input": "N = 5, arr = [4, 1, 3, 9, 7]",
@@ -163,32 +1716,48 @@
         "explanation": "Sorted order is 1 3 4 7 9."
       }
     ],
-    "starter_code": {
+    "starter_code": "def bubble_sort(arr):\n    # Code Here\n    pass",
+    "starter_code_map": {
       "c": "void bubbleSort(int arr[], int n) {\n    // Code Here\n}",
       "cpp": "void bubbleSort(vector<int>& arr) {\n    // Code Here\n}",
       "java": "static void bubbleSort(int[] arr) {\n    // Code Here\n}",
       "python": "def bubble_sort(arr):\n    # Code Here\n    pass"
     },
+    "solution_code": null,
     "test_cases": [
-      { "input": "4 1 3 9 7", "expected": "1 3 4 7 9", "is_hidden": false }
+      {
+        "input": "4 1 3 9 7",
+        "expected": "1 3 4 7 9",
+        "is_hidden": false
+      }
     ],
     "hidden_test_cases": [
-      { "input": "10 9 8 7 6", "expected": "6 7 8 9 10", "is_hidden": true }
-    ]
+      {
+        "input": "10 9 8 7 6",
+        "expected": "6 7 8 9 10",
+        "is_hidden": true
+      }
+    ],
+    "points": 10
   },
   {
     "id": "dsa-6",
-    "problem_num": 6,
+    "problem_num": 28,
     "title": "Middle of a Linked List",
     "category": "Linked List",
-    "difficulty": "Easy",
+    "topic": "Linked List",
+    "subtopic": "",
+    "difficulty": "EASY",
     "description": "Given the head of a singly linked list, return the middle node of the linked list.",
-    "input_format": "Linked list elements",
-    "output_format": "Value of middle node",
+    "input_format": null,
+    "output_format": null,
     "constraints": "1 <= Number of Nodes <= 10^5",
     "time_complexity": "O(n)",
     "space_complexity": "O(1)",
-    "company_tags": ["Amazon", "Meta"],
+    "company_tags": [
+      "Amazon",
+      "Meta"
+    ],
     "examples": [
       {
         "input": "1 -> 2 -> 3 -> 4 -> 5",
@@ -196,32 +1765,48 @@
         "explanation": "The middle node is 3."
       }
     ],
-    "starter_code": {
+    "starter_code": "def get_middle(head):\n    # Code Here\n    pass",
+    "starter_code_map": {
       "c": "int getMiddle(Node* head) {\n    // Code Here\n}",
       "cpp": "int getMiddle(Node* head) {\n    // Code Here\n}",
       "java": "static int getMiddle(Node head) {\n    // Code Here\n}",
       "python": "def get_middle(head):\n    # Code Here\n    pass"
     },
+    "solution_code": null,
     "test_cases": [
-      { "input": "1 2 3 4 5", "expected": "3", "is_hidden": false }
+      {
+        "input": "1 2 3 4 5",
+        "expected": "3",
+        "is_hidden": false
+      }
     ],
     "hidden_test_cases": [
-      { "input": "1 2 3 4 5 6", "expected": "4", "is_hidden": true }
-    ]
+      {
+        "input": "1 2 3 4 5 6",
+        "expected": "4",
+        "is_hidden": true
+      }
+    ],
+    "points": 10
   },
   {
     "id": "dsa-7",
-    "problem_num": 7,
+    "problem_num": 29,
     "title": "Implement Stack using Array",
     "category": "Stack",
-    "difficulty": "Easy",
+    "topic": "Stack",
+    "subtopic": "",
+    "difficulty": "EASY",
     "description": "Implement a Stack data structure with push and pop operations.",
-    "input_format": "Sequence of operations",
-    "output_format": "Popped values",
+    "input_format": null,
+    "output_format": null,
     "constraints": "1 <= Queries <= 10^4",
     "time_complexity": "O(1) per operation",
     "space_complexity": "O(N)",
-    "company_tags": ["Samsung", "Oracle"],
+    "company_tags": [
+      "Samsung",
+      "Oracle"
+    ],
     "examples": [
       {
         "input": "push(2), push(3), pop(), push(4), pop()",
@@ -229,32 +1814,48 @@
         "explanation": "First pop gives 3, second pop gives 4."
       }
     ],
-    "starter_code": {
+    "starter_code": "class MyStack:\n    def push(self, x):\n        pass\n    def pop(self):\n        pass",
+    "starter_code_map": {
       "c": "void push(int x); int pop();",
       "cpp": "class MyStack {\npublic:\n    void push(int x);\n    int pop();\n};",
       "java": "class MyStack {\n    void push(int a) {}\n    int pop() { return -1; }\n}",
       "python": "class MyStack:\n    def push(self, x):\n        pass\n    def pop(self):\n        pass"
     },
+    "solution_code": null,
     "test_cases": [
-      { "input": "push 2 push 3 pop push 4 pop", "expected": "3 4", "is_hidden": false }
+      {
+        "input": "push 2 push 3 pop push 4 pop",
+        "expected": "3 4",
+        "is_hidden": false
+      }
     ],
     "hidden_test_cases": [
-      { "input": "pop", "expected": "-1", "is_hidden": true }
-    ]
+      {
+        "input": "pop",
+        "expected": "-1",
+        "is_hidden": true
+      }
+    ],
+    "points": 10
   },
   {
     "id": "dsa-8",
-    "problem_num": 8,
+    "problem_num": 30,
     "title": "Fibonacci Series using Recursion",
     "category": "Recursion",
-    "difficulty": "Basic",
+    "topic": "Recursion",
+    "subtopic": "",
+    "difficulty": "BASIC",
     "description": "Given an integer n, calculate the nth Fibonacci number using recursion.",
-    "input_format": "Integer n",
-    "output_format": "nth Fibonacci number",
+    "input_format": null,
+    "output_format": null,
     "constraints": "0 <= n <= 30",
     "time_complexity": "O(2^n)",
     "space_complexity": "O(n)",
-    "company_tags": ["IBM", "Accenture"],
+    "company_tags": [
+      "IBM",
+      "Accenture"
+    ],
     "examples": [
       {
         "input": "n = 5",
@@ -262,17 +1863,28 @@
         "explanation": "Fibonacci sequence: 0, 1, 1, 2, 3, 5."
       }
     ],
-    "starter_code": {
+    "starter_code": "def fibonacci(n):\n    # Code Here\n    pass",
+    "starter_code_map": {
       "c": "int fibonacci(int n) {\n    // Code Here\n}",
       "cpp": "int fibonacci(int n) {\n    // Code Here\n}",
       "java": "static int fibonacci(int n) {\n    // Code Here\n}",
       "python": "def fibonacci(n):\n    # Code Here\n    pass"
     },
+    "solution_code": null,
     "test_cases": [
-      { "input": "5", "expected": "5", "is_hidden": false }
+      {
+        "input": "5",
+        "expected": "5",
+        "is_hidden": false
+      }
     ],
     "hidden_test_cases": [
-      { "input": "8", "expected": "21", "is_hidden": true }
-    ]
+      {
+        "input": "8",
+        "expected": "21",
+        "is_hidden": true
+      }
+    ],
+    "points": 10
   }
 ]

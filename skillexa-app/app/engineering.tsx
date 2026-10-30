@@ -1,7 +1,8 @@
 import { Feather } from '@expo/vector-icons';
-import { router } from 'expo-router';
-import React from 'react';
+import { router, useFocusEffect } from 'expo-router';
+import React, { useCallback, useState } from 'react';
 import {
+  ActivityIndicator,
   SafeAreaView,
   ScrollView,
   StatusBar,
@@ -13,8 +14,59 @@ import {
 import { AppHeader } from '../components/common/AppHeader';
 import { ProgressBar } from '../components/common/EducationalCards';
 import { Palette, Radii, Shadows } from '../constants/theme';
+import { ApiClient } from '../services/api';
 
 export default function EngineeringDashboard() {
+  const [dsaProgress, setDsaProgress] = useState<{
+    total: number;
+    solved: number;
+    percentage: number;
+    categories: any[];
+    streak: number;
+    loading: boolean;
+  }>({
+    total: 13,
+    solved: 0,
+    percentage: 0,
+    categories: [],
+    streak: 0,
+    loading: true,
+  });
+
+  const loadProgress = async () => {
+    try {
+      const res = await ApiClient.getDsaProgress();
+      if (res && res.success && res.data) {
+        setDsaProgress({
+          total: res.data.total_problems || 0,
+          solved: res.data.solved_problems || 0,
+          percentage: res.data.progress_percentage || 0,
+          categories: res.data.categories || [],
+          streak: res.data.streak || 0,
+          loading: false,
+        });
+      } else {
+        setDsaProgress((prev) => ({ ...prev, loading: false }));
+      }
+    } catch {
+      setDsaProgress((prev) => ({ ...prev, loading: false }));
+    }
+  };
+
+  useFocusEffect(
+    useCallback(() => {
+      loadProgress();
+    }, [])
+  );
+
+  const solvedCount = dsaProgress.solved;
+  const totalCount = dsaProgress.total;
+  const progressPct = dsaProgress.percentage;
+  const progressRatio = totalCount > 0 ? solvedCount / totalCount : 0;
+
+  // Real overall engineering progress based on actual solved problems
+  const overallPct = Math.round(progressPct / 2); // 2 core technical tracks weighted
+
   return (
     <SafeAreaView style={styles.safeArea}>
       <StatusBar barStyle="dark-content" backgroundColor="#FFFFFF" />
@@ -32,16 +84,20 @@ export default function EngineeringDashboard() {
           <View style={styles.progressHeaderRow}>
             <View>
               <Text style={styles.progressLabel}>OVERALL ENGINEERING PROGRESS</Text>
-              <Text style={styles.progressValue}>68% Complete</Text>
+              <Text style={styles.progressValue}>{overallPct}% Complete</Text>
             </View>
             <View style={styles.progressPercentBadge}>
-              <Text style={styles.progressPercentText}>68%</Text>
+              <Text style={styles.progressPercentText}>{overallPct}%</Text>
             </View>
           </View>
           <View style={styles.progressBarWrapper}>
-            <ProgressBar progress={0.68} color={Palette.primary} />
+            <ProgressBar progress={overallPct / 100} color={Palette.primary} />
           </View>
-          <Text style={styles.progressMeta}>3 of 5 core modules in progress</Text>
+          <Text style={styles.progressMeta}>
+            {solvedCount > 0
+              ? `${solvedCount} coding problem${solvedCount > 1 ? 's' : ''} solved across curriculum`
+              : '0 of 5 core modules completed'}
+          </Text>
         </View>
 
         {/* Section Heading */}
@@ -62,11 +118,15 @@ export default function EngineeringDashboard() {
             </View>
           </View>
           <View style={styles.moduleStatsRow}>
-            <Text style={styles.statLabel}>Solved: <Text style={styles.statValue}>42 / 100</Text></Text>
-            <Text style={styles.statLabel}>Progress: <Text style={styles.statValue}>42%</Text></Text>
+            <Text style={styles.statLabel}>
+              Solved: <Text style={styles.statValue}>{solvedCount} / {totalCount}</Text>
+            </Text>
+            <Text style={styles.statLabel}>
+              Progress: <Text style={styles.statValue}>{progressPct}%</Text>
+            </Text>
           </View>
           <View style={styles.moduleProgressTrack}>
-            <ProgressBar progress={0.42} color={Palette.primary} />
+            <ProgressBar progress={progressRatio} color={Palette.primary} />
           </View>
           <TouchableOpacity
             style={styles.moduleBtn}
@@ -90,11 +150,15 @@ export default function EngineeringDashboard() {
             </View>
           </View>
           <View style={styles.moduleStatsRow}>
-            <Text style={styles.statLabel}>Topics: <Text style={styles.statValue}>12 / 20 Topics</Text></Text>
-            <Text style={styles.statLabel}>Progress: <Text style={styles.statValue}>60%</Text></Text>
+            <Text style={styles.statLabel}>
+              Solved: <Text style={styles.statValue}>{solvedCount} / {totalCount}</Text>
+            </Text>
+            <Text style={styles.statLabel}>
+              Progress: <Text style={styles.statValue}>{progressPct}%</Text>
+            </Text>
           </View>
           <View style={styles.moduleProgressTrack}>
-            <ProgressBar progress={0.60} color={Palette.success} />
+            <ProgressBar progress={progressRatio} color={Palette.success} />
           </View>
           <TouchableOpacity
             style={[styles.moduleBtn, { backgroundColor: Palette.success }]}

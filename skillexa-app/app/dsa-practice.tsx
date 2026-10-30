@@ -78,7 +78,7 @@ export default function DsaPracticePage() {
             difficulty: 'Basic',
             time_complexity: 'O(n)',
             space_complexity: 'O(1)',
-            is_solved: true,
+            is_solved: false,
           },
           {
             id: 'dsa-2',
@@ -130,24 +130,19 @@ export default function DsaPracticePage() {
         setProgressData(res.data);
       } else {
         setProgressData({
-          total_problems: 150,
-          solved_problems: 1,
-          unsolved_problems: 149,
-          progress_percentage: 0.7,
-          streak: 1,
+          total_problems: 13,
+          solved_problems: 0,
+          unsolved_problems: 13,
+          progress_percentage: 0.0,
+          streak: 0,
           categories: [
-            { category: 'Arrays', solved: 1, total: 25 },
-            { category: 'Strings', solved: 0, total: 20 },
-            { category: 'Searching', solved: 0, total: 15 },
-            { category: 'Sorting', solved: 0, total: 15 },
-            { category: 'Linked List', solved: 0, total: 15 },
-            { category: 'Stack', solved: 0, total: 12 },
-            { category: 'Queue', solved: 0, total: 12 },
-            { category: 'Recursion', solved: 0, total: 10 },
-            { category: 'Hashing', solved: 0, total: 10 },
-            { category: 'Trees', solved: 0, total: 8 },
-            { category: 'Graphs', solved: 0, total: 5 },
-            { category: 'Dynamic Programming', solved: 0, total: 3 },
+            { category: 'Arrays', solved: 0, total: 6 },
+            { category: 'Strings', solved: 0, total: 3 },
+            { category: 'Searching', solved: 0, total: 1 },
+            { category: 'Sorting', solved: 0, total: 1 },
+            { category: 'Linked List', solved: 0, total: 2 },
+            { category: 'Stack', solved: 0, total: 2 },
+            { category: 'Recursion', solved: 0, total: 1 },
           ],
         });
       }
