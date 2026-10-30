@@ -1,7 +1,9 @@
 import { Feather } from '@expo/vector-icons';
 import { router } from 'expo-router';
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import {
+  ActivityIndicator,
+  RefreshControl,
   SafeAreaView,
   ScrollView,
   StatusBar,
@@ -13,22 +15,7 @@ import {
 import { AppHeader } from '../components/common/AppHeader';
 import { ProgressBar } from '../components/common/EducationalCards';
 import { Palette, Radii, Shadows } from '../constants/theme';
-
-const ROADMAP_STAGES = [
-  { id: 1, label: 'Quantitative Aptitude', status: 'completed', score: '82%' },
-  { id: 2, label: 'Logical Reasoning', status: 'completed', score: '78%' },
-  { id: 3, label: 'Core Coding Practice', status: 'current', score: '64%' },
-  { id: 4, label: 'CS Technical MCQs', status: 'current', score: '55%' },
-  { id: 5, label: 'Technical Panel Interview', status: 'pending', score: '--' },
-  { id: 6, label: 'HR Behavioral Interview', status: 'pending', score: '--' },
-  { id: 7, label: 'Placement Ready Certification', status: 'pending', score: '--' },
-];
-
-const WEAK_AREAS = [
-  { topic: 'Dynamic Programming & Memoization', accuracy: '42%', track: 'Coding' },
-  { topic: 'Permutations & Probability', accuracy: '48%', track: 'Aptitude' },
-  { topic: 'Operating System Semaphores', accuracy: '52%', track: 'Technical MCQs' },
-];
+import { ApiClient } from '../services/api';
 
 const COMPANIES = [
   { name: 'Google', pattern: 'DSA + System Design', questions: '180 Problems' },
@@ -38,76 +25,218 @@ const COMPANIES = [
 ];
 
 export default function PlacementPreparationPage() {
+  const [stats, setStats] = useState<any>(null);
+  const [loading, setLoading] = useState(true);
+  const [refreshing, setRefreshing] = useState(false);
+
+  const loadRealStats = async () => {
+    try {
+      const res = await ApiClient.getStudentStats();
+      if (res?.success && res.data) {
+        setStats(res.data);
+      }
+    } catch (e) {
+      console.warn('Failed to load real placement stats:', e);
+    } finally {
+      setLoading(false);
+      setRefreshing(false);
+    }
+  };
+
+  useEffect(() => {
+    loadRealStats();
+  }, []);
+
+  const wp = stats?.weekly_progress;
+  const questionsSolved = stats?.questions_solved ?? 0;
+  const codingSolved = stats?.total_coding_solved ?? 0;
+  const quizAccuracy = Math.round(stats?.quiz_accuracy ?? 0);
+  const quizzesCompleted = stats?.total_quizzes_completed ?? 0;
+  const aiInterviews = stats?.total_ai_interviews ?? 0;
+  const interviewScore = Math.round(stats?.interview_average_score ?? 0);
+  const streakDays = wp?.streak_days ?? 0;
+  const totalSolvedWeek = wp?.total_solved_this_week ?? 0;
+
+  // Real placement readiness calculation based on actual student activity
+  // Weighted: 35% Aptitude Accuracy, 35% Coding Problems (target 20), 15% Quizzes (target 10), 15% Interview
+  const calculatedScore = Math.min(
+    100,
+    Math.round(
+      (quizAccuracy * 0.35) +
+      Math.min(35, (codingSolved / 20) * 35) +
+      Math.min(15, (quizzesCompleted / 10) * 15) +
+      (interviewScore > 0 ? (interviewScore * 0.15) : Math.min(15, (aiInterviews / 2) * 15))
+    )
+  );
+
+  const readinessIndex = stats?.overall_score ? Math.round(stats.overall_score) : calculatedScore;
+  const progressRatio = Math.min(1.0, Math.max(0, readinessIndex / 100));
+
+  // Extract verified weak topics from weekly diagnostic report
+  const realWeakTopics: { topic: string; accuracy: string; track: string; route?: string }[] = [];
+  if (Array.isArray(wp?.weak_topics) && wp.weak_topics.length > 0) {
+    wp.weak_topics.forEach((wt: string) => {
+      const match = wt.match(/^(.*?)\s*\((\d+)%\)$/);
+      if (match) {
+        realWeakTopics.push({
+          topic: match[1],
+          accuracy: `${match[2]}%`,
+          track: 'Aptitude Diagnostic',
+          route: `/aptitude-test?category=Quantitative%20Aptitude&topic=${encodeURIComponent(match[1])}&difficulty=Easy&autoStart=true`,
+        });
+      } else {
+        realWeakTopics.push({
+          topic: wt,
+          accuracy: '< 75%',
+          track: 'Aptitude Diagnostic',
+          route: `/aptitude-test?category=Quantitative%20Aptitude&topic=${encodeURIComponent(wt)}&difficulty=Easy&autoStart=true`,
+        });
+      }
+    });
+  }
+
   return (
     <SafeAreaView style={styles.safeArea}>
       <StatusBar barStyle="dark-content" backgroundColor="#FFFFFF" />
-      <AppHeader showBack title="Placement Preparation" subtitle="Career Acceleration Roadmap" />
+      <AppHeader showBack title="Placement Preparation" subtitle="Real-Time Readiness & Assessments" />
 
-      <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
+      <ScrollView
+        contentContainerStyle={styles.scrollContent}
+        showsVerticalScrollIndicator={false}
+        refreshControl={
+          <RefreshControl
+            refreshing={refreshing}
+            onRefresh={() => {
+              setRefreshing(true);
+              loadRealStats();
+            }}
+            colors={[Palette.primary]}
+          />
+        }
+      >
         {/* Header */}
         <View style={styles.header}>
           <Text style={styles.title}>Placement Acceleration</Text>
-          <Text style={styles.subtitle}>Prepare for campus drives, online assessments, and interview rounds.</Text>
+          <Text style={styles.subtitle}>
+            Live readiness diagnostics, verified aptitude assessments, and company question banks.
+          </Text>
         </View>
 
-        {/* Readiness Meter Card */}
+        {/* Real Readiness Meter Card */}
         <View style={styles.readinessCard}>
           <View style={styles.readinessTopRow}>
             <View>
               <Text style={styles.readinessLabel}>OVERALL PLACEMENT READINESS</Text>
-              <Text style={styles.readinessValue}>72% Ready</Text>
+              <Text style={styles.readinessValue}>{readinessIndex}% Ready</Text>
             </View>
             <View style={styles.readinessScoreCircle}>
-              <Text style={styles.readinessScoreNum}>72</Text>
+              <Text style={styles.readinessScoreNum}>{readinessIndex}</Text>
               <Text style={styles.readinessScoreSub}>INDEX</Text>
             </View>
           </View>
-          <ProgressBar progress={0.72} color={Palette.primary} />
-          <Text style={styles.readinessMeta}>4 of 7 milestone stages cleared</Text>
+          <ProgressBar progress={progressRatio} color={Palette.primary} />
+          <Text style={styles.readinessMeta}>
+            {questionsSolved > 0
+              ? `${questionsSolved} verified questions solved • ${codingSolved} coding challenges cleared • ${quizzesCompleted} assessments passed`
+              : 'Complete your first AI assessment or coding challenge to calculate your index'}
+          </Text>
         </View>
 
-        {/* Placement Roadmap Stages */}
+        {/* Real Performance Pillars Breakdown (Replaces fake static roadmap) */}
         <View style={styles.sectionHeaderRow}>
-          <Text style={styles.sectionTitle}>Placement Roadmap</Text>
-          <Text style={styles.sectionSubtitle}>Step-by-step career milestone pipeline</Text>
+          <Text style={styles.sectionTitle}>Real-Time Performance Pillars</Text>
+          <Text style={styles.sectionSubtitle}>Verified statistics from your learning activity</Text>
         </View>
 
-        <View style={styles.roadmapCard}>
-          {ROADMAP_STAGES.map((stage, idx) => {
-            const isCompleted = stage.status === 'completed';
-            const isCurrent = stage.status === 'current';
+        <View style={styles.metricsGrid}>
+          <TouchableOpacity
+            style={styles.metricCard}
+            onPress={() => router.push('/aptitude-test' as any)}
+            activeOpacity={0.8}
+          >
+            <View style={[styles.metricIconWrap, { backgroundColor: '#EEF2FF' }]}>
+              <Feather name="target" size={18} color="#4F46E5" />
+            </View>
+            <Text style={styles.metricNum}>{quizAccuracy}%</Text>
+            <Text style={styles.metricTitle}>Aptitude Accuracy</Text>
+            <Text style={styles.metricSub}>
+              {quizzesCompleted > 0 ? `${quizzesCompleted} tests passed` : 'Take aptitude test'}
+            </Text>
+          </TouchableOpacity>
 
-            return (
-              <View key={stage.id} style={styles.stageItemRow}>
-                <View style={styles.stageLeftCol}>
-                  <View
-                    style={[
-                      styles.stageDot,
-                      isCompleted && styles.stageDotCompleted,
-                      isCurrent && styles.stageDotCurrent,
-                    ]}
-                  >
-                    {isCompleted ? (
-                      <Feather name="check" size={12} color="#FFFFFF" />
-                    ) : (
-                      <Text style={[styles.stageNum, isCurrent && { color: '#FFFFFF' }]}>{stage.id}</Text>
-                    )}
-                  </View>
-                  {idx < ROADMAP_STAGES.length - 1 && <View style={styles.stageLine} />}
-                </View>
+          <TouchableOpacity
+            style={styles.metricCard}
+            onPress={() => router.push('/coding-problems' as any)}
+            activeOpacity={0.8}
+          >
+            <View style={[styles.metricIconWrap, { backgroundColor: '#ECFDF5' }]}>
+              <Feather name="code" size={18} color="#059669" />
+            </View>
+            <Text style={styles.metricNum}>{codingSolved}</Text>
+            <Text style={styles.metricTitle}>Core Coding</Text>
+            <Text style={styles.metricSub}>
+              {codingSolved > 0 ? `${stats?.code_submissions ?? codingSolved} submissions` : 'Practice problems'}
+            </Text>
+          </TouchableOpacity>
 
-                <View style={styles.stageContent}>
-                  <Text style={[styles.stageName, isCurrent && styles.stageNameCurrent]}>
-                    {stage.label}
-                  </Text>
-                  <Text style={styles.stageScore}>
-                    Status: {isCompleted ? '✓ Passed (' + stage.score + ')' : isCurrent ? '⚡ In Progress' : 'Locked'}
-                  </Text>
+          <TouchableOpacity
+            style={styles.metricCard}
+            onPress={() => router.push('/live-interview' as any)}
+            activeOpacity={0.8}
+          >
+            <View style={[styles.metricIconWrap, { backgroundColor: '#FEF3C7' }]}>
+              <Feather name="video" size={18} color="#D97706" />
+            </View>
+            <Text style={styles.metricNum}>
+              {interviewScore > 0 ? `${interviewScore}%` : `${aiInterviews}`}
+            </Text>
+            <Text style={styles.metricTitle}>Mock Interviews</Text>
+            <Text style={styles.metricSub}>
+              {aiInterviews > 0 ? `${aiInterviews} rounds conducted` : 'AI / Faculty panel'}
+            </Text>
+          </TouchableOpacity>
+
+          <TouchableOpacity
+            style={styles.metricCard}
+            onPress={() => router.push('/progress' as any)}
+            activeOpacity={0.8}
+          >
+            <View style={[styles.metricIconWrap, { backgroundColor: '#F5F3FF' }]}>
+              <Feather name="activity" size={18} color="#7C3AED" />
+            </View>
+            <Text style={styles.metricNum}>{totalSolvedWeek}</Text>
+            <Text style={styles.metricTitle}>Weekly Solved</Text>
+            <Text style={styles.metricSub}>
+              {streakDays > 0 ? `${streakDays} day streak 🔥` : 'Active learning'}
+            </Text>
+          </TouchableOpacity>
+        </View>
+
+        {/* Personalized Diagnostic Recommendation (from real backend evaluation) */}
+        {wp?.recommendation && (
+          <View style={styles.recommendationCard}>
+            <View style={styles.recommendationIconWrap}>
+              <Feather name="trending-up" size={20} color="#4F46E5" />
+            </View>
+            <View style={{ flex: 1 }}>
+              <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6, marginBottom: 2 }}>
+                <Text style={styles.recommendationTitle}>Personalized Placement Boost</Text>
+                <View style={styles.recBadge}>
+                  <Text style={styles.recBadgeText}>RECOMMENDED</Text>
                 </View>
               </View>
-            );
-          })}
-        </View>
+              <Text style={styles.recommendationText}>{wp.recommendation.reason}</Text>
+            </View>
+            <TouchableOpacity
+              style={styles.recommendationBtn}
+              onPress={() => router.push(wp.recommendation.practice_route as any)}
+              activeOpacity={0.85}
+            >
+              <Text style={styles.recommendationBtnText}>Practice</Text>
+              <Feather name="arrow-right" size={13} color="#FFFFFF" />
+            </TouchableOpacity>
+          </View>
+        )}
 
         {/* Dynamic LLM Aptitude Test Banner */}
         <View style={styles.aptitudeBanner}>
@@ -183,27 +312,46 @@ export default function PlacementPreparationPage() {
           <Feather name="arrow-right" size={20} color={Palette.primary} />
         </TouchableOpacity>
 
-        {/* Targeted Weak Areas */}
+        {/* Real Targeted Weak Areas */}
         <View style={styles.sectionHeaderRow}>
           <Text style={styles.sectionTitle}>Targeted Weak Areas</Text>
-          <Text style={styles.sectionSubtitle}>Improve these to reach 85%+ Readiness Index</Text>
+          <Text style={styles.sectionSubtitle}>Identified from your recent assessment mistakes</Text>
         </View>
 
         <View style={styles.weakAreasContainer}>
-          {WEAK_AREAS.map((item, index) => (
-            <View key={index} style={styles.weakCard}>
-              <View style={styles.weakCardInfo}>
-                <Text style={styles.weakTopicTitle}>{item.topic}</Text>
-                <Text style={styles.weakTrackText}>{item.track} • Accuracy: <Text style={{ color: Palette.danger, fontWeight: '700' }}>{item.accuracy}</Text></Text>
+          {realWeakTopics.length > 0 ? (
+            realWeakTopics.map((item, index) => (
+              <View key={index} style={styles.weakCard}>
+                <View style={styles.weakCardInfo}>
+                  <Text style={styles.weakTopicTitle}>{item.topic}</Text>
+                  <Text style={styles.weakTrackText}>
+                    {item.track} • Accuracy: <Text style={{ color: Palette.danger, fontWeight: '700' }}>{item.accuracy}</Text>
+                  </Text>
+                </View>
+                <TouchableOpacity
+                  style={styles.weakActionBtn}
+                  onPress={() => {
+                    if (item.route) router.push(item.route as any);
+                    else router.push('/aptitude-test' as any);
+                  }}
+                >
+                  <Text style={styles.weakActionText}>Drill Topic</Text>
+                </TouchableOpacity>
               </View>
-              <TouchableOpacity
-                style={styles.weakActionBtn}
-                onPress={() => router.push('/quizzpage' as any)}
-              >
-                <Text style={styles.weakActionText}>Drill Topic</Text>
-              </TouchableOpacity>
+            ))
+          ) : (
+            <View style={styles.emptyWeakCard}>
+              <View style={styles.emptyWeakIconWrap}>
+                <Feather name="check-circle" size={20} color="#10B981" />
+              </View>
+              <View style={{ flex: 1 }}>
+                <Text style={styles.emptyWeakTitle}>No Critical Weak Areas Detected</Text>
+                <Text style={styles.emptyWeakSubtitle}>
+                  Great job! Continue solving AI Aptitude Tests and core coding problems to identify advanced mastery gaps.
+                </Text>
+              </View>
             </View>
-          ))}
+          )}
         </View>
 
         {/* Company Preparation Profiles */}
@@ -242,6 +390,8 @@ const styles = StyleSheet.create({
   header: { marginBottom: 18 },
   title: { fontSize: 22, fontWeight: '800', color: Palette.textTitle, marginBottom: 4 },
   subtitle: { fontSize: 13.5, color: Palette.textSecondary },
+
+  // Readiness Meter
   readinessCard: {
     backgroundColor: '#FFFFFF',
     borderRadius: Radii.card,
@@ -258,38 +408,113 @@ const styles = StyleSheet.create({
   readinessScoreNum: { fontSize: 18, fontWeight: '900', color: Palette.primary },
   readinessScoreSub: { fontSize: 9, fontWeight: '800', color: Palette.primary },
   readinessMeta: { fontSize: 12, color: Palette.textSecondary, marginTop: 8 },
+
   sectionHeaderRow: { marginBottom: 12 },
   sectionTitle: { fontSize: 17, fontWeight: '800', color: Palette.textTitle },
   sectionSubtitle: { fontSize: 12, color: Palette.textSecondary, marginTop: 2 },
-  roadmapCard: {
+
+  // Real Metrics 4-Pillar Grid
+  metricsGrid: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 10,
+    marginBottom: 24,
+  },
+  metricCard: {
+    flex: 1,
+    minWidth: 155,
     backgroundColor: '#FFFFFF',
     borderRadius: Radii.card,
-    padding: 18,
+    padding: 14,
     borderWidth: 1,
     borderColor: Palette.border,
-    marginBottom: 24,
     ...Shadows.card,
   },
-  stageItemRow: { flexDirection: 'row', alignItems: 'flex-start', minHeight: 48 },
-  stageLeftCol: { alignItems: 'center', marginRight: 14 },
-  stageDot: {
-    width: 24,
-    height: 24,
+  metricIconWrap: {
+    width: 34,
+    height: 34,
+    borderRadius: 10,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: 8,
+  },
+  metricNum: {
+    fontSize: 18,
+    fontWeight: '800',
+    color: Palette.textTitle,
+    marginBottom: 2,
+  },
+  metricTitle: {
+    fontSize: 12,
+    fontWeight: '700',
+    color: Palette.textSecondary,
+    marginBottom: 4,
+  },
+  metricSub: {
+    fontSize: 11,
+    color: '#6B7280',
+  },
+
+  // Recommendation Card
+  recommendationCard: {
+    backgroundColor: '#EEF2FF',
+    borderRadius: Radii.card,
+    padding: 16,
+    borderWidth: 1.5,
+    borderColor: '#C7D2FE',
+    marginBottom: 24,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+    ...Shadows.card,
+  },
+  recommendationIconWrap: {
+    width: 40,
+    height: 40,
     borderRadius: 12,
-    backgroundColor: Palette.backgroundSecondary,
-    borderWidth: 1,
-    borderColor: Palette.border,
+    backgroundColor: '#FFFFFF',
     alignItems: 'center',
     justifyContent: 'center',
   },
-  stageDotCompleted: { backgroundColor: Palette.success, borderColor: Palette.success },
-  stageDotCurrent: { backgroundColor: Palette.primary, borderColor: Palette.primary },
-  stageNum: { fontSize: 10, fontWeight: '700', color: Palette.textSecondary },
-  stageLine: { width: 2, flex: 1, backgroundColor: Palette.border, marginVertical: 4 },
-  stageContent: { flex: 1, paddingBottom: 14 },
-  stageName: { fontSize: 14, fontWeight: '700', color: Palette.textTitle },
-  stageNameCurrent: { color: Palette.primary },
-  stageScore: { fontSize: 12, color: Palette.textSecondary, marginTop: 2 },
+  recommendationTitle: {
+    fontSize: 13.5,
+    fontWeight: '800',
+    color: Palette.textTitle,
+  },
+  recBadge: {
+    backgroundColor: '#4F46E5',
+    paddingHorizontal: 6,
+    paddingVertical: 1,
+    borderRadius: 4,
+  },
+  recBadgeText: {
+    fontSize: 8.5,
+    fontWeight: '800',
+    color: '#FFFFFF',
+    letterSpacing: 0.5,
+  },
+  recommendationText: {
+    fontSize: 12,
+    color: Palette.textSecondary,
+    lineHeight: 16,
+    marginTop: 2,
+  },
+  recommendationBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#4F46E5',
+    paddingHorizontal: 12,
+    paddingVertical: 7,
+    borderRadius: 8,
+    gap: 4,
+  },
+  recommendationBtnText: {
+    color: '#FFFFFF',
+    fontSize: 12,
+    fontWeight: '700',
+  },
+
+  // Weak Areas
   weakAreasContainer: { gap: 10, marginBottom: 24 },
   weakCard: {
     flexDirection: 'row',
@@ -309,6 +534,38 @@ const styles = StyleSheet.create({
   weakTrackText: { fontSize: 12, color: Palette.textSecondary, marginTop: 2 },
   weakActionBtn: { backgroundColor: Palette.primaryLight, paddingHorizontal: 12, paddingVertical: 6, borderRadius: 8 },
   weakActionText: { fontSize: 12, fontWeight: '700', color: Palette.primary },
+
+  emptyWeakCard: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#F0FDF4',
+    borderRadius: Radii.card,
+    padding: 14,
+    borderWidth: 1,
+    borderColor: '#BBF7D0',
+    gap: 10,
+  },
+  emptyWeakIconWrap: {
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    backgroundColor: '#DCFCE7',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  emptyWeakTitle: {
+    fontSize: 13.5,
+    fontWeight: '700',
+    color: '#166534',
+  },
+  emptyWeakSubtitle: {
+    fontSize: 12,
+    color: '#15803D',
+    lineHeight: 16,
+    marginTop: 2,
+  },
+
+  // Company Profiles
   companiesGrid: { gap: 10, marginBottom: 20 },
   companyCard: {
     backgroundColor: '#FFFFFF',
@@ -325,6 +582,8 @@ const styles = StyleSheet.create({
   companyPattern: { fontSize: 12.5, color: Palette.textSecondary, marginBottom: 10 },
   companyBtn: { alignSelf: 'flex-start' },
   companyBtnText: { fontSize: 13, fontWeight: '700', color: Palette.primary },
+
+  // Live Interview Banner
   liveInterviewBanner: {
     backgroundColor: '#FFFFFF',
     borderRadius: Radii.card,
@@ -370,6 +629,8 @@ const styles = StyleSheet.create({
     lineHeight: 18,
     marginTop: 2,
   },
+
+  // AI Aptitude Test Banner
   aptitudeBanner: {
     backgroundColor: '#FFFFFF',
     borderRadius: Radii.card,
@@ -468,4 +729,3 @@ const styles = StyleSheet.create({
     fontWeight: '700',
   },
 });
-
