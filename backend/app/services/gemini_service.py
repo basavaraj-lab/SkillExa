@@ -128,11 +128,12 @@ class GeminiService:
 
     SUPPORTED_MODELS = [
         "gemini-flash-lite-latest",
-        "gemini-flash-latest",
-        "gemini-3.8-flash-lite",
+        "gemini-3.5-flash-lite",
+        "gemini-3.1-flash-lite",
         "gemini-3.8-flash",
         "gemini-3.7-flash",
         "gemini-3.5-flash",
+        "gemini-flash-latest",
     ]
 
     @classmethod
@@ -286,12 +287,11 @@ class GeminiService:
                     error_code,
                     getattr(api_err, "message", str(api_err))[:150],
                 )
-                # If 404 model not found, 503 high demand, 504 timeout, or 502 bad gateway, try next model in list
-                if error_code in (404, "NOT_FOUND", 503, "UNAVAILABLE", 504, "DEADLINE_EXCEEDED", 502, "BAD_GATEWAY"):
-                    continue
-                # If 429 rate limit or 401/403 auth error, do not retry blindly
-                if error_code in (429, 401, 403, "RESOURCE_EXHAUSTED", "PERMISSION_DENIED"):
+                # If 401/403 permanent authentication failure or invalid API key, stop trying
+                if error_code in (401, 403, "PERMISSION_DENIED", "INVALID_ARGUMENT"):
                     break
+                # If 429 rate limit / quota exceeded on this model, or 404/503/504, try next candidate model
+                continue
             except Exception as e:
                 logger.warning("Gemini generation error on model %s: %s", model_to_try, type(e).__name__)
                 continue
@@ -362,7 +362,7 @@ class GeminiService:
                     "error_code": error_code,
                     "error_message": getattr(e, "message", str(e))[:200],
                 }
-                if error_code in (404, "NOT_FOUND", 503, "UNAVAILABLE"):
+                if error_code in (404, "NOT_FOUND", 503, "UNAVAILABLE", 429, "RESOURCE_EXHAUSTED", 504, "DEADLINE_EXCEEDED"):
                     continue
                 return last_error
             except Exception as e:

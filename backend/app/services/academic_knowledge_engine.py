@@ -414,6 +414,124 @@ ACADEMIC_TOPICS: Dict[str, Dict[str, Any]] = {
             "It features registers including the accumulator, flag register, program counter, and stack pointer."
         ),
     },
+    "string in python": {
+        "title": "Python Strings (str)",
+        "badge": "🧵 Python String",
+        "definition": (
+            "In Python, a string is a built-in immutable sequence of Unicode characters. "
+            "Strings are enclosed in single quotes ('...'), double quotes (\"...\"), or triple quotes ('''...''' / \"\"\"...\"\"\") "
+            "for multi-line text and docstrings."
+        ),
+        "explanation": (
+            "Think of a string as an ordered chain of letters, symbols, or numbers. "
+            "Because Python strings are immutable, once created their contents cannot be altered in-place. "
+            "Python provides zero-based indexing and slicing to access individual characters or substrings effortlessly."
+        ),
+        "features": [
+            "**Immutable**: String contents cannot be modified in-place; modifications return a new string instance.",
+            "**Indexed & Slicable**: Individual characters can be accessed via `s[0]` and slices via `s[start:stop:step]`.",
+            "**Unicode Standard**: Python 3 strings natively support international characters, symbols, and emojis.",
+            "**Built-in Methods**: Provides rich transformation methods such as `.upper()`, `.lower()`, `.strip()`, `.split()`, and `.replace()`.",
+            "**F-Strings Support**: Allows formatted string literals via `f\"{variable}\"` for clean string interpolation.",
+        ],
+        "applications": [
+            "User input validation, text processing, and natural language formatting.",
+            "Parsing JSON, CSV, API payloads, and database query parameters.",
+            "Pattern matching and tokenization in compilers and search algorithms.",
+        ],
+        "example_code": (
+            "# Creating and manipulating strings in Python\n"
+            "text = \"SkillExa AI\"\n"
+            "greeting = f\"Welcome to {text}!\"\n\n"
+            "# Indexing and slicing\n"
+            "first_char = text[0]        # 'S'\n"
+            "sliced_word = text[0:8]     # 'SkillExa'\n"
+            "reversed_text = text[::-1]  # 'IA axEllikS'\n\n"
+            "print(greeting)\n"
+            "print(f\"First char: {first_char}, Sliced: {sliced_word}\")\n"
+            "print(f\"Reversed: {reversed_text}\")\n"
+        ),
+        "example_output": (
+            "Welcome to SkillExa AI!\n"
+            "First char: S, Sliced: SkillExa\n"
+            "Reversed: IA axEllikS\n"
+        ),
+        "line_by_line": [
+            "`text = \"SkillExa AI\"`: Instantiates a string literal assigned to variable `text`.",
+            "`f\"Welcome to {text}!\"`: Formatted f-string interpolates the value of `text` dynamically.",
+            "`text[0:8]`: Slices the string from index 0 up to (not including) index 8.",
+            "`text[::-1]`: Pythonic extended slice with a step of -1 to reverse the string.",
+            "`print(...)`: Standard output displaying the formatted results to console.",
+        ],
+        "summary": (
+            "Strings in Python are fundamental immutable sequences used for representing textual data, "
+            "featuring powerful slicing, built-in string methods, and f-string interpolation."
+        ),
+        "spoken": (
+            "In Python, a string is an immutable sequence of characters enclosed in single, double, or triple quotes. "
+            "Strings support zero-based indexing, slicing, and built-in methods like split and replace."
+        ),
+    },
+    "string": {
+        "title": "String Data Type",
+        "badge": "🧵 String Data Type",
+        "definition": (
+            "A string is a fundamental computer science data type representing a contiguous sequence of characters, "
+            "such as letters, numbers, symbols, and spaces, used to store and manipulate text."
+        ),
+        "explanation": (
+            "In programming, strings are typically implemented as an array of characters encoded in ASCII or UTF-8 Unicode. "
+            "They allow human-readable text to be stored in computer memory, compared, concatenated, and searched."
+        ),
+        "features": [
+            "**Sequence Structure**: Characters are stored in a sequential, indexed order.",
+            "**Encoding Compatibility**: Encoded into binary memory using standards like ASCII (8-bit) or UTF-8 / UTF-16 Unicode.",
+            "**Common Operations**: Concatenation, substring search, length calculation, and case transformations.",
+            "**Null-Terminated vs Object-Oriented**: In C, strings are null-terminated (`\\0`) character arrays, while modern languages treat them as managed objects.",
+        ],
+        "applications": [
+            "Text rendering and user interface labels across web, mobile, and desktop applications.",
+            "Network protocols (HTTP headers, JSON, XML, REST API requests).",
+            "Data persistence in file systems and relational database tables (VARCHAR / TEXT).",
+        ],
+        "example_code": (
+            "// String declaration in C and Python\n"
+            "// Python: text = \"Hello World\"\n"
+            "// C: char text[] = \"Hello World\";\n"
+            "#include <stdio.h>\n"
+            "#include <string.h>\n\n"
+            "int main() {\n"
+            "    char greeting[] = \"SkillExa\";\n"
+            "    printf(\"String: %s\\n\", greeting);\n"
+            "    printf(\"Length: %lu\\n\", strlen(greeting));\n"
+            "    return 0;\n"
+            "}\n"
+        ),
+        "example_output": (
+            "String: SkillExa\n"
+            "Length: 8\n"
+        ),
+        "line_by_line": [
+            "`char greeting[] = \"SkillExa\"`: Allocates 9 bytes in memory (8 characters + 1 null terminator `\\0`).",
+            "`strlen(greeting)`: Computes character count excluding the null terminator.",
+            "`printf(...)`: Prints the string using the `%s` format specifier.",
+        ],
+        "summary": (
+            "A string is an indexed sequence of characters used for representing human-readable text across all programming languages."
+        ),
+        "spoken": (
+            "A string is a sequence of characters used in programming to store and manipulate text, typically encoded in ASCII or Unicode."
+        ),
+    },
+}
+
+# Specific computer science concept keywords that prevent naive matching of generic language names
+SPECIFIC_CONCEPTS = {
+    "string", "strings", "list", "lists", "dict", "dictionary", "dictionaries",
+    "tuple", "tuples", "set", "sets", "array", "arrays", "pointer", "pointers",
+    "loop", "loops", "function", "functions", "class", "classes", "object", "objects",
+    "recursion", "sorting", "tree", "graph", "stack", "queue", "inheritance",
+    "polymorphism", "encapsulation", "abstraction", "exception", "lambda", "decorator"
 }
 
 
@@ -432,11 +550,19 @@ class AcademicKnowledgeEngine:
         project_name: str = "General Chats",
     ) -> Optional[Tuple[str, str]]:
         clean_q = normalize_query(user_query)
+        query_words = set(re.findall(r"\b[a-z0-9_+#.-]+\b", clean_q))
 
-        # 1. Check for Definition Queries (e.g. "define python", "what is python", "meaning of python")
+        # 1. Check for Definition Queries (longest & most specific match first)
         matched_topic = None
-        for key in ACADEMIC_TOPICS.keys():
-            if key in clean_q:
+        for key in sorted(ACADEMIC_TOPICS.keys(), key=len, reverse=True):
+            pattern = r"\b" + re.escape(key) + r"\b"
+            if re.search(pattern, clean_q):
+                # If key is a generic language name ("python", "c", etc.) but query contains
+                # a specific concept not in the key (e.g. "define string in python"), skip this broad key
+                if key in ("python", "c", "cpp", "javascript"):
+                    concept_overlap = query_words.intersection(SPECIFIC_CONCEPTS)
+                    if concept_overlap:
+                        continue
                 matched_topic = key
                 break
 

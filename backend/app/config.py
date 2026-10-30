@@ -60,7 +60,7 @@ class Settings(BaseSettings):
     AI_DEFAULT_QUESTIONS_COUNT: int = 5
     AI_MAX_QUESTIONS_COUNT: int = 15
     GEMINI_API_KEY: str = ""
-    GEMINI_MODEL: str = "gemini-flash-latest"
+    GEMINI_MODEL: str = "gemini-flash-lite-latest"
     GEMINI_PROJECT: str = "projects/411579227111"
     OPENAI_API_KEY: str = ""
     WIKIPEDIA_INTEGRATION_ENABLED: bool = True
