@@ -559,6 +559,9 @@ class ProjectChatService:
             past_messages=past_messages,
             is_memory_query=is_memory_query,
             search_sources=search_sources,
+            file_data=request.file_data,
+            file_name=request.file_name,
+            file_mime_type=request.file_mime_type,
         )
 
         # Step H: Save Assistant Message
@@ -595,7 +598,7 @@ class ProjectChatService:
         )
 
     # -------------------------------------------------------------
-    # 5. DOMAIN KNOWLEDGE & RESPONSE GENERATOR
+    # 5. UNIVERSAL GEMINI AI & DOMAIN RESPONSE GENERATOR
     # -------------------------------------------------------------
     @classmethod
     async def _generate_educational_response(
@@ -608,14 +611,22 @@ class ProjectChatService:
         past_messages: List[AIMessage],
         is_memory_query: bool,
         search_sources: List[Dict[str, Any]],
+        file_data: Optional[str] = None,
+        file_name: Optional[str] = None,
+        file_mime_type: Optional[str] = None,
     ) -> Tuple[str, str]:
         """
-        Synthesizes expert response across:
-        - Python, C, C++, Java, JS, HTML/CSS, DSA, debugging
-        - ECE, Digital Electronics, Microprocessors, Signals & Systems, IoT, Robotics
-        - Aptitude, Reasoning, Technical & HR interviews
-        - UPSC, SSC, RRB, KPSC, GATE, Karnataka Police
-        - Memory recall queries
+        Universal Gemini-Powered Response Generator.
+        Acts like ChatGPT / Google Gemini across all domains without restrictions:
+        - Programming (Python, C, C++, Java, JS, HTML/CSS, React, Node, SQL, etc.)
+        - Computer Science & DSA
+        - Engineering (ECE, Mechanical, Civil, Electrical, VLSI, Robotics)
+        - Mathematics, Physics, Chemistry, Biology
+        - General Knowledge, Indian & World History, Polity, Economics
+        - Competitive Examinations (UPSC, SSC, GATE, Banking, Police)
+        - Career, Resumes, Interview Prep
+        - Everyday Assistance, Writing, Problem Solving, and Novel Questions
+        - Multimodal Image & Document Analysis
         """
         lower_q = user_query.lower()
 
@@ -652,7 +663,7 @@ class ProjectChatService:
             # Try primary Gemini LLM with search grounding first
             if GeminiService.is_configured():
                 search_query = (
-                    f"Student Query: {user_query}\n\n"
+                    f"User Query: {user_query}\n\n"
                     f"Use these verified live search results to answer accurately:\n{citations_md}"
                 )
                 gemini_search_ans = GeminiService.generate_chat_response(
@@ -661,6 +672,9 @@ class ProjectChatService:
                     project_name=project.name,
                     project_memory=project_memory,
                     project_description=project.description or "",
+                    file_data=file_data,
+                    file_name=file_name,
+                    file_mime_type=file_mime_type,
                 )
                 if gemini_search_ans:
                     return gemini_search_ans
@@ -684,7 +698,7 @@ class ProjectChatService:
             )
             return reply, speech
 
-        # 3. PRIMARY LLM: Google Gemini Flash (Official google-genai SDK)
+        # 3. PRIMARY UNIVERSAL INTELLIGENCE: Google Gemini Flash (Official google-genai SDK)
         if GeminiService.is_configured():
             gemini_ans = GeminiService.generate_chat_response(
                 user_query=user_query,
@@ -692,166 +706,19 @@ class ProjectChatService:
                 project_name=project.name,
                 project_memory=project_memory,
                 project_description=project.description or "",
+                file_data=file_data,
+                file_name=file_name,
+                file_mime_type=file_mime_type,
             )
             if gemini_ans:
                 return gemini_ans
 
-        # 4. SECONDARY ACADEMIC ENGINE (Direct definitions, programming concepts, typos)
+        # 4. SECONDARY ACADEMIC ENGINE (Direct topic definitions if Gemini is offline)
         academic_ans = AcademicKnowledgeEngine.answer(user_query, past_messages, project.name)
         if academic_ans:
             return academic_ans
 
-        # 5. DOMAIN KNOWLEDGE RESPONSES (Pointers in C, Python inheritance, ECE, GATE, etc.)
-        # Scenario 1 Check: "Explain pointers in C"
-        if "pointer" in lower_q and (" c" in lower_q or "in c" in lower_q):
-            reply = (
-                "### 📌 Pointers in C: Core Concept\n\n"
-                "A **pointer** in C is a special variable that stores the **memory address** of another variable rather than a direct value.\n\n"
-                "#### 1. Syntax & Operators\n"
-                "- `&` (Address-of operator): Retrieves the memory address of a variable.\n"
-                "- `*` (Dereference / Value-at operator): Accesses the value stored at the pointed address.\n\n"
-                "```c\n"
-                "#include <stdio.h>\n\n"
-                "int main() {\n"
-                "    int number = 42;\n"
-                "    int *ptr = &number; // ptr holds memory address of number\n\n"
-                "    printf(\"Value of number: %d\\n\", number);       // 42\n"
-                "    printf(\"Address of number: %p\\n\", (void*)&number);\n"
-                "    printf(\"Pointer ptr holds: %p\\n\", (void*)ptr);\n"
-                "    printf(\"Value via *ptr: %d\\n\", *ptr);          // 42\n\n"
-                "    // Modifying value via pointer\n"
-                "    *ptr = 100;\n"
-                "    printf(\"New value of number: %d\\n\", number);   // 100\n"
-                "    return 0;\n"
-                "}\n"
-                "```\n\n"
-                "#### Key Benefits:\n"
-                "1. **Pass-by-Reference**: Allows functions to modify caller variables directly.\n"
-                "2. **Dynamic Memory Allocation**: Using `malloc()`, `calloc()`, and `free()`.\n"
-                "3. **Data Structures**: Building linked lists, trees, and graphs efficiently."
-            )
-            speech = (
-                "A pointer in C is a variable that stores the memory address of another variable. "
-                "You use the ampersand operator to get an address, and the asterisk operator to access "
-                "the value at that address. Pointers are essential for dynamic memory and data structures like linked lists."
-            )
-            return reply, speech
-
-        # Multi-turn check: "Give me one example" / "Give me an example"
-        if any(ex in lower_q for ex in ["give me one example", "give me an example", "another example", "code example"]):
-            # Look at previous message in the conversation
-            last_user_msgs = [m for m in past_messages if m.sender_type == "user" and m.message_text != user_query]
-            prev_context = last_user_msgs[-1].message_text.lower() if last_user_msgs else ""
-
-            if "pointer" in prev_context:
-                reply = (
-                    "### 💡 Practical Pointer Example: Swapping Two Numbers (Pass by Reference)\n\n"
-                    "In standard C, arguments are passed by value. To modify caller variables, we pass their pointers:\n\n"
-                    "```c\n"
-                    "#include <stdio.h>\n\n"
-                    "void swap(int *a, int *b) {\n"
-                    "    int temp = *a;\n"
-                    "    *a = *b;\n"
-                    "    *b = temp;\n"
-                    "}\n\n"
-                    "int main() {\n"
-                    "    int x = 10, y = 20;\n"
-                    "    printf(\"Before Swap: x = %d, y = %d\\n\", x, y);\n"
-                    "    \n"
-                    "    swap(&x, &y); // Passing memory addresses\n"
-                    "    \n"
-                    "    printf(\"After Swap:  x = %d, y = %d\\n\", x, y);\n"
-                    "    return 0;\n"
-                    "}\n"
-                    "```\n\n"
-                    "**How it works:**\n"
-                    "- `swap(&x, &y)` sends the actual memory locations of `x` and `y`.\n"
-                    "- Inside `swap`, dereferencing `*a` and `*b` updates `x` and `y` in `main` directly."
-                )
-                speech = (
-                    "Here is a classic example: swapping two numbers using pass by reference in C. "
-                    "By passing the addresses of x and y to the swap function, the function can dereference the pointers "
-                    "and exchange their values in memory directly."
-                )
-                return reply, speech
-
-            if "inheritance" in prev_context or "python" in prev_context:
-                reply = (
-                    f"### 💡 Practical Python Inheritance Example\n\n"
-                    f"```python\n"
-                    f"class Student:\n"
-                    f"    def __init__(self, name: str, roll_no: str):\n"
-                    f"        self.name = name\n"
-                    f"        self.roll_no = roll_no\n"
-                    f"\n"
-                    f"    def introduce(self):\n"
-                    f"        return f\"I am {self.name} (Roll: {self.roll_no})\"\n"
-                    f"\n"
-                    f"# EngineeringStudent inherits from Student\n"
-                    f"class EngineeringStudent(Student):\n"
-                    f"    def __init__(self, name: str, roll_no: str, branch: str):\n"
-                    f"        super().__init__(name, roll_no)\n"
-                    f"        self.branch = branch\n"
-                    f"\n"
-                    f"    def study(self):\n"
-                    f"        return f\"{self.name} is debugging an {self.branch} circuit!\"\n"
-                    f"\n"
-                    f"# Usage\n"
-                    f"student = EngineeringStudent(\"Ganesh\", \"4KV22EC018\", \"ECE\")\n"
-                    f"print(student.introduce())  # Inherited method\n"
-                    f"print(student.study())      # Child method\n"
-                    f"```"
-                )
-                speech = (
-                    "Here is a Python inheritance example. The child class EngineeringStudent inherits the name and roll "
-                    "number from the parent Student class using super init, and adds a specialized study method."
-                )
-                return reply, speech
-
-        # Check Python inheritance
-        if "inheritance" in lower_q and "python" in lower_q:
-            reply = (
-                f"### 🐍 Python Inheritance Explained\n\n"
-                f"**Inheritance** is a fundamental Object-Oriented Programming (OOP) mechanism where a child class derives attributes and methods from a parent class.\n\n"
-                f"#### Core Types in Python:\n"
-                f"1. **Single Inheritance**: Child inherits from one parent.\n"
-                f"2. **Multiple Inheritance**: Child inherits from more than one parent.\n"
-                f"3. **Multilevel Inheritance**: Grandparent ➔ Parent ➔ Child.\n"
-                f"4. **Hierarchical Inheritance**: Multiple children inherit from one parent.\n\n"
-                f"```python\n"
-                f"class Animal:\n"
-                f"    def speak(self):\n"
-                f"        return \"Some sound\"\n\n"
-                f"class Dog(Animal):\n"
-                f"    def speak(self):\n"
-                f"        return \"Woof! Woof!\"\n"
-                f"```\n\n"
-                f"Use `super()` to call the constructor or methods of the parent class cleanly."
-            )
-            speech = (
-                "Inheritance in Python allows a child class to inherit methods and properties from a parent class. "
-                "It promotes code reuse and cleaner architecture. You can call the parent class methods using the super keyword."
-            )
-            return reply, speech
-
-        # Engineering / ECE questions (e.g. 8085, microprocessors, signals)
-        if any(term in lower_q for term in ["8085", "microprocessor", "signals and systems", "ece", "nyquist", "sampling theorem"]):
-            reply = (
-                f"### ⚡ Engineering & ECE Core Topic\n\n"
-                f"**Query**: {user_query}\n\n"
-                f"#### Key Principles:\n"
-                f"- **Nyquist-Shannon Sampling Theorem**: A continuous signal can be completely reconstructed if sampled at a rate $f_s \\ge 2 f_{max}$, where $f_{max}$ is the highest frequency component.\n"
-                f"- **8085 Microprocessor**: An 8-bit NMOS processor with a 16-bit address bus (accessing up to 64 KB of memory), 8-bit data bus, operating at 3 MHz.\n"
-                f"- **Registers**: Accumulator (A), B, C, D, E, H, L general purpose pairs, Stack Pointer (SP), and Program Counter (PC).\n\n"
-                f"Would you like to examine pin diagram details, assembly timing diagrams, or practice GATE numerical questions?"
-            )
-            speech = (
-                f"For this engineering concept, remember the fundamental theorem or architectural design. "
-                f"I've outlined the core formulas, register organization, and key points on your screen."
-            )
-            return reply, speech
-
-        # 5. Diagnostic Notice if Gemini API key is missing
+        # 5. DIAGNOSTIC NOTICE: If Gemini API key is missing
         if not GeminiService.is_configured():
             reply = (
                 f"### ⚙️ Gemini AI Configuration Notice\n\n"
@@ -862,7 +729,7 @@ class ProjectChatService:
             speech = "Please configure the Gemini API key in the backend environment variables to enable dynamic AI responses."
             return reply, speech
 
-        # 6. Polite Rate-Limit / Temporary Unavailable Notice
+        # 6. POLITE NOTICE: Rate limit or temporary connection timeout
         clean_target = user_query.strip().strip("?.,!")
         reply = (
             f"### ⏳ SkillExa AI Temporary Notice\n\n"

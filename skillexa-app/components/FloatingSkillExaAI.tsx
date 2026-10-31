@@ -11,6 +11,7 @@ import {
   ActivityIndicator,
   Modal,
   Linking,
+  Image,
 } from 'react-native';
 import { Feather, Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
@@ -32,12 +33,21 @@ interface Project {
   conversation_count: number;
 }
 
+interface AttachedFile {
+  name: string;
+  mimeType: string;
+  data: string;
+  size: number;
+}
+
 interface Message {
   id: string;
   conversation_id: string;
   sender_type: 'user' | 'assistant' | 'system';
   message_text: string;
   input_type: 'text' | 'voice';
+  file_data?: string;
+  file_name?: string;
   search_sources?: Array<{
     title: string;
     url: string;
@@ -101,6 +111,7 @@ function FloatingSkillExaAIInner() {
 
   // UI & Input
   const [inputText, setInputText] = useState('');
+  const [attachedFile, setAttachedFile] = useState<AttachedFile | null>(null);
   const [searchEnabled, setSearchEnabled] = useState(false);
   const [isSending, setIsSending] = useState(false);
   const [showProjectDropdown, setShowProjectDropdown] = useState(false);
@@ -397,10 +408,15 @@ function FloatingSkillExaAIInner() {
     }
   };
 
-  // Send Chat Message (Voice or Typed)
+  // Send Chat Message (Voice, Typed, or with Image/Document Attachment)
   const sendChatMessage = async (text: string, inputType: 'text' | 'voice' = 'text') => {
     const cleanText = text.trim();
-    if (!cleanText || isSending) return;
+    if ((!cleanText && !attachedFile) || isSending) return;
+
+    const currentAttachment = attachedFile;
+    setAttachedFile(null);
+
+    const messageText = cleanText || (currentAttachment ? `Please analyze this attached ${currentAttachment.mimeType.startsWith('image/') ? 'image' : 'file'}: ${currentAttachment.name}` : '');
 
     if (engineRef.current) {
       engineRef.current.clearSilenceTimer();
@@ -414,8 +430,10 @@ function FloatingSkillExaAIInner() {
       id: `temp-${Date.now()}`,
       conversation_id: activeConversationId,
       sender_type: 'user',
-      message_text: cleanText,
+      message_text: messageText,
       input_type: inputType,
+      file_data: currentAttachment?.data,
+      file_name: currentAttachment?.name,
       created_at: new Date().toISOString(),
     };
     setMessages((prev) => [...prev, tempUserMsg]);
@@ -427,11 +445,14 @@ function FloatingSkillExaAIInner() {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          message: cleanText,
+          message: messageText,
           project_id: activeProjectId || undefined,
           conversation_id: activeConversationId || undefined,
           input_type: inputType,
           search_enabled: searchEnabled,
+          file_data: currentAttachment?.data,
+          file_name: currentAttachment?.name,
+          file_mime_type: currentAttachment?.mimeType,
         }),
       });
 
@@ -503,6 +524,38 @@ function FloatingSkillExaAIInner() {
       } else {
         await engineRef.current.startPushToTalk();
       }
+    }
+  };
+
+  // Attach image or code/document file
+  const handlePickFile = () => {
+    if (Platform.OS === 'web' && typeof document !== 'undefined') {
+      const input = document.createElement('input');
+      input.type = 'file';
+      input.accept = 'image/*,application/pdf,.py,.c,.cpp,.java,.js,.ts,.html,.css,.json,.txt,.sql';
+      input.onchange = (e: any) => {
+        const file = e.target.files?.[0];
+        if (!file) return;
+        if (file.size > 15 * 1024 * 1024) {
+          setStatusNotice('File exceeds 15MB size limit.');
+          return;
+        }
+        const reader = new FileReader();
+        reader.onload = (loadEvt: any) => {
+          const base64Data = loadEvt.target.result as string;
+          setAttachedFile({
+            name: file.name,
+            mimeType: file.type || 'application/octet-stream',
+            data: base64Data,
+            size: file.size,
+          });
+          setStatusNotice(`Attached: ${file.name}`);
+        };
+        reader.readAsDataURL(file);
+      };
+      input.click();
+    } else {
+      setStatusNotice('File upload ready.');
     }
   };
 
@@ -979,6 +1032,25 @@ function FloatingSkillExaAIInner() {
                       )}
                     </View>
 
+                    {/* Attached image preview */}
+                    {msg.file_data && msg.file_data.startsWith('data:image') && (
+                      <Image
+                        source={{ uri: msg.file_data }}
+                        style={styles.messageImageThumbnail}
+                        resizeMode="cover"
+                      />
+                    )}
+
+                    {/* Attached document badge */}
+                    {msg.file_name && !msg.file_data?.startsWith('data:image') && (
+                      <View style={styles.messageFileChip}>
+                        <Feather name="file-text" size={13} color="#8B5CF6" />
+                        <Text style={styles.messageFileName} numberOfLines={1}>
+                          {msg.file_name}
+                        </Text>
+                      </View>
+                    )}
+
                     {/* Content with Markdown Rendering */}
                     <MarkdownRenderer
                       content={msg.message_text}
@@ -1107,8 +1179,37 @@ function FloatingSkillExaAIInner() {
               )}
             </View>
 
-            {/* Input Row with Mic & Send */}
+            {/* Attachment Preview Bar if file selected */}
+            {attachedFile && (
+              <View style={styles.attachmentBar}>
+                <View style={styles.attachmentLeft}>
+                  <Feather
+                    name={attachedFile.mimeType.startsWith('image/') ? 'image' : 'file-text'}
+                    size={14}
+                    color="#8B5CF6"
+                  />
+                  <Text style={styles.attachmentText} numberOfLines={1}>
+                    {attachedFile.name} ({(attachedFile.size / 1024).toFixed(1)} KB)
+                  </Text>
+                </View>
+                <TouchableOpacity onPress={() => setAttachedFile(null)} style={styles.attachmentRemoveBtn}>
+                  <Feather name="x" size={14} color="#EF4444" />
+                </TouchableOpacity>
+              </View>
+            )}
+
+            {/* Input Row with Paperclip, Mic & Send */}
             <View style={styles.inputRow}>
+              {/* Paperclip File Upload Button */}
+              <TouchableOpacity
+                style={styles.attachBtn}
+                onPress={handlePickFile}
+                activeOpacity={0.8}
+                accessibilityLabel="Attach Image or Code File"
+              >
+                <Feather name="paperclip" size={18} color="#64748B" />
+              </TouchableOpacity>
+
               {/* Mic Action Button */}
               <TouchableOpacity
                 style={[
@@ -1137,8 +1238,10 @@ function FloatingSkillExaAIInner() {
               <TextInput
                 style={styles.textInput}
                 placeholder={
-                  assistantMode === 'WAKE_WORD'
-                    ? 'Ask anything or say "Hello SkillExa"...'
+                  attachedFile
+                    ? `Ask about ${attachedFile.name}...`
+                    : assistantMode === 'WAKE_WORD'
+                    ? 'Ask anything or say "Hey SkillExa"...'
                     : 'Ask anything in this project...'
                 }
                 placeholderTextColor="#94A3B8"
@@ -1152,9 +1255,9 @@ function FloatingSkillExaAIInner() {
               <TouchableOpacity
                 style={[
                   styles.sendBtn,
-                  (!inputText.trim() || isSending) && styles.sendBtnDisabled,
+                  ((!inputText.trim() && !attachedFile) || isSending) && styles.sendBtnDisabled,
                 ]}
-                disabled={!inputText.trim() || isSending}
+                disabled={(!inputText.trim() && !attachedFile) || isSending}
                 onPress={() => sendChatMessage(inputText, 'text')}
               >
                 <Feather name="send" size={16} color="#FFFFFF" />
@@ -1899,6 +2002,68 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: 8,
+  },
+  attachmentBar: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    backgroundColor: '#F3E8FF',
+    borderRadius: 8,
+    paddingHorizontal: 10,
+    paddingVertical: 6,
+    marginBottom: 8,
+    borderWidth: 1,
+    borderColor: '#DDD6FE',
+  },
+  attachmentLeft: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    flex: 1,
+  },
+  attachmentText: {
+    fontSize: 12,
+    color: '#6B21A8',
+    fontWeight: '600',
+    flex: 1,
+  },
+  attachmentRemoveBtn: {
+    padding: 2,
+    marginLeft: 6,
+  },
+  attachBtn: {
+    width: 36,
+    height: 38,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: '#F1F5F9',
+    borderRadius: 18,
+    borderWidth: 1,
+    borderColor: '#E2E8F0',
+  },
+  messageImageThumbnail: {
+    width: '100%',
+    height: 160,
+    borderRadius: 8,
+    marginTop: 6,
+    marginBottom: 6,
+  },
+  messageFileChip: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    backgroundColor: 'rgba(255, 255, 255, 0.2)',
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    borderRadius: 6,
+    marginTop: 4,
+    marginBottom: 4,
+  },
+  messageFileName: {
+    fontSize: 11,
+    color: '#FFFFFF',
+    fontWeight: '600',
+    flex: 1,
   },
   micBtn: {
     width: 38,

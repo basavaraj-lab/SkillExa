@@ -93,6 +93,9 @@ class AIChatRequest(BaseModel):
     input_type: str = "text"  # 'text' | 'voice'
     search_enabled: bool = False
     spoken_acknowledgement_needed: bool = False
+    file_data: Optional[str] = None  # Base64 encoded file or data URL
+    file_name: Optional[str] = None
+    file_mime_type: Optional[str] = None
 
 
 class AIChatResponse(BaseModel):
