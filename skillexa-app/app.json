@@ -2,6 +2,7 @@
   "expo": {
     "name": "skillexa",
     "slug": "skillexa",
+    "owner": "skillexa",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
@@ -11,6 +12,7 @@
       "supportsTablet": true
     },
     "android": {
+      "package": "com.skillexa.app",
       "adaptiveIcon": {
         "backgroundColor": "#E6F4FE",
         "foregroundImage": "./assets/images/android-icon-foreground.png",
@@ -47,8 +49,9 @@
       "reactCompiler": true
     },
     "extra": {
+      "router": {},
       "eas": {
-        "projectId": "cd7511e5-375a-4242-ab7a-6d66cf1"
+        "projectId": "cd7511e5-375a-4242-ab7a-6d66cf14f620"
       }
     }
   }
