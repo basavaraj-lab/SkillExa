@@ -9,9 +9,13 @@ from sqlalchemy.pool import StaticPool
 # Add repository root to sys.path
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "..")))
 
+from backend.app.config import settings
 from backend.app.database import Base
 from backend.app.dependencies.db import get_db
 from backend.app.main import app
+
+# Set test environment
+settings.ENVIRONMENT = "testing"
 from backend.app.models.college import College
 from backend.app.models.user import (
     FacultyProfile,

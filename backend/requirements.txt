@@ -99,4 +99,3 @@ Werkzeug==3.1.8
 yarl==1.25.1
 zope.event==6.2
 zope.interface==8.5
-pydantic-settings

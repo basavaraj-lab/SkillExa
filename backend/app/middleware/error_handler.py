@@ -27,6 +27,7 @@ def register_error_handlers(app: FastAPI):
             content={
                 "success": False,
                 "message": exc.detail if isinstance(exc.detail, str) else str(exc.detail),
+                "detail": exc.detail if isinstance(exc.detail, str) else str(exc.detail),
                 "code": error_code,
                 "data": None,
             },

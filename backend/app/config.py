@@ -1,8 +1,14 @@
 import json
 import os
 from typing import List, Union
+from dotenv import load_dotenv
 from pydantic import field_validator
-from pydantic_settings import BaseSettings
+from pydantic_settings import BaseSettings, SettingsConfigDict
+
+# Load backend/.env if present for local development
+env_path = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", ".env"))
+if os.path.exists(env_path):
+    load_dotenv(env_path)
 
 
 class Settings(BaseSettings):
@@ -13,6 +19,12 @@ class Settings(BaseSettings):
 
     # Database
     DATABASE_URL: str = "sqlite:///./skillexa.db"
+
+    @field_validator("DATABASE_URL", mode="before")
+    def assemble_db_url(cls, v: str) -> str:
+        if isinstance(v, str) and v.startswith("postgres://"):
+            return v.replace("postgres://", "postgresql://", 1)
+        return v
 
     # Security & JWT
     JWT_SECRET: str = "skillexa_super_secret_jwt_key_development_2026_change_in_production"
@@ -79,11 +91,12 @@ class Settings(BaseSettings):
     LLM_API_KEY: str = ""
     LLM_MODEL: str = ""
 
-    class Config:
-        env_file = os.path.join(os.path.dirname(__file__), "..", ".env")
-        env_file_encoding = "utf-8"
-        case_sensitive = True
-        extra = "ignore"
+    model_config = SettingsConfigDict(
+        env_file=os.path.join(os.path.dirname(__file__), "..", ".env"),
+        env_file_encoding="utf-8",
+        case_sensitive=True,
+        extra="ignore",
+    )
 
 
 settings = Settings()

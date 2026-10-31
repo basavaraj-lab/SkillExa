@@ -1,3 +1,4 @@
+import logging
 import os
 import smtplib
 import ssl
@@ -5,6 +6,8 @@ from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
 
 from backend.app.config import settings
+
+logger = logging.getLogger("skillexa.smtp")
 
 
 class SMTPService:
@@ -86,30 +89,33 @@ If you did not request this verification, you can safely ignore this email.
         msg.attach(MIMEText(html_body, "html"))
 
         if not smtp_username or not smtp_password:
-            print(f"\n=======================================================")
-            print(f"🔒 [SKILLEXA VERIFICATION CODE - NO SMTP CONFIGURED]")
-            print(f"To: {to_email}")
-            print(f"6-Digit Verification Code: {otp_code}")
-            print(f"Notice: Set SMTP_USERNAME & SMTP_PASSWORD in backend/.env to send directly to Gmail.")
-            print(f"=======================================================\n")
+            logger.warning(
+                "SMTP credentials missing. Please set SMTP_USERNAME and SMTP_PASSWORD in backend/.env or Render environment variables."
+            )
             return False, "SMTP credentials missing. Please set SMTP_USERNAME & SMTP_PASSWORD in backend/.env."
 
-        # Attempt 1: Port 587 STARTTLS
+        # Attempt 1: Port 587 STARTTLS (Standard Gmail SMTP)
         sent = False
         last_error = ""
         try:
             context = ssl.create_default_context()
-            with smtplib.SMTP(smtp_host, smtp_port, timeout=10) as server:
+            with smtplib.SMTP(smtp_host, smtp_port, timeout=15) as server:
                 server.ehlo()
                 server.starttls(context=context)
                 server.ehlo()
                 server.login(smtp_username, smtp_password)
                 server.send_message(msg)
                 sent = True
+        except smtplib.SMTPAuthenticationError as auth_err:
+            last_error = "Gmail SMTP authentication failed. Please verify your Gmail App Password."
+            logger.error("Gmail SMTP authentication failed for user %s: %s", smtp_username, auth_err)
+        except smtplib.SMTPConnectError as conn_err:
+            last_error = f"Cannot connect to SMTP server {smtp_host}:{smtp_port}."
+            logger.error("Gmail SMTP connection failed: %s", conn_err)
         except (ssl.SSLCertVerificationError, ssl.SSLError):
             try:
                 context = ssl._create_unverified_context()
-                with smtplib.SMTP(smtp_host, smtp_port, timeout=10) as server:
+                with smtplib.SMTP(smtp_host, smtp_port, timeout=15) as server:
                     server.ehlo()
                     server.starttls(context=context)
                     server.ehlo()
@@ -118,34 +124,29 @@ If you did not request this verification, you can safely ignore this email.
                     sent = True
             except Exception as e2:
                 last_error = str(e2)
+                logger.error("Gmail SMTP unverified SSL attempt failed: %s", e2)
         except Exception as e:
             last_error = str(e)
+            logger.error("Gmail SMTP error during STARTTLS: %s", e)
 
-        # Attempt 2: Port 465 SSL fallback if port 587 failed
-        if not sent:
+        # Attempt 2: Port 465 SSL fallback if port 587 failed and not auth rejection
+        if not sent and "authentication failed" not in last_error.lower():
             try:
-                context = ssl._create_unverified_context()
-                with smtplib.SMTP_SSL(smtp_host, 465, context=context, timeout=10) as server:
+                context = ssl.create_default_context()
+                with smtplib.SMTP_SSL(smtp_host, 465, context=context, timeout=15) as server:
                     server.login(smtp_username, smtp_password)
                     server.send_message(msg)
                     sent = True
             except Exception as e3:
                 last_error = str(e3)
+                logger.error("Gmail SMTP SSL fallback failed: %s", e3)
 
         if sent:
-            print(f"\n=======================================================")
-            print(f"✉️ [GMAIL SMTP SUCCESS] OTP delivered to {to_email}")
-            print(f"Verification Code: {otp_code}")
-            print(f"=======================================================\n")
+            logger.info("Verification OTP email successfully delivered to %s via Gmail SMTP.", to_email)
             return True, f"Verification OTP email delivered to {to_email} via Gmail SMTP."
         else:
-            print(f"\n=======================================================")
-            print(f"⚠️ [GMAIL SMTP FAILED] Could not deliver to {to_email}")
-            print(f"Error: {last_error}")
-            print(f"👉 6-Digit Verification Code for testing: {otp_code}")
-            print(f"Notice: Generate a new 16-char App Password at https://myaccount.google.com/apppasswords and update backend/.env")
-            print(f"=======================================================\n")
-            return False, f"Gmail SMTP rejected credentials ({last_error}). Check App Password in backend/.env."
+            logger.error("Failed to deliver verification code to %s: %s", to_email, last_error)
+            return False, f"Gmail SMTP error: {last_error}"
 
     @staticmethod
     def send_announcement_email(
@@ -249,21 +250,14 @@ SkillExa College Notification System
         msg.attach(MIMEText(html_body, "html"))
 
         if not smtp_username or not smtp_password:
-            print(f"\n=======================================================")
-            print(f"📧 [COLLEGE ANNOUNCEMENT DISPATCHED VIA EMAIL]")
-            print(f"To: {student_name} <{to_email}>")
-            print(f"Subject: {subject}")
-            print(f"Faculty Author: {faculty_name} ({department})")
-            print(f"Announcement: {title}")
-            print(f"Message: {content[:120]}...")
-            print(f"=======================================================\n")
-            return True, "Announcement email logged (SMTP credentials not configured in backend/.env)."
+            logger.warning("SMTP credentials not configured. College announcement not emailed.")
+            return True, "Announcement email skipped (SMTP credentials not configured)."
 
         sent = False
         last_error = ""
         try:
             context = ssl.create_default_context()
-            with smtplib.SMTP(smtp_host, smtp_port, timeout=10) as server:
+            with smtplib.SMTP(smtp_host, smtp_port, timeout=15) as server:
                 server.ehlo()
                 server.starttls(context=context)
                 server.ehlo()
@@ -273,7 +267,7 @@ SkillExa College Notification System
         except (ssl.SSLCertVerificationError, ssl.SSLError):
             try:
                 context = ssl._create_unverified_context()
-                with smtplib.SMTP(smtp_host, smtp_port, timeout=10) as server:
+                with smtplib.SMTP(smtp_host, smtp_port, timeout=15) as server:
                     server.ehlo()
                     server.starttls(context=context)
                     server.ehlo()
@@ -288,7 +282,7 @@ SkillExa College Notification System
         if not sent:
             try:
                 context = ssl._create_unverified_context()
-                with smtplib.SMTP_SSL(smtp_host, 465, context=context, timeout=10) as server:
+                with smtplib.SMTP_SSL(smtp_host, 465, context=context, timeout=15) as server:
                     server.login(smtp_username, smtp_password)
                     server.send_message(msg)
                     sent = True
@@ -296,8 +290,8 @@ SkillExa College Notification System
                 last_error = str(e3)
 
         if sent:
-            print(f"✉️ [ANNOUNCEMENT EMAIL DELIVERED] to {to_email}")
+            logger.info("Announcement email successfully delivered to %s", to_email)
             return True, f"Announcement email delivered to {to_email} via SMTP."
         else:
-            print(f"⚠️ [ANNOUNCEMENT EMAIL FAILED] to {to_email}: {last_error}")
+            logger.error("Announcement email delivery failed to %s: %s", to_email, last_error)
             return False, f"SMTP delivery failed ({last_error})."

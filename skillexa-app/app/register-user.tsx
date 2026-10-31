@@ -301,7 +301,7 @@ export default function RegisterUser() {
 
       // Step 2: Register student in FastAPI backend database
       try {
-        await fetch(`${getApiBaseUrl()}/auth/register/student`, {
+        const regRes = await fetch(`${getApiBaseUrl()}/auth/register/student`, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
@@ -315,8 +315,22 @@ export default function RegisterUser() {
             phone: mobile.trim() || null,
           }),
         });
-      } catch (e) {
-        console.log("Backend student registration note:", e);
+        const regData = await regRes.json();
+        if (!regRes.ok || !regData.success) {
+          setOtpNotification({
+            type: "error",
+            message: regData.detail || regData.message || "Failed to create account. Please try again.",
+          });
+          setIsLoading(false);
+          return;
+        }
+      } catch (e: any) {
+        setOtpNotification({
+          type: "error",
+          message: "Could not connect to backend server to create account.",
+        });
+        setIsLoading(false);
+        return;
       }
 
       // Step 3: Login with FastAPI backend to store authenticated JWT token

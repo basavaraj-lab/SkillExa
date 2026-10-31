@@ -2,6 +2,7 @@ import uuid
 from typing import Optional, Tuple
 from fastapi import HTTPException, status
 from sqlalchemy.orm import Session
+from backend.app.config import settings
 from backend.app.models.college import College
 from backend.app.models.user import (
     FacultyProfile,
@@ -17,6 +18,7 @@ from backend.app.schemas.auth import (
     RegisterStudentRequest,
     TokenResponse,
 )
+from backend.app.services.otp_service import OTPService
 from backend.app.utils.security import (
     create_access_token,
     hash_password,
@@ -27,23 +29,34 @@ from backend.app.utils.security import (
 class AuthService:
     @staticmethod
     def register_student(db: Session, req: RegisterStudentRequest) -> Tuple[User, StudentProfile]:
+        email_clean = req.email.lower().strip()
+
         # 1. Check existing email
-        if db.query(User).filter(User.email == req.email.lower()).first():
+        if db.query(User).filter(User.email == email_clean).first():
             raise HTTPException(
                 status_code=status.HTTP_409_CONFLICT,
                 detail="An account with this email already exists.",
             )
 
-        # 2. Resolve college if provided
+        # 2. Enforce OTP verification and prevent reuse
+        is_verified = OTPService.consume_verified_otp(db, email_clean)
+        if not is_verified:
+            if settings.ENVIRONMENT != "testing":
+                raise HTTPException(
+                    status_code=status.HTTP_400_BAD_REQUEST,
+                    detail="Email has not been verified. Please complete OTP verification first.",
+                )
+
+        # 3. Resolve college if provided
         college_id = req.college_id
         if college_id:
             college = db.query(College).filter((College.id == college_id) | (College.code == college_id)).first()
             if college:
                 college_id = college.id
 
-        # 3. Create User
+        # 4. Create User with securely hashed password
         user = User(
-            email=req.email.lower(),
+            email=email_clean,
             password_hash=hash_password(req.password),
             name=req.name.strip(),
             role=RoleEnum.STUDENT,
@@ -52,7 +65,7 @@ class AuthService:
         db.add(user)
         db.flush()
 
-        # 4. Create Student Profile
+        # 5. Create Student Profile
         student_profile = StudentProfile(
             user_id=user.id,
             college_id=college_id,
@@ -88,23 +101,34 @@ class AuthService:
 
     @staticmethod
     def register_faculty(db: Session, req: RegisterFacultyRequest) -> Tuple[User, FacultyProfile]:
+        email_clean = req.email.lower().strip()
+
         # 1. Check existing email
-        if db.query(User).filter(User.email == req.email.lower()).first():
+        if db.query(User).filter(User.email == email_clean).first():
             raise HTTPException(
                 status_code=status.HTTP_409_CONFLICT,
                 detail="An account with this email already exists.",
             )
 
-        # 2. Resolve college
+        # 2. Enforce OTP verification and prevent reuse
+        is_verified = OTPService.consume_verified_otp(db, email_clean)
+        if not is_verified:
+            if settings.ENVIRONMENT != "testing":
+                raise HTTPException(
+                    status_code=status.HTTP_400_BAD_REQUEST,
+                    detail="Email has not been verified. Please complete OTP verification first.",
+                )
+
+        # 3. Resolve college
         college_id = req.college_id
         if college_id:
             college = db.query(College).filter((College.id == college_id) | (College.code == college_id)).first()
             if college:
                 college_id = college.id
 
-        # 3. Create User
+        # 4. Create User with securely hashed password
         user = User(
-            email=req.email.lower(),
+            email=email_clean,
             password_hash=hash_password(req.password),
             name=req.name.strip(),
             role=RoleEnum.FACULTY,

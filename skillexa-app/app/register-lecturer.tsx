@@ -301,7 +301,7 @@ export default function RegisterLecturer() {
 
       // Step 2: Register faculty in FastAPI backend database
       try {
-        await fetch(`${getApiBaseUrl()}/auth/register/faculty`, {
+        const regRes = await fetch(`${getApiBaseUrl()}/auth/register/faculty`, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
@@ -314,8 +314,22 @@ export default function RegisterLecturer() {
             subjects_taught: skills ? skills.split(",").map((s) => s.trim()) : ["Embedded Systems", "Microcontrollers"],
           }),
         });
-      } catch (e) {
-        console.log("Backend faculty registration note:", e);
+        const regData = await regRes.json();
+        if (!regRes.ok || !regData.success) {
+          setOtpNotification({
+            type: "error",
+            message: regData.detail || regData.message || "Failed to create account. Please try again.",
+          });
+          setIsLoading(false);
+          return;
+        }
+      } catch (e: any) {
+        setOtpNotification({
+          type: "error",
+          message: "Could not connect to backend server to create account.",
+        });
+        setIsLoading(false);
+        return;
       }
 
       // Step 3: Login with FastAPI backend to store authenticated JWT token
