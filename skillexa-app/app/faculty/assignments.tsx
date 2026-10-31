@@ -94,19 +94,19 @@ export default function AssignmentsScreen() {
               </View>
 
               <View style={styles.subStatsRow}>
-                <View style={[styles.subStatItem, { width: isDesktop ? 'calc(25% - 6px)' : 'calc(50% - 4px)' }]}>
+                <View style={[styles.subStatItem, { width: isDesktop ? '23%' : '48%' }]}>
                   <Text style={styles.subStatLabel} numberOfLines={1}>ACCURACY</Text>
                   <Text style={[styles.subStatVal, { color: Palette.success }]}>{sub.accuracy}%</Text>
                 </View>
-                <View style={[styles.subStatItem, { width: isDesktop ? 'calc(25% - 6px)' : 'calc(50% - 4px)' }]}>
+                <View style={[styles.subStatItem, { width: isDesktop ? '23%' : '48%' }]}>
                   <Text style={styles.subStatLabel} numberOfLines={1}>CORRECT</Text>
                   <Text style={styles.subStatVal}>{sub.correctAnswersCount}</Text>
                 </View>
-                <View style={[styles.subStatItem, { width: isDesktop ? 'calc(25% - 6px)' : 'calc(50% - 4px)' }]}>
+                <View style={[styles.subStatItem, { width: isDesktop ? '23%' : '48%' }]}>
                   <Text style={styles.subStatLabel} numberOfLines={1}>WRONG</Text>
                   <Text style={[styles.subStatVal, { color: Palette.danger }]}>{sub.wrongAnswersCount}</Text>
                 </View>
-                <View style={[styles.subStatItem, { width: isDesktop ? 'calc(25% - 6px)' : 'calc(50% - 4px)' }]}>
+                <View style={[styles.subStatItem, { width: isDesktop ? '23%' : '48%' }]}>
                   <Text style={styles.subStatLabel} numberOfLines={1}>TIME</Text>
                   <Text style={styles.subStatVal}>{sub.timeSpent}</Text>
                 </View>

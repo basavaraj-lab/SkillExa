@@ -47,7 +47,34 @@ interface Message {
   created_at: string;
 }
 
+class FloatingAIErrorBoundary extends React.Component<{ children: React.ReactNode }, { hasError: boolean }> {
+  constructor(props: { children: React.ReactNode }) {
+    super(props);
+    this.state = { hasError: false };
+  }
+  static getDerivedStateFromError() {
+    return { hasError: true };
+  }
+  componentDidCatch(error: any, errorInfo: any) {
+    console.warn('[SkillExa AI] Error safely caught by boundary:', error, errorInfo);
+  }
+  render() {
+    if (this.state.hasError) {
+      return null;
+    }
+    return this.props.children;
+  }
+}
+
 export function FloatingSkillExaAI() {
+  return (
+    <FloatingAIErrorBoundary>
+      <FloatingSkillExaAIInner />
+    </FloatingAIErrorBoundary>
+  );
+}
+
+function FloatingSkillExaAIInner() {
   const { profile } = useAuth();
   const studentEmail = profile?.email || 'ganesh@kvgce.edu.in';
 
@@ -205,8 +232,16 @@ export function FloatingSkillExaAI() {
     }
   };
 
-  // Silently initialize wake-word listening on first user interaction anywhere
+  // Silently initialize wake-word listening on first user interaction anywhere (Web only)
   useEffect(() => {
+    if (
+      Platform.OS !== 'web' ||
+      typeof window === 'undefined' ||
+      typeof window.addEventListener !== 'function'
+    ) {
+      return;
+    }
+
     const handleFirstUserInteraction = () => {
       if (
         engineRef.current &&
@@ -214,21 +249,19 @@ export function FloatingSkillExaAI() {
       ) {
         engineRef.current.startWakeWordListening();
       }
-      if (typeof window !== 'undefined') {
+      if (typeof window !== 'undefined' && typeof window.removeEventListener === 'function') {
         window.removeEventListener('click', handleFirstUserInteraction);
         window.removeEventListener('keydown', handleFirstUserInteraction);
         window.removeEventListener('touchstart', handleFirstUserInteraction);
       }
     };
 
-    if (typeof window !== 'undefined') {
-      window.addEventListener('click', handleFirstUserInteraction, { once: true });
-      window.addEventListener('keydown', handleFirstUserInteraction, { once: true });
-      window.addEventListener('touchstart', handleFirstUserInteraction, { once: true });
-    }
+    window.addEventListener('click', handleFirstUserInteraction, { once: true });
+    window.addEventListener('keydown', handleFirstUserInteraction, { once: true });
+    window.addEventListener('touchstart', handleFirstUserInteraction, { once: true });
 
     return () => {
-      if (typeof window !== 'undefined') {
+      if (typeof window !== 'undefined' && typeof window.removeEventListener === 'function') {
         window.removeEventListener('click', handleFirstUserInteraction);
         window.removeEventListener('keydown', handleFirstUserInteraction);
         window.removeEventListener('touchstart', handleFirstUserInteraction);

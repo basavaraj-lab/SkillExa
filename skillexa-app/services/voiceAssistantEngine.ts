@@ -6,6 +6,9 @@
  * and Web Audio synthesized chimes.
  */
 
+import { Platform } from 'react-native';
+import * as Speech from 'expo-speech';
+
 export type AssistantMode = 'WAKE_WORD' | 'PUSH_TO_TALK' | 'CONTINUOUS';
 
 export type AssistantState =
@@ -77,9 +80,9 @@ export class VoiceAssistantEngine {
     this.log('Requesting microphone permissions and initializing audio stream...');
     this.setState('INITIALIZING');
 
-    if (typeof window === 'undefined') {
-      this.setState('ERROR');
-      this.events.onError('Audio engine is only supported in browser/web environments.');
+    if (Platform.OS !== 'web' || typeof window === 'undefined') {
+      this.setState('IDLE');
+      this.log('Speech recognition is enabled for web browser sessions; push-to-talk text input active on mobile.');
       return false;
     }
 
@@ -507,45 +510,40 @@ export class VoiceAssistantEngine {
   // 4. TEXT-TO-SPEECH (TTS) WITH INDIAN ENGLISH ACCENT
   // -------------------------------------------------------------
   private initVoices() {
-    if (typeof window === 'undefined' || !window.speechSynthesis) return;
+    if (Platform.OS !== 'web' || typeof window === 'undefined' || !window.speechSynthesis) return;
 
-    const loadVoices = () => {
-      const voices = window.speechSynthesis.getVoices();
-      if (!voices || voices.length === 0) return;
+    try {
+      const loadVoices = () => {
+        const voices = window.speechSynthesis.getVoices();
+        if (!voices || voices.length === 0) return;
 
-      // Prefer Indian English voice (e.g. Google Indian English, Neerja, Rishi)
-      const inVoice = voices.find(
-        (v) =>
-          v.lang === 'en-IN' ||
-          v.name.includes('India') ||
-          v.name.includes('Neerja') ||
-          v.name.includes('Rishi')
-      );
-      const usVoice = voices.find(
-        (v) =>
-          v.lang.startsWith('en-US') &&
-          (v.name.includes('Natural') || v.name.includes('Google') || v.name.includes('Samantha'))
-      );
-      const anyEnVoice = voices.find((v) => v.lang.startsWith('en'));
+        // Prefer Indian English voice (e.g. Google Indian English, Neerja, Rishi)
+        const inVoice = voices.find(
+          (v) =>
+            v.lang === 'en-IN' ||
+            v.name.includes('India') ||
+            v.name.includes('Neerja') ||
+            v.name.includes('Rishi')
+        );
+        const usVoice = voices.find(
+          (v) =>
+            v.lang.startsWith('en-US') &&
+            (v.name.includes('Natural') || v.name.includes('Google') || v.name.includes('Samantha'))
+        );
+        const anyEnVoice = voices.find((v) => v.lang.startsWith('en'));
 
-      this.selectedVoice = inVoice || usVoice || anyEnVoice || voices[0];
-      this.log(`Loaded voice: ${this.selectedVoice?.name} (${this.selectedVoice?.lang})`);
-    };
+        this.selectedVoice = inVoice || usVoice || anyEnVoice || voices[0];
+        this.log(`Loaded voice: ${this.selectedVoice?.name} (${this.selectedVoice?.lang})`);
+      };
 
-    loadVoices();
-    if (window.speechSynthesis.onvoiceschanged !== undefined) {
-      window.speechSynthesis.onvoiceschanged = loadVoices;
-    }
+      loadVoices();
+      if (window.speechSynthesis.onvoiceschanged !== undefined) {
+        window.speechSynthesis.onvoiceschanged = loadVoices;
+      }
+    } catch (e) {}
   }
 
   public speak(text: string, onEndCallback?: () => void) {
-    if (typeof window === 'undefined' || !window.speechSynthesis) {
-      if (onEndCallback) onEndCallback();
-      return;
-    }
-
-    window.speechSynthesis.cancel();
-
     const cleanText = text.trim();
     if (!cleanText) {
       if (onEndCallback) onEndCallback();
@@ -566,74 +564,123 @@ export class VoiceAssistantEngine {
       this.isRecognitionActive = false;
     }
 
-    const utterance = new SpeechSynthesisUtterance(cleanText);
-    if (this.selectedVoice) {
-      utterance.voice = this.selectedVoice;
-    }
-    utterance.lang = 'en-IN';
-    utterance.rate = 1.05; // Slightly brisk, natural cadence
-    utterance.pitch = 1.0;
-
-    utterance.onstart = () => {
-      this.isSpeakingSelfAudio = true;
-      this.isSpeakingCooldown = true;
-      this.clearSilenceTimer();
-      this.accumulatedTranscript = '';
-      this.setState('AI_SPEAKING');
-      this.log(`Started TTS playback: "${cleanText.substring(0, 60)}..."`);
-    };
-
-    utterance.onend = () => {
-      this.log('TTS playback finished. Clearing echo buffer and cooling down...');
-      this.clearSilenceTimer();
-      this.accumulatedTranscript = '';
-      this.events.onTranscriptChange('', false);
-
-      // Acoustic echo cooldown: 800ms to allow room/speaker reverb to completely dissipate
-      if (this.cooldownTimeout) clearTimeout(this.cooldownTimeout);
-      this.cooldownTimeout = setTimeout(() => {
-        this.isSpeakingSelfAudio = false;
-        this.isSpeakingCooldown = false;
-        this.log('Echo cooldown elapsed. Safely resuming microphone for human speech.');
-
-        if (onEndCallback) {
-          onEndCallback();
-        } else {
-          if (this.mode === 'CONTINUOUS') {
-            // Resume listening for student follow-up
-            this.setState('USER_LISTENING');
-            this.scheduleRestart(150);
-          } else if (this.mode === 'WAKE_WORD') {
-            // Return to passive wake-word detection
-            this.setState('WAKE_WORD_LISTENING');
-            this.scheduleRestart(150);
-          } else {
+    // 1. Mobile (Android/iOS Native via expo-speech)
+    if (Platform.OS !== 'web') {
+      try {
+        Speech.stop();
+        Speech.speak(cleanText, {
+          language: 'en-IN',
+          rate: 1.05,
+          pitch: 1.0,
+          onStart: () => {
+            this.setState('AI_SPEAKING');
+          },
+          onDone: () => {
+            this.isSpeakingSelfAudio = false;
+            this.isSpeakingCooldown = false;
             this.setState('IDLE');
-          }
-        }
-      }, 800);
-    };
-
-    utterance.onerror = (e) => {
-      this.clearSilenceTimer();
-      this.accumulatedTranscript = '';
-      this.events.onTranscriptChange('', false);
-      this.log('TTS playback notice/cancelled:', e);
-
-      if (this.cooldownTimeout) clearTimeout(this.cooldownTimeout);
-      this.cooldownTimeout = setTimeout(() => {
+            if (onEndCallback) onEndCallback();
+          },
+          onError: () => {
+            this.isSpeakingSelfAudio = false;
+            this.isSpeakingCooldown = false;
+            this.setState('IDLE');
+            if (onEndCallback) onEndCallback();
+          },
+        });
+      } catch (e) {
         this.isSpeakingSelfAudio = false;
         this.isSpeakingCooldown = false;
-        if (onEndCallback) {
-          onEndCallback();
-        } else {
-          this.setState(this.mode === 'WAKE_WORD' ? 'WAKE_WORD_LISTENING' : 'IDLE');
-          this.scheduleRestart(150);
-        }
-      }, 300);
-    };
+        this.setState('IDLE');
+        if (onEndCallback) onEndCallback();
+      }
+      return;
+    }
 
-    window.speechSynthesis.speak(utterance);
+    // 2. Web Browser (via window.speechSynthesis)
+    if (typeof window === 'undefined' || !window.speechSynthesis) {
+      this.isSpeakingSelfAudio = false;
+      this.isSpeakingCooldown = false;
+      this.setState('IDLE');
+      if (onEndCallback) onEndCallback();
+      return;
+    }
+
+    try {
+      window.speechSynthesis.cancel();
+
+      const utterance = new SpeechSynthesisUtterance(cleanText);
+      if (this.selectedVoice) {
+        utterance.voice = this.selectedVoice;
+      }
+      utterance.lang = 'en-IN';
+      utterance.rate = 1.05; // Slightly brisk, natural cadence
+      utterance.pitch = 1.0;
+
+      utterance.onstart = () => {
+        this.isSpeakingSelfAudio = true;
+        this.isSpeakingCooldown = true;
+        this.clearSilenceTimer();
+        this.accumulatedTranscript = '';
+        this.setState('AI_SPEAKING');
+        this.log(`Started TTS playback: "${cleanText.substring(0, 60)}..."`);
+      };
+
+      utterance.onend = () => {
+        this.log('TTS playback finished. Clearing echo buffer and cooling down...');
+        this.clearSilenceTimer();
+        this.accumulatedTranscript = '';
+        this.events.onTranscriptChange('', false);
+
+        // Acoustic echo cooldown: 800ms to allow room/speaker reverb to completely dissipate
+        if (this.cooldownTimeout) clearTimeout(this.cooldownTimeout);
+        this.cooldownTimeout = setTimeout(() => {
+          this.isSpeakingSelfAudio = false;
+          this.isSpeakingCooldown = false;
+          this.log('Echo cooldown elapsed. Safely resuming microphone for human speech.');
+
+          if (onEndCallback) {
+            onEndCallback();
+          } else {
+            if (this.mode === 'CONTINUOUS') {
+              this.setState('USER_LISTENING');
+              this.scheduleRestart(150);
+            } else if (this.mode === 'WAKE_WORD') {
+              this.setState('WAKE_WORD_LISTENING');
+              this.scheduleRestart(150);
+            } else {
+              this.setState('IDLE');
+            }
+          }
+        }, 800);
+      };
+
+      utterance.onerror = (e) => {
+        this.clearSilenceTimer();
+        this.accumulatedTranscript = '';
+        this.events.onTranscriptChange('', false);
+        this.log('TTS playback notice/cancelled:', e);
+
+        if (this.cooldownTimeout) clearTimeout(this.cooldownTimeout);
+        this.cooldownTimeout = setTimeout(() => {
+          this.isSpeakingSelfAudio = false;
+          this.isSpeakingCooldown = false;
+          if (onEndCallback) {
+            onEndCallback();
+          } else {
+            this.setState(this.mode === 'WAKE_WORD' ? 'WAKE_WORD_LISTENING' : 'IDLE');
+            this.scheduleRestart(150);
+          }
+        }, 300);
+      };
+
+      window.speechSynthesis.speak(utterance);
+    } catch (e) {
+      this.isSpeakingSelfAudio = false;
+      this.isSpeakingCooldown = false;
+      this.setState('IDLE');
+      if (onEndCallback) onEndCallback();
+    }
   }
 
   public cancelSpeech() {
@@ -646,8 +693,14 @@ export class VoiceAssistantEngine {
       this.cooldownTimeout = null;
     }
 
-    if (typeof window !== 'undefined' && window.speechSynthesis) {
-      window.speechSynthesis.cancel();
+    if (Platform.OS !== 'web') {
+      try {
+        Speech.stop();
+      } catch (e) {}
+    } else if (typeof window !== 'undefined' && window.speechSynthesis) {
+      try {
+        window.speechSynthesis.cancel();
+      } catch (e) {}
     }
     this.isSpeakingSelfAudio = false;
     this.isSpeakingCooldown = false;
@@ -662,7 +715,7 @@ export class VoiceAssistantEngine {
   // 5. WEB AUDIO CHIME SYNTHESIZER
   // -------------------------------------------------------------
   public playChime() {
-    if (typeof window === 'undefined') return;
+    if (Platform.OS !== 'web' || typeof window === 'undefined') return;
     try {
       const AudioCtx = (window as any).AudioContext || (window as any).webkitAudioContext;
       if (!AudioCtx) return;

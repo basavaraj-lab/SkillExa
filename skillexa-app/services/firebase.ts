@@ -1,5 +1,7 @@
 import { initializeApp, getApps, getApp } from "firebase/app";
-import { getAuth, GoogleAuthProvider } from "firebase/auth";
+import * as FirebaseAuth from "firebase/auth";
+import { Platform } from "react-native";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 
 // SkillExa Firebase configuration
 const firebaseConfig = {
@@ -15,8 +17,27 @@ const firebaseConfig = {
 // Initialize Firebase App singleton
 const app = getApps().length === 0 ? initializeApp(firebaseConfig) : getApp();
 
+// Initialize Firebase Auth with React Native AsyncStorage persistence
+function getSkillExaAuth(): FirebaseAuth.Auth {
+  if (Platform.OS === 'web') {
+    return FirebaseAuth.getAuth(app);
+  }
+  try {
+    const getRNPersistence = (FirebaseAuth as any).getReactNativePersistence;
+    if (typeof getRNPersistence === 'function') {
+      return FirebaseAuth.initializeAuth(app, {
+        persistence: getRNPersistence(AsyncStorage),
+      });
+    }
+    return FirebaseAuth.getAuth(app);
+  } catch (e: any) {
+    // If already initialized or during fast refresh, safely fallback to existing auth
+    return FirebaseAuth.getAuth(app);
+  }
+}
+
 // Initialize Firebase Auth & Google Provider
-export const auth = getAuth(app);
-export const googleProvider = new GoogleAuthProvider();
+export const auth: FirebaseAuth.Auth = getSkillExaAuth();
+export const googleProvider = new FirebaseAuth.GoogleAuthProvider();
 
 export default app;

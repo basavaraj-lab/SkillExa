@@ -404,7 +404,11 @@ const styles = StyleSheet.create({
 
   // Watermarks & Decorative Background
   watermarkContainer: {
-    ...StyleSheet.absoluteFillObject,
+    position: "absolute",
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
     overflow: "hidden",
     zIndex: 1,
   },

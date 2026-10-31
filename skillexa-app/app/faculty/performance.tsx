@@ -130,22 +130,22 @@ export default function StudentPerformanceScreen() {
 
               {/* High-level metrics 4-grid (2x2 on phone, 4 on laptop) */}
               <View style={styles.metricsGrid}>
-                <View style={[styles.metricItem, { width: isDesktop ? 'calc(25% - 8px)' : 'calc(50% - 6px)' }]}>
+                <View style={[styles.metricItem, { width: isDesktop ? '23%' : '48%' }]}>
                   <Text style={styles.metricLabel} numberOfLines={1}>QUIZ ACCURACY</Text>
                   <Text style={[styles.metricVal, { color: Palette.success }]}>{selectedStudent.quizAccuracy}%</Text>
                 </View>
 
-                <View style={[styles.metricItem, { width: isDesktop ? 'calc(25% - 8px)' : 'calc(50% - 6px)' }]}>
+                <View style={[styles.metricItem, { width: isDesktop ? '23%' : '48%' }]}>
                   <Text style={styles.metricLabel} numberOfLines={1}>NOTES READ</Text>
                   <Text style={styles.metricVal}>{selectedStudent.notesCompletedCount}</Text>
                 </View>
 
-                <View style={[styles.metricItem, { width: isDesktop ? 'calc(25% - 8px)' : 'calc(50% - 6px)' }]}>
+                <View style={[styles.metricItem, { width: isDesktop ? '23%' : '48%' }]}>
                   <Text style={styles.metricLabel} numberOfLines={1}>CODING SOLVED</Text>
                   <Text style={[styles.metricVal, { color: Palette.primary }]}>{selectedStudent.codingSolvedCount}</Text>
                 </View>
 
-                <View style={[styles.metricItem, { width: isDesktop ? 'calc(25% - 8px)' : 'calc(50% - 6px)' }]}>
+                <View style={[styles.metricItem, { width: isDesktop ? '23%' : '48%' }]}>
                   <Text style={styles.metricLabel} numberOfLines={1}>DSA PROGRESS</Text>
                   <Text style={[styles.metricVal, { color: Palette.aiPurple }]}>{selectedStudent.dsaProgressPct}%</Text>
                 </View>
