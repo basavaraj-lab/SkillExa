@@ -98,6 +98,7 @@ app.include_router(topics_router, prefix=settings.API_V1_STR)
 app.include_router(aptitude_test_router, prefix=settings.API_V1_STR)
 app.include_router(govt_jobs_router, prefix=settings.API_V1_STR)
 app.include_router(project_chat_router, prefix=settings.API_V1_STR)
+app.include_router(project_chat_router)  # Direct /ai route compatibility
 
 
 @app.get("/", tags=["Health"])

@@ -40,7 +40,7 @@ def resolve_student_id(
         return x_student_id.strip()
     if email and email.strip():
         return email.strip()
-    return "ganesh@kvgce.edu.in"
+    return "guest-user"
 
 
 # -------------------------------------------------------------

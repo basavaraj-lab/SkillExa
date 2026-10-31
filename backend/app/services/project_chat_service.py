@@ -401,6 +401,20 @@ class ProjectChatService:
     async def chat(cls, db: Session, student_id: str, request: AIChatRequest) -> AIChatResponse:
         user_message_text = request.message.strip()
 
+        # Step 0: Guard against empty user messages
+        if not user_message_text:
+            return AIChatResponse(
+                project_id=request.project_id or "",
+                project_name="General Chats",
+                conversation_id=request.conversation_id or "",
+                conversation_title="Conversation",
+                reply="Please enter a question or topic so I can help you learn!",
+                speech_text="Please ask a question or enter a topic so I can help you.",
+                search_sources=[],
+                memory_summary="",
+                acknowledgement=None,
+            )
+
         # Step A: Check for Project Creation Command (Scenario 3 in user request)
         # e.g., "Create a project called Final Year ECE Project"
         create_project_match = re.search(
@@ -837,28 +851,23 @@ class ProjectChatService:
             )
             return reply, speech
 
-        # 5. Try backend AI Provider (Gemini / OpenAI) if configured
-        system_prompt = (
-            f"You are SkillExa AI, an expert, encouraging personal academic and engineering mentor. "
-            f"Current Project: '{project.name}'. "
-            f"Project Memory Summary:\n{project_memory}\n"
-            f"Answer the student's question directly, clearly, pedagogically, and accurately. "
-            f"If asked for a definition, provide: Definition, Simple Explanation, Important Features, Real-World Applications, and Simple Example. "
-            f"For programming questions, provide: Concept Explanation, Syntax, Working Code Example, and Expected Output. "
-            f"Use Markdown formatting with clean code blocks. Do not give generic non-answers."
-        )
-        llm_reply = AIProviderService.generate_conversational_text(system_prompt, user_query)
-        if llm_reply:
-            return llm_reply, clean_for_speech(llm_reply)
+        # 5. Diagnostic Notice if Gemini API key is missing
+        if not GeminiService.is_configured():
+            reply = (
+                f"### ⚙️ Gemini AI Configuration Notice\n\n"
+                f"The Google Gemini API key is not configured on the SkillExa backend.\n\n"
+                f"To enable dynamic AI responses for all user queries, ensure **`GEMINI_API_KEY`** is added to your environment variables on Render.\n\n"
+                f"Currently, core curriculum topics like **CSS**, **HTML**, **Python**, **C**, **Java**, **DSA**, **Stacks**, **Pointers**, and **Aptitude** are available via the offline academic engine."
+            )
+            speech = "Please configure the Gemini API key in the backend environment variables to enable dynamic AI responses."
+            return reply, speech
 
-        # 6. Polite Clarification Fallback (No generic engineering templates)
+        # 6. Polite Rate-Limit / Temporary Unavailable Notice
         clean_target = user_query.strip().strip("?.,!")
         reply = (
-            f"I understand you are asking about **{clean_target}** in your **{project.name}** workspace.\n\n"
-            f"Could you please specify what you'd like to explore about **{clean_target}**? "
-            f"For example, I can provide a direct definition, working code examples (in Python, C, C++, or Java), or a step-by-step explanation."
+            f"### ⏳ SkillExa AI Temporary Notice\n\n"
+            f"I was unable to complete the response for **{clean_target}** due to a temporary AI provider rate limit or network timeout.\n\n"
+            f"Please wait a few seconds and try your question again."
         )
-        speech = (
-            f"Regarding {clean_target}, would you like a definition, working code example, or step-by-step explanation?"
-        )
+        speech = f"SkillExa AI is temporarily busy. Please try asking your question again in a moment."
         return reply, speech

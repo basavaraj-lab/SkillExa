@@ -76,7 +76,7 @@ export function FloatingSkillExaAI() {
 
 function FloatingSkillExaAIInner() {
   const { profile } = useAuth();
-  const studentEmail = profile?.email || 'ganesh@kvgce.edu.in';
+  const studentEmail = profile?.email || 'guest-session';
 
   // Assistant & Voice Engine State
   const [isOpen, setIsOpen] = useState(false);
@@ -513,6 +513,17 @@ function FloatingSkillExaAIInner() {
     }
   };
 
+  // Start a new chat session
+  const handleNewChat = () => {
+    if (engineRef.current) {
+      engineRef.current.cancelSpeech();
+    }
+    setActiveConversationId('');
+    setMessages([]);
+    setInputText('');
+    setStatusNotice('Started a new conversation');
+  };
+
   // Stop assistant completely
   const handleStopAll = () => {
     if (engineRef.current) {
@@ -632,6 +643,16 @@ function FloatingSkillExaAIInner() {
             </View>
 
             <View style={styles.headerRight}>
+              {/* New Chat button */}
+              <TouchableOpacity
+                style={styles.newChatHeaderBtn}
+                onPress={handleNewChat}
+                accessibilityLabel="New Chat"
+              >
+                <Feather name="plus" size={15} color="#A78BFA" />
+                <Text style={styles.newChatHeaderText}>New</Text>
+              </TouchableOpacity>
+
               {/* Stop button if active */}
               {(assistantState === 'AI_SPEAKING' ||
                 assistantState === 'USER_LISTENING' ||
@@ -1327,6 +1348,20 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: 8,
+  },
+  newChatHeaderBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: 'rgba(139, 92, 246, 0.2)',
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    borderRadius: 6,
+    gap: 4,
+  },
+  newChatHeaderText: {
+    color: '#DDD6FE',
+    fontSize: 12,
+    fontWeight: '600',
   },
   stopIconBtn: {
     backgroundColor: 'rgba(239, 68, 68, 0.15)',

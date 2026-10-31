@@ -46,6 +46,331 @@ def normalize_query(query: str) -> str:
 
 # Comprehensive Educational Knowledge Base
 ACADEMIC_TOPICS: Dict[str, Dict[str, Any]] = {
+    "css": {
+        "title": "Cascading Style Sheets (CSS)",
+        "badge": "🎨 CSS",
+        "definition": (
+            "CSS (Cascading Style Sheets) is a stylesheet language used to describe the presentation, "
+            "formatting, layout, and visual appearance of a document written in HTML or XML."
+        ),
+        "explanation": (
+            "If HTML is the skeleton and structure of a house (walls, doors, windows), CSS is the interior "
+            "design, paint colors, wallpapers, lighting, and layout arrangement that make it look attractive."
+        ),
+        "features": [
+            "**Separation of Concerns**: Separates website design and styling from HTML content structure.",
+            "**Responsive Web Design**: Uses Flexbox, CSS Grid, and Media Queries for mobile and desktop screens.",
+            "**Cascade & Specificity**: Rules cascade based on importance, specificity, and source order.",
+            "**Animations & Transitions**: Enables smooth visual effects without requiring heavy JavaScript.",
+        ],
+        "applications": [
+            "Styling modern responsive web apps across phones, tablets, and desktops.",
+            "Building consistent design systems and UI component libraries (Tailwind, Bootstrap).",
+        ],
+        "example_code": (
+            "/* Basic CSS Styling Example */\n"
+            ".skillexa-card {\n"
+            "    background-color: #4F46E5;\n"
+            "    color: #FFFFFF;\n"
+            "    padding: 16px;\n"
+            "    border-radius: 8px;\n"
+            "    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);\n"
+            "    transition: transform 0.2s ease;\n"
+            "}\n"
+            ".skillexa-card:hover {\n"
+            "    transform: translateY(-4px);\n"
+            "}\n"
+        ),
+        "example_output": (
+            "/* Renders an indigo card with white text, rounded corners, soft shadow, and hover elevation */\n"
+        ),
+        "line_by_line": [
+            "`.skillexa-card`: Class selector that applies styles to matching HTML elements.",
+            "`background-color: #4F46E5`: Sets the background to indigo.",
+            "`border-radius: 8px`: Rounds the corners of the card.",
+            "`.skillexa-card:hover`: Pseudo-class that elevates the card when the user hovers over it.",
+        ],
+        "summary": (
+            "CSS controls colors, fonts, layouts, and responsive behavior for all modern websites."
+        ),
+        "spoken": (
+            "CSS stands for Cascading Style Sheets. It is used to design and format the layout, colors, "
+            "and visual styling of web pages written in HTML."
+        ),
+    },
+
+    "html": {
+        "title": "HyperText Markup Language (HTML)",
+        "badge": "🌐 HTML",
+        "definition": (
+            "HTML (HyperText Markup Language) is the standard markup language used to create and structure "
+            "web pages and web applications."
+        ),
+        "explanation": (
+            "HTML serves as the architectural skeleton of every website. It organizes content into headings, "
+            "paragraphs, images, links, forms, and lists using tags and semantic elements."
+        ),
+        "features": [
+            "**Semantic Elements**: `<header>`, `<nav>`, `<main>`, `<article>`, `<footer>` improve accessibility and SEO.",
+            "**Hyperlinks**: Uses `<a>` tags to connect documents across the World Wide Web.",
+            "**Multimedia Support**: Native audio, video (`<audio>`, `<video>`), and SVG graphics.",
+            "**Forms & User Input**: Inputs, buttons, selects, and textareas for collecting user submissions.",
+        ],
+        "applications": [
+            "Foundation of every website, web application, email template, and hybrid mobile view.",
+        ],
+        "example_code": (
+            "<!DOCTYPE html>\n"
+            "<html lang=\"en\">\n"
+            "<head>\n"
+            "    <meta charset=\"UTF-8\">\n"
+            "    <title>SkillExa Learn</title>\n"
+            "</head>\n"
+            "<body>\n"
+            "    <h1>Welcome to SkillExa</h1>\n"
+            "    <p>Empowering students with AI-driven learning.</p>\n"
+            "    <a href=\"https://skillexa.onrender.com\">Start Practicing</a>\n"
+            "</body>\n"
+            "</html>\n"
+        ),
+        "example_output": (
+            "SkillExa Learn - Heading, paragraph, and interactive practice link displayed.\n"
+        ),
+        "line_by_line": [
+            "`<!DOCTYPE html>`: Declares that the document follows HTML5 specifications.",
+            "`<head>`: Contains metadata, character encoding, and the page title.",
+            "`<body>`: Holds all visible page content such as headings and links.",
+            "`<a href=...>`: Creates a hyperlink to navigate to another page or URL.",
+        ],
+        "summary": (
+            "HTML provides the structural skeleton of the web, organizing content into tags and elements."
+        ),
+        "spoken": (
+            "HTML stands for HyperText Markup Language. It provides the core structure and skeleton of web pages, "
+            "organizing content into headings, paragraphs, and links."
+        ),
+    },
+
+    "html vs css": {
+        "title": "HTML vs CSS: Differences & Comparison",
+        "badge": "⚖️ HTML vs CSS",
+        "definition": (
+            "HTML (HyperText Markup Language) defines the structure and content of a web page, while CSS (Cascading Style Sheets) "
+            "defines the visual styling, presentation, and layout."
+        ),
+        "explanation": (
+            "A great analogy is building a car: HTML is the engine, chassis, and body panels (structure); "
+            "CSS is the paint job, leather seat upholstery, and sleek aesthetic design (styling)."
+        ),
+        "features": [
+            "**Role**: HTML organizes content (text, images, forms); CSS formats content (colors, sizes, grids).",
+            "**Syntax**: HTML uses angle bracket tags `<p>text</p>`; CSS uses selector-rule blocks `p { color: blue; }`.",
+            "**File Extension**: HTML uses `.html`; CSS uses `.css`.",
+            "**Interdependence**: CSS requires HTML elements to style; HTML without CSS looks plain and unstyled.",
+        ],
+        "applications": [
+            "Front-end web development, responsive user interfaces, and cross-platform UI design.",
+        ],
+        "example_code": (
+            "<!-- index.html -->\n"
+            "<button class=\"cta-btn\">Click Me</button>\n"
+            "\n"
+            "/* styles.css */\n"
+            ".cta-btn {\n"
+            "    background-color: #2563EB;\n"
+            "    color: white;\n"
+            "    padding: 10px 20px;\n"
+            "    border: none;\n"
+            "    border-radius: 5px;\n"
+            "}\n"
+        ),
+        "example_output": (
+            "HTML creates the clickable button element, and CSS styles it with blue background and rounded corners.\n"
+        ),
+        "line_by_line": [
+            "`<button class=\"cta-btn\">`: HTML defines the functional interactive element.",
+            "`.cta-btn`: CSS selects the element to set color, padding, and border radius.",
+        ],
+        "summary": (
+            "HTML builds the content structure; CSS makes it beautiful and responsive."
+        ),
+        "spoken": (
+            "HTML defines the structure and content of a web page, while CSS controls the visual layout, "
+            "colors, and styling. HTML is the skeleton, and CSS is the design."
+        ),
+    },
+
+    "java": {
+        "title": "Java Programming Language",
+        "badge": "☕ Java",
+        "definition": (
+            "Java is a high-level, class-based, object-oriented, platform-independent programming language "
+            "designed by James Gosling at Sun Microsystems in 1995. Its core principle is 'Write Once, Run Anywhere' (WORA)."
+        ),
+        "explanation": (
+            "Java source code compiles into platform-neutral bytecode (`.class` files), which executes inside the "
+            "Java Virtual Machine (JVM) on any operating system, with automatic garbage collection managing memory."
+        ),
+        "features": [
+            "**Platform Independent (JVM)**: Runs on Windows, Linux, macOS, and Android without recompilation.",
+            "**Strongly Typed & Object-Oriented**: Strictly enforces classes, encapsulation, inheritance, and polymorphism.",
+            "**Automatic Memory Management**: Garbage Collector reclaims unused heap memory automatically.",
+            "**Robust Security & Multithreading**: Built-in support for concurrent execution and byte-code verification.",
+        ],
+        "applications": [
+            "Enterprise backend systems (Spring Boot, Jakarta EE).",
+            "Android mobile applications and high-frequency financial trading systems.",
+        ],
+        "example_code": (
+            "public class SkillExaStudent {\n"
+            "    private String name;\n"
+            "\n"
+            "    public SkillExaStudent(String name) {\n"
+            "        this.name = name;\n"
+            "    }\n"
+            "\n"
+            "    public void display() {\n"
+            "        System.out.println(\"Student: \" + this.name);\n"
+            "    }\n"
+            "\n"
+            "    public static void main(String[] args) {\n"
+            "        SkillExaStudent s = new SkillExaStudent(\"Ganesh\");\n"
+            "        s.display();\n"
+            "    }\n"
+            "}\n"
+        ),
+        "example_output": (
+            "Student: Ganesh\n"
+        ),
+        "line_by_line": [
+            "`public class SkillExaStudent`: Declares a blueprint class.",
+            "`private String name`: Encapsulated instance variable.",
+            "`public static void main(String[] args)`: Program entry point executed by the JVM.",
+            "`s.display()`: Calls the instance method on the allocated object.",
+        ],
+        "summary": (
+            "Java is a bedrock language for enterprise backends, cloud microservices, and Android development."
+        ),
+        "spoken": (
+            "Java is a widely used object-oriented programming language designed for platform independence. "
+            "Code compiles to bytecode that runs on the Java Virtual Machine across all operating systems."
+        ),
+    },
+
+    "stack": {
+        "title": "Stack Data Structure (LIFO)",
+        "badge": "📚 DSA Stack",
+        "definition": (
+            "A stack is a linear data structure that follows the Last-In, First-Out (LIFO) principle, where "
+            "elements are added (pushed) and removed (popped) exclusively from one end, called the top."
+        ),
+        "explanation": (
+            "Think of a physical stack of plates in a cafeteria: the plate placed on top last is always "
+            "the first plate you pick up. You cannot remove bottom plates without removing top ones first."
+        ),
+        "features": [
+            "**LIFO Principle**: The most recently inserted element is removed first.",
+            "**Core Operations**: `push()` (insert), `pop()` (remove top), `peek()`/`top()` (view top element), `isEmpty()`.",
+            "**Constant Time Complexity**: `push`, `pop`, and `peek` all operate in $O(1)$ constant time.",
+            "**Memory**: Can be implemented using contiguous dynamic arrays or singly linked lists.",
+        ],
+        "applications": [
+            "Function call call-stack management and recursion handling in CPUs and programming language runtimes.",
+            "Undo/Redo functionality in text editors (like VS Code).",
+            "Expression parsing, syntax matching (balanced parentheses `({[]})`), and backtracking algorithms (DFS).",
+        ],
+        "example_code": (
+            "# Stack implementation in Python using a list\n"
+            "class Stack:\n"
+            "    def __init__(self):\n"
+            "        self.items = []\n"
+            "\n"
+            "    def push(self, item):\n"
+            "        self.items.append(item)\n"
+            "\n"
+            "    def pop(self):\n"
+            "        if not self.is_empty():\n"
+            "            return self.items.pop()\n"
+            "        raise IndexError(\"Pop from empty stack\")\n"
+            "\n"
+            "    def peek(self):\n"
+            "        return self.items[-1] if not self.is_empty() else None\n"
+            "\n"
+            "    def is_empty(self):\n"
+            "        return len(self.items) == 0\n"
+            "\n"
+            "s = Stack()\n"
+            "s.push(10)\n"
+            "s.push(20)\n"
+            "print(\"Popped:\", s.pop())  # 20\n"
+            "print(\"Top:\", s.peek())      # 10\n"
+        ),
+        "example_output": (
+            "Popped: 20\n"
+            "Top: 10\n"
+        ),
+        "line_by_line": [
+            "`self.items.append(item)`: Adds element to the top of the stack in $O(1)$ time.",
+            "`self.items.pop()`: Removes and returns the top element in $O(1)$ time.",
+            "`self.items[-1]`: Inspects the top item without removing it.",
+        ],
+        "summary": (
+            "Stacks are fundamental LIFO structures essential for function calls, expression evaluation, and algorithm backtracking."
+        ),
+        "spoken": (
+            "A stack is a linear data structure that follows the Last In, First Out principle. "
+            "Elements are inserted with push and removed with pop, both operating in O of 1 time."
+        ),
+    },
+
+    "aptitude": {
+        "title": "Quantitative & Logical Aptitude",
+        "badge": "🎯 Aptitude Practice",
+        "definition": (
+            "Aptitude tests evaluate numerical reasoning, logical deduction, data interpretation, and problem-solving "
+            "speed, which are core requirements for campus placements, GATE, SSC, UPSC, and banking examinations."
+        ),
+        "explanation": (
+            "Aptitude tests do not just test mathematical formulas; they test analytical thinking under time pressure. "
+            "Mastering shortcuts for percentages, ratios, time & work, and speed makes complex problems solvable in seconds."
+        ),
+        "features": [
+            "**Quantitative Aptitude**: Arithmetic (Percentages, Profit & Loss, Simple & Compound Interest, Ratios).",
+            "**Time & Work**: Work done formula $W = \\text{Rate} \\times \\text{Time}$; reciprocal trick for combined work.",
+            "**Time, Speed & Distance**: Relative speed, trains, and boats & streams.",
+            "**Logical Reasoning**: Syllogisms, blood relations, series completion, and coding-decoding.",
+        ],
+        "applications": [
+            "Technical placement tests (TCS, Infosys, Wipro, Cognizant, Accenture, FAANG).",
+            "Government exams (SSC CGL, UPSC CSAT, RRB NTPC, Banking PO/Clerk).",
+        ],
+        "example_code": (
+            "# Aptitude Example: Time & Work Calculation\n"
+            "# A completes a task in 12 days; B in 15 days. How many days together?\n"
+            "rate_a = 1 / 12\n"
+            "rate_b = 1 / 15\n"
+            "combined_rate = rate_a + rate_b\n"
+            "total_days = 1 / combined_rate\n"
+            "\n"
+            "print(f\"Combined Work Duration: {total_days:.2f} days\")  # 6.67 days\n"
+        ),
+        "example_output": (
+            "Combined Work Duration: 6.67 days\n"
+        ),
+        "line_by_line": [
+            "`rate_a = 1 / 12`: Fraction of work A accomplishes in 1 day.",
+            "`combined_rate = rate_a + rate_b`: Sum of daily contributions.",
+            "`total_days = 1 / combined_rate`: Total days required when working simultaneously.",
+        ],
+        "summary": (
+            "Practicing daily aptitude questions is critical for clearing first-round screening tests in tech and government exams."
+        ),
+        "spoken": (
+            "Aptitude tests measure your quantitative, logical, and analytical problem-solving abilities. "
+            "They are key for campus placements and competitive examinations like GATE and SSC."
+        ),
+    },
+
     "python": {
         "title": "Python Programming Language",
         "badge": "🐍 Python",
@@ -566,15 +891,26 @@ class AcademicKnowledgeEngine:
                 matched_topic = key
                 break
 
-        # Check multi-turn context if query is a follow-up (e.g. "give me an example", "what are its features")
-        if not matched_topic and past_messages:
+        # Check multi-turn context ONLY if user's current query is an explicit follow-up
+        FOLLOW_UP_INDICATORS = [
+            "give me an example", "example", "code example", "show code",
+            "features", "applications", "syntax", "explain more",
+            "tell me more", "how does it work", "why use it", "summary",
+            "more details", "what is it used for", "explain further"
+        ]
+        is_follow_up = any(re.search(r"\b" + re.escape(p) + r"\b", clean_q) for p in FOLLOW_UP_INDICATORS)
+
+        if not matched_topic and is_follow_up and past_messages:
             last_user_msgs = [
                 m for m in past_messages if getattr(m, "sender_type", "") == "user" and getattr(m, "message_text", "") != user_query
             ]
             if last_user_msgs:
                 prev_text = normalize_query(last_user_msgs[-1].message_text)
-                for key in ACADEMIC_TOPICS.keys():
-                    if key in prev_text:
+                for key in sorted(ACADEMIC_TOPICS.keys(), key=len, reverse=True):
+                    # Never loosely match single-letter topics like 'c' from past context
+                    if len(key) <= 1:
+                        continue
+                    if re.search(r"\b" + re.escape(key) + r"\b", prev_text):
                         matched_topic = key
                         break
 
