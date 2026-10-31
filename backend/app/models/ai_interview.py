@@ -31,11 +31,38 @@ class InterviewCategoryEnum(str, enum.Enum):
     HR = "HR"
     BEHAVIORAL = "Behavioral"
 
+    @classmethod
+    def _missing_(cls, value):
+        if isinstance(value, str):
+            val_clean = value.strip().lower()
+            for member in cls:
+                if member.value.lower() == val_clean or member.name.lower() == val_clean:
+                    return member
+        return cls.TECHNICAL
+
 
 class InterviewDifficultyEnum(str, enum.Enum):
     BEGINNER = "Beginner"
     INTERMEDIATE = "Intermediate"
     ADVANCED = "Advanced"
+    MEDIUM = "Medium"
+    EASY = "Easy"
+    HARD = "Hard"
+
+    @classmethod
+    def _missing_(cls, value):
+        if isinstance(value, str):
+            val_clean = value.strip().lower()
+            if val_clean in ["medium", "intermediate"]:
+                return cls.INTERMEDIATE
+            if val_clean in ["easy", "beginner", "basic"]:
+                return cls.BEGINNER
+            if val_clean in ["hard", "advanced", "expert"]:
+                return cls.ADVANCED
+            for member in cls:
+                if member.value.lower() == val_clean or member.name.lower() == val_clean:
+                    return member
+        return cls.INTERMEDIATE
 
 
 class ExperienceLevelEnum(str, enum.Enum):
@@ -43,10 +70,29 @@ class ExperienceLevelEnum(str, enum.Enum):
     FRESHER = "Fresher"
     EXPERIENCED = "Experienced"
 
+    @classmethod
+    def _missing_(cls, value):
+        if isinstance(value, str):
+            val_clean = value.strip().lower()
+            for member in cls:
+                if member.value.lower() == val_clean or member.name.lower() == val_clean:
+                    return member
+        return cls.STUDENT
+
 
 class InterviewModeEnum(str, enum.Enum):
     TEXT = "text"
     VOICE = "voice"
+    VOICE_TEXT = "voice_text"
+
+    @classmethod
+    def _missing_(cls, value):
+        if isinstance(value, str):
+            val_clean = value.strip().lower()
+            if "voice" in val_clean:
+                return cls.VOICE
+            return cls.TEXT
+        return cls.TEXT
 
 
 class SessionStatusEnum(str, enum.Enum):

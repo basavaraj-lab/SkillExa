@@ -194,14 +194,14 @@ export default function SystemStatusScreen() {
         <View style={styles.card}>
           <Text style={styles.sectionHeader}>⚙️ Configure Backend Base URL</Text>
           <Text style={styles.inputHelp}>
-            For Expo Go on your mobile device, enter your computer's local Wi-Fi IPv4 address (e.g., http://192.168.1.10:8000):
+            SkillExa connects to the deployed Render backend by default (https://skillexa.onrender.com). For local development or Expo Go, you can enter your local IP (e.g., http://192.168.1.10:8000):
           </Text>
 
           <TextInput
             style={styles.textInput}
             value={ipInput}
             onChangeText={setIpInput}
-            placeholder="http://192.168.1.10:8000"
+            placeholder="https://skillexa.onrender.com"
             autoCapitalize="none"
             autoCorrect={false}
           />

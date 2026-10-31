@@ -1,13 +1,15 @@
 /**
  * SkillExa API Client
- * Connects the React Native frontend to the Python FastAPI Backend.
- * Supports configurable LAN IP for Android/iOS Expo devices on Wi-Fi.
+ * Connects the React Native / Expo Web frontend to the deployed Python FastAPI Backend on Render.
+ * Supports configurable LAN / Custom IP for development as well as EXPO_PUBLIC_API_URL.
  */
 
 import { useEffect, useState } from 'react';
 import { Platform } from 'react-native';
 
-// Priority: 1. Custom runtime configured IP -> 2. EXPO_PUBLIC_API_URL env -> 3. Platform default
+export const DEFAULT_BACKEND_URL = 'https://skillexa.onrender.com';
+
+// Priority: 1. Custom runtime configured URL -> 2. EXPO_PUBLIC_API_URL env -> 3. Deployed Render Backend
 let customBaseUrl: string | null = null;
 
 export const setCustomApiBaseUrl = (url: string) => {
@@ -16,21 +18,26 @@ export const setCustomApiBaseUrl = (url: string) => {
 
 export const getCustomApiBaseUrl = (): string | null => customBaseUrl;
 
-export const getApiBaseUrl = (): string => {
-  if (customBaseUrl) return `${customBaseUrl}/api`;
-  if (Platform.OS === 'web' && typeof window !== 'undefined' && window.location?.hostname) {
-    const host = window.location.hostname;
-    const protocol = window.location.protocol || 'http:';
-    return `${protocol}//${host}:8000/api`;
+export const getBackendServerUrl = (): string => {
+  if (customBaseUrl) {
+    return customBaseUrl.trim().replace(/\/+$/, '').replace(/\/api$/, '');
   }
   if (process.env.EXPO_PUBLIC_API_URL) {
-    return `${process.env.EXPO_PUBLIC_API_URL.replace(/\/+$/, '')}/api`;
+    return process.env.EXPO_PUBLIC_API_URL.trim().replace(/\/+$/, '').replace(/\/api$/, '');
   }
-  return Platform.select({
-    android: 'http://10.0.2.2:8000/api', // Android Emulator default
-    ios: 'http://localhost:8000/api',     // iOS Simulator default
-    default: 'http://localhost:8000/api', // Web browser default
-  });
+  return DEFAULT_BACKEND_URL;
+};
+
+export const getApiBaseUrl = (): string => {
+  if (customBaseUrl) {
+    const clean = customBaseUrl.trim().replace(/\/+$/, '');
+    return clean.endsWith('/api') ? clean : `${clean}/api`;
+  }
+  if (process.env.EXPO_PUBLIC_API_URL) {
+    const clean = process.env.EXPO_PUBLIC_API_URL.trim().replace(/\/+$/, '');
+    return clean.endsWith('/api') ? clean : `${clean}/api`;
+  }
+  return `${DEFAULT_BACKEND_URL}/api`;
 };
 
 let authToken: string | null = null;
@@ -252,8 +259,8 @@ async function request<T>(
       success: false,
       isOffline: true,
       message: error.name === 'AbortError'
-        ? 'Backend request timed out. Check if backend is running on the specified IP & Port.'
-        : (error.message || 'Cannot reach FastAPI backend server. Ensure PC and Phone are on the same Wi-Fi.'),
+        ? `Backend request timed out. Verify your backend server (${getApiBaseUrl()}).`
+        : (error.message || `Cannot reach backend server (${getApiBaseUrl()}). Check network connection.`),
       code: 'NETWORK_ERROR',
     };
   }
@@ -265,7 +272,7 @@ export const ApiClient = {
     try {
       const url = `${getApiBaseUrl()}/health`;
       const controller = new AbortController();
-      const timeoutId = setTimeout(() => controller.abort(), 3500);
+      const timeoutId = setTimeout(() => controller.abort(), 6000);
 
       const res = await fetch(url, { signal: controller.signal });
       clearTimeout(timeoutId);
@@ -279,7 +286,7 @@ export const ApiClient = {
       return {
         connected: false,
         message: e.message === 'Network request failed'
-          ? 'Network request failed. Ensure backend is running and phone is on the same Wi-Fi.'
+          ? `Network request failed. Verify backend server (${getApiBaseUrl()}) is reachable.`
           : (e.message || 'Backend Offline'),
       };
     }
@@ -295,7 +302,7 @@ export const ApiClient = {
     try {
       const url = `${getApiBaseUrl()}/health/fullstack`;
       const controller = new AbortController();
-      const timeoutId = setTimeout(() => controller.abort(), 4000);
+      const timeoutId = setTimeout(() => controller.abort(), 6000);
 
       const res = await fetch(url, { signal: controller.signal });
       clearTimeout(timeoutId);
@@ -322,7 +329,7 @@ export const ApiClient = {
         backendOnline: false,
         databaseConnected: false,
         details: null,
-        error: e.message || 'Could not connect to FastAPI server. Verify your IPv4 address and port 8000.',
+        error: e.message || `Could not connect to FastAPI server at ${getApiBaseUrl()}. Verify internet connection or Render status.`,
       };
     }
   },

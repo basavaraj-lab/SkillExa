@@ -16,9 +16,11 @@ class SecurityHeadersMiddleware(BaseHTTPMiddleware):
 
 def register_security_middleware(app: FastAPI):
     # 1. CORS
+    origins = settings.CORS_ORIGINS if isinstance(settings.CORS_ORIGINS, list) else ["*"]
     app.add_middleware(
         CORSMiddleware,
-        allow_origins=settings.CORS_ORIGINS if isinstance(settings.CORS_ORIGINS, list) else ["*"],
+        allow_origins=origins,
+        allow_origin_regex=r"https?://(localhost|127\.0\.0\.1|10\.\d+\.\d+\.\d+|192\.168\.\d+\.\d+|172\.(1[6-9]|2\d|3[01])\.\d+\.\d+|.*\.onrender\.com)(:\d+)?",
         allow_credentials=True,
         allow_methods=["*"],
         allow_headers=["*"],

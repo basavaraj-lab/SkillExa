@@ -21,7 +21,16 @@ class Settings(BaseSettings):
     REFRESH_TOKEN_EXPIRE_DAYS: int = 7
 
     # CORS
-    CORS_ORIGINS: Union[List[str], str] = ["*"]
+    CORS_ORIGINS: Union[List[str], str] = [
+        "http://localhost:8081",
+        "http://127.0.0.1:8081",
+        "http://localhost:3000",
+        "http://localhost:5173",
+        "http://127.0.0.1:5173",
+        "http://localhost:19006",
+        "https://skillexa.onrender.com",
+        "*",
+    ]
 
     @field_validator("CORS_ORIGINS", mode="before")
     def assemble_cors_origins(cls, v: Union[str, List[str]]) -> List[str]:

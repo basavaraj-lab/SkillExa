@@ -11,3 +11,4 @@ backend/uploads/
 .env
 .env.*
 *.env
+!.env.example
